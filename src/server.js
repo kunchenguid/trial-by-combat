@@ -33,6 +33,13 @@ export function createAppServer({ turnSeconds = 60 } = {}) {
   const state = createRuntimeState(turnSeconds);
 
   expressApp.use(express.json({ limit: '8kb' }));
+  expressApp.use((err, _req, res, next) => {
+    if (err instanceof SyntaxError && 'body' in err) {
+      res.status(400).type('text/plain').send('Malformed JSON request body.');
+      return;
+    }
+    next(err);
+  });
   expressApp.use('/assets', express.static(path.join(publicDir, 'assets')));
   expressApp.use('/client', express.static(publicDir));
 
@@ -400,7 +407,7 @@ function handlePostAction(state, slotName, req, res) {
   try {
     translated = translateAction(game, side, body, intent);
   } catch (error) {
-    res.status(400).type('text/plain').send(`Invalid action: ${error.message}`);
+    handleInvalidAction(state, side, { action_type: ACTIONS.WAIT, intent_summary: intent }, error.message, res);
     return;
   }
 
@@ -422,22 +429,7 @@ function handlePostAction(state, slotName, req, res) {
 
   const validation = validateAction(game, side, translated, { playerVisible: true });
   if (!validation.valid) {
-    state.invalidAttemptsThisTurn[side] += 1;
-    if (state.invalidAttemptsThisTurn[side] >= 2) {
-      const wait = { action_type: ACTIONS.WAIT, intent_summary: translated.intent_summary };
-      state.pendingActions.set(side, wait);
-      maybeResolveTurn(state);
-      notifyChange(state);
-      res
-        .status(200)
-        .type('text/plain')
-        .send(`Second invalid action this turn (${validation.error}). You are locked as WAIT for the turn.`);
-      return;
-    }
-    res
-      .status(400)
-      .type('text/plain')
-      .send(`Invalid action: ${validation.error}. You may retry once more this turn before being locked as WAIT.`);
+    handleInvalidAction(state, side, translated, validation.error, res);
     return;
   }
 
@@ -449,6 +441,25 @@ function handlePostAction(state, slotName, req, res) {
     .status(200)
     .type('text/plain')
     .send(`Action accepted: ${describeAction(translated)}.`);
+}
+
+function handleInvalidAction(state, side, action, error, res) {
+  state.invalidAttemptsThisTurn[side] += 1;
+  if (state.invalidAttemptsThisTurn[side] >= 2) {
+    const wait = { action_type: ACTIONS.WAIT, intent_summary: action.intent_summary };
+    state.pendingActions.set(side, wait);
+    maybeResolveTurn(state);
+    notifyChange(state);
+    res
+      .status(200)
+      .type('text/plain')
+      .send(`Second invalid action this turn (${error}). You are locked as WAIT for the turn.`);
+    return;
+  }
+  res
+    .status(400)
+    .type('text/plain')
+    .send(`Invalid action: ${error}. You may retry once more this turn before being locked as WAIT.`);
 }
 
 function handlePostLeave(state, slotName, _req, res) {

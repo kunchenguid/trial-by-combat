@@ -280,6 +280,44 @@ test('stored action intent is capped at 20 words', async () => {
   });
 });
 
+test('malformed translated actions count toward the invalid action limit', async () => {
+  await withServer(60, async (base, app) => {
+    await bothReady(base);
+
+    const first = await postJson(`${base}/player1/action`, {
+      action: 'MOVE',
+      target: 'not-a-coord',
+      intent: 'trying a bad move',
+    });
+    const second = await postJson(`${base}/player1/action`, {
+      action: 'MOVE',
+      target: 'also-bad',
+      intent: 'trying another bad move',
+    });
+
+    assert.equal(first.status, 400);
+    assert.equal(second.status, 200);
+    assert.match(second.body, /locked as WAIT/);
+    const side = app.state.series.currentGame.slotSides.player_1;
+    assert.equal(app.state.pendingActions.get(side).action_type, 'WAIT');
+  });
+});
+
+test('malformed JSON returns a plain-text 400 response', async () => {
+  await withServer(60, async (base) => {
+    const res = await getText(`${base}/player1/join`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: '{',
+    });
+
+    assert.equal(res.status, 400);
+    assert.match(res.headers.get('content-type') ?? '', /text\/plain/);
+    assert.match(res.body, /Malformed JSON request body\./);
+    assert.doesNotMatch(res.body, /<html/i);
+  });
+});
+
 test('briefing describes ATTACK as an untargeted action', async () => {
   await withServer(60, async (base) => {
     const res = await getText(`${base}/player1?nowait=true`);
