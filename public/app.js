@@ -1,58 +1,84 @@
 import { drawDetailedFloor, palette } from './assets/pixel-assets.js?v=detailed-atlas-128-clean-floor';
 import { AGENT_DUEL_ATLAS } from './assets/sprite-atlas.js?v=production-atlas-2048-v1';
 import { buildTerrainSprites } from './assets/terrain-layout.js?v=detailed-atlas-128-clean-floor';
-import { RULES } from './rules.js?v=1';
 
 const params = new URLSearchParams(window.location.search);
-const playerParam = params.get('player') ?? 'spectate';
-const role = playerParam === '1' ? 'player_1' : playerParam === '2' ? 'player_2' : playerParam;
-const name = params.get('name') ?? '';
+const playerParam = params.get('player') === 'admin' ? 'admin' : 'spectate';
+const role = playerParam;
 const state = {
   ws: null,
   role,
   latest: null,
   lastStateFingerprint: null,
-  selectedAction: null,
   xray: localStorage.getItem('xray') === 'true',
   boardRenderer: null,
   spectatorResizeBound: false,
-  playerCountdownTimer: null,
-  playerCountdownTurn: null,
-  playerCountdownEndsAt: 0,
-  playerTurnKey: null,
-  iAmReady: false,
+  lastMessageAt: 0,
+  watchdog: null,
+  timerAnchor: null,
+  timerInterval: null,
+  lastThoughts: { blue: null, red: null },
+  lastThoughtTurn: null,
+  lastScore: null,
+  nextRoundAt: null,
 };
+
+const REPO_URL = 'https://github.com/kunchenguid/agent-duel';
 
 const appEl = document.getElementById('app');
 const WIN_CONDITION_ICON_SCALE = 0.62;
 const WIN_CONDITION_BASE_SCALE = 0.82;
+const SERVER_SILENCE_MS = 30000;
 connect();
 
 function connect() {
   const wsUrl = new URL('/ws', window.location.href);
   wsUrl.protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
   wsUrl.searchParams.set('player', playerParam);
-  if (name) wsUrl.searchParams.set('name', name);
   state.ws = new WebSocket(wsUrl);
+  state.ws.addEventListener('open', () => {
+    state.lastMessageAt = Date.now();
+    clearInterval(state.watchdog);
+    state.watchdog = setInterval(() => {
+      if (Date.now() - state.lastMessageAt > SERVER_SILENCE_MS && state.ws?.readyState === WebSocket.OPEN) {
+        state.ws.close();
+      }
+    }, 5000);
+  });
   state.ws.addEventListener('message', (event) => {
+    state.lastMessageAt = Date.now();
     const message = JSON.parse(event.data);
+    if (message.type === 'heartbeat') return;
     if (message.type === 'state') {
       const fingerprint = stateFingerprint(message);
       if (fingerprint === state.lastStateFingerprint) return;
       state.lastStateFingerprint = fingerprint;
       state.latest = message;
       render();
-    } else if (message.type === 'validation_error') {
-      setError(message.error);
-    } else if (message.type === 'action_locked') {
-      setError(message.reason ? `Locked as WAIT: ${message.reason}` : 'Action locked. Waiting for opponent.');
-    } else if (message.type === 'error') {
-      setError(message.error);
     }
   });
   state.ws.addEventListener('close', () => {
+    clearInterval(state.watchdog);
+    state.watchdog = null;
+    state.latest = null;
+    state.lastStateFingerprint = null;
+    renderDisconnected();
     setTimeout(connect, 800);
   });
+}
+
+function renderDisconnected() {
+  state.boardRenderer?.destroy();
+  state.boardRenderer = null;
+  document.body.style.cssText = '';
+  appEl.style.cssText = '';
+  appEl.className = 'app';
+  appEl.innerHTML = `
+    <main class="disconnected" style="display:flex;align-items:center;justify-content:center;min-height:60vh;flex-direction:column;gap:12px;">
+      <h1 style="margin:0;">Disconnected</h1>
+      <p style="margin:0;opacity:0.7;">Reconnecting to the server...</p>
+    </main>
+  `;
 }
 
 function stateFingerprint(message) {
@@ -68,10 +94,11 @@ function render() {
   if (!message) return;
   if (message.role === 'admin') renderAdmin(message.state);
   else if (message.role === 'spectate') renderSpectator(message.state);
-  else renderPlayer(message.state);
 }
 
 function renderShell(title, subtitle, content, pills = [], options = {}) {
+  document.body.style.cssText = '';
+  appEl.style.cssText = '';
   const header =
     options.showHeader === false
       ? ''
@@ -94,268 +121,6 @@ function renderShell(title, subtitle, content, pills = [], options = {}) {
   `;
 }
 
-function renderPlayer(view) {
-  const isLobby = view.phase === 'pre_lobby' || view.phase === 'lobby';
-  if (isLobby) {
-    renderBriefing(view);
-    return;
-  }
-  const side = view.side;
-  const actionLocked = view.action_locked || view.paused || view.phase !== 'awaiting_action';
-  const turnKey = `${view.match?.game_number ?? 1}:${view.turn}`;
-  if (state.playerTurnKey !== turnKey) {
-    state.playerTurnKey = turnKey;
-    state.selectedAction = null;
-  }
-  renderShell(
-    'AGENT DUEL',
-    `${view.player_name} - you are ${side.toUpperCase()}`,
-    `
-      <main class="layout arcade-layout player-layout">
-        <section class="panel pixel-panel stack player-info-panel">
-          ${statusPanel('You', view.you, side)}
-          ${opponentPanel(view.opponent, side === 'blue' ? 'red' : 'blue')}
-        </section>
-        <section class="panel pixel-panel board-panel">
-          <div class="turn-state-banner ${actionLocked ? 'waiting' : 'active'}">${turnStateText(view)}</div>
-          <div id="board" class="board-wrap"></div>
-        </section>
-        <section class="panel pixel-panel action-panel">
-          <div class="panel-header">
-            <h2 class="panel-title">Legal Actions</h2>
-            <span class="pill gold" data-countdown>${view.turn_timer_seconds_remaining ?? '-'}s</span>
-          </div>
-          <div class="panel-body stack">
-            <div class="action-grid">
-              ${view.legal_actions.map((action) => actionButton(action, actionLocked)).join('')}
-            </div>
-            <div class="panel pixel-panel submit-panel">
-              <div class="panel-header"><h2 class="panel-title">Submit Action</h2></div>
-              <div class="panel-body stack">
-                <input id="intent" maxlength="140" placeholder="Required thought">
-                <div class="submit-row"><span class="submit-hint">Required</span><button id="submit">Submit</button></div>
-                <div id="error" class="error"></div>
-              </div>
-            </div>
-          </div>
-        </section>
-      </main>
-      ${view.paused ? pausedOverlay() : ''}
-    `,
-    [
-      { text: formatGameCount(view.match), tone: 'gold' },
-      { text: `Turn ${view.turn}` },
-      { text: view.relic.status.replaceAll('_', ' '), tone: 'gold' },
-    ],
-    { appClass: 'player-app arcade-app' },
-  );
-  hydrateBoard(viewToBoard(view), { legalActions: view.legal_actions, side });
-  for (const button of document.querySelectorAll('[data-action]')) {
-    button.addEventListener('click', () => {
-      state.selectedAction = JSON.parse(button.dataset.action);
-      render();
-    });
-  }
-  const submit = document.getElementById('submit');
-  const intent = document.getElementById('intent');
-  const updateSubmitState = () => {
-    if (submit) submit.disabled = actionLocked || !state.selectedAction || !intent?.value.trim();
-  };
-  updateSubmitState();
-  intent?.addEventListener('input', updateSubmitState);
-  submit?.addEventListener('click', () => {
-    const intentText = intent?.value.trim();
-    if (!intentText) {
-      setError('Thought is required before submitting an action.');
-      updateSubmitState();
-      return;
-    }
-    state.ws.send(
-      JSON.stringify({
-        type: 'submit_action',
-        action: {
-          ...state.selectedAction,
-          intent_summary: intentText.split(/\s+/).slice(0, 20).join(' '),
-        },
-      }),
-    );
-  });
-  startPlayerCountdown(view.turn_timer_seconds_remaining);
-}
-
-function renderBriefing(view) {
-  const side = view.side;
-  const otherSide = side === 'blue' ? 'red' : 'blue';
-  const playerName = view.player_name || `Player ${view.slot === 'player_1' ? '1' : '2'}`;
-  const ready = state.iAmReady;
-  renderShell(
-    'AGENT DUEL',
-    `${playerName} — you are ${side.toUpperCase()}`,
-    `
-      <main class="briefing arcade-layout">
-        <section class="briefing-hero panel pixel-panel ${side}">
-          <div class="briefing-hero-text">
-            <span class="briefing-eyebrow">Briefing</span>
-            <h2 class="briefing-title">Capture the Relic</h2>
-            <p class="briefing-goal">${escapeHtml(RULES.goal)}</p>
-          </div>
-          <div class="briefing-hero-art">
-            ${spriteMarkup(`agent_${side}_idle_0`, 1.4, `briefing-agent ${side}`)}
-            <div class="briefing-vs">vs</div>
-            ${spriteMarkup(`agent_${otherSide}_idle_0`, 1.4, `briefing-agent ${otherSide}`)}
-          </div>
-        </section>
-
-        <section class="briefing-grid">
-          <div class="briefing-col briefing-col-left">
-            <article class="panel pixel-panel briefing-section">
-              <div class="panel-header"><h3 class="panel-title">Each Turn Resolves In Order</h3></div>
-              <div class="panel-body">
-                <ol class="briefing-order">
-                  ${RULES.resolutionOrder
-                    .map(
-                      (step, i) => `
-                    <li>
-                      <span class="briefing-order-num">${i + 1}</span>
-                      <div>
-                        <strong>${escapeHtml(step.label)}</strong>
-                        <p>${escapeHtml(step.detail)}</p>
-                      </div>
-                    </li>
-                  `,
-                    )
-                    .join('')}
-                </ol>
-              </div>
-            </article>
-
-            <article class="panel pixel-panel briefing-section">
-              <div class="panel-header"><h3 class="panel-title">Tiles</h3></div>
-              <div class="panel-body">
-                <ul class="briefing-list">
-                  ${RULES.tiles
-                    .map(
-                      (tile) => `
-                    <li>
-                      ${tile.sprite ? spriteMarkup(tile.sprite, 0.5, 'briefing-icon') : '<span class="briefing-icon-placeholder"></span>'}
-                      <div>
-                        <strong>${escapeHtml(tile.name)}</strong>
-                        <p>${escapeHtml(tile.effect)}</p>
-                      </div>
-                    </li>
-                  `,
-                    )
-                    .join('')}
-                </ul>
-              </div>
-            </article>
-          </div>
-
-          <div class="briefing-col briefing-col-center">
-            <article class="panel pixel-panel briefing-section briefing-map-card">
-              <div class="panel-header"><h3 class="panel-title">Starting Layout</h3></div>
-              <div class="panel-body briefing-map-body">
-                <div id="board" class="board-wrap briefing-board"></div>
-                <p class="briefing-map-caption">You spawn on the ${side.toUpperCase()} side. The relic starts at ${escapeHtml(view.relic?.position ?? '?')}.</p>
-              </div>
-            </article>
-
-            <article class="panel pixel-panel briefing-section briefing-gotchas">
-              <div class="panel-header"><h3 class="panel-title">Things People Get Wrong</h3></div>
-              <div class="panel-body">
-                <ul class="briefing-gotcha-list">
-                  ${RULES.gotchas.map((g) => `<li>${escapeHtml(g)}</li>`).join('')}
-                </ul>
-              </div>
-            </article>
-          </div>
-
-          <div class="briefing-col briefing-col-right">
-            <article class="panel pixel-panel briefing-section">
-              <div class="panel-header"><h3 class="panel-title">Actions</h3></div>
-              <div class="panel-body briefing-actions">
-                ${RULES.actionGroups
-                  .map(
-                    (group) => `
-                  <div class="briefing-action-group">
-                    <h4>${escapeHtml(group.title)}</h4>
-                    <ul class="briefing-list">
-                      ${group.items
-                        .map(
-                          (item) => `
-                        <li>
-                          ${item.sprite ? spriteMarkup(briefingSpriteFor(item.sprite, side), 0.46, 'briefing-icon') : '<span class="briefing-icon-placeholder"></span>'}
-                          <div>
-                            <strong>${escapeHtml(item.name)}</strong>
-                            <p>${escapeHtml(item.effect)}</p>
-                          </div>
-                        </li>
-                      `,
-                        )
-                        .join('')}
-                    </ul>
-                  </div>
-                `,
-                  )
-                  .join('')}
-              </div>
-            </article>
-
-            <article class="panel pixel-panel briefing-section">
-              <div class="panel-header"><h3 class="panel-title">You Start With</h3></div>
-              <div class="panel-body">
-                <div class="briefing-inventory">
-                  ${RULES.startingInventory
-                    .map(
-                      (item) => `
-                    <div class="briefing-inv-chip">
-                      ${spriteMarkup(briefingSpriteFor(item.sprite, side), 0.5)}
-                      <strong>x${item.count}</strong>
-                      <span>${escapeHtml(item.kind.toUpperCase())}</span>
-                    </div>
-                  `,
-                    )
-                    .join('')}
-                </div>
-                <p class="briefing-health">${escapeHtml(RULES.health.summary)}</p>
-              </div>
-            </article>
-          </div>
-        </section>
-
-        <section class="briefing-cta panel pixel-panel ${side}">
-          ${
-            ready
-              ? `<div class="briefing-waiting"><span class="briefing-spinner" aria-hidden="true"></span><strong>Waiting for opponent…</strong><p>The match starts the moment they hit Ready.</p></div>`
-              : `<div class="briefing-cta-text"><strong>Read the briefing, then jump in.</strong><p>Once both sides are ready, the match starts and the rest of the page becomes the gameplay HUD.</p></div>
-               <button id="ready" class="briefing-ready ${side}">Ready</button>`
-          }
-        </section>
-      </main>
-    `,
-    [
-      { text: formatGameCount(view.match), tone: 'gold' },
-      { text: `You are ${side.toUpperCase()}` },
-      { text: ready ? 'WAITING' : 'BRIEFING' },
-    ],
-    { appClass: 'player-app arcade-app briefing-app' },
-  );
-
-  hydrateBoard(viewToBoard(view), { side });
-
-  document.getElementById('ready')?.addEventListener('click', () => {
-    state.iAmReady = true;
-    state.ws.send(JSON.stringify({ type: 'ready' }));
-    render();
-  });
-}
-
-function briefingSpriteFor(spriteName, side) {
-  if (!spriteName) return null;
-  if (spriteName.startsWith('tool_')) return spriteName.replace('tool_', `tool_${side}_`);
-  return spriteName;
-}
-
 function renderSpectator(view) {
   const board = view.full_board_state;
   const bluePlayer = board.players.blue;
@@ -369,29 +134,29 @@ function renderSpectator(view) {
       : `
       <main class="spectator-layout spectator-hud">
         <section class="broadcast-title">
-          <div class="broadcast-rule pixel-panel">${escapeHtml(formatGameCount(view.match))}<span class="broadcast-score">Score ${escapeHtml(scoreText(view.match, board))}</span></div>
+          <div class="broadcast-rule pixel-panel">${escapeHtml(formatGameCount(view.match))}</div>
           <div>
             <h2>AGENT DUEL</h2>
             <div class="series-score">
-              <span>SERIES SCORE</span>
               <strong class="blue-score">${scoreForSide(view.match, board, 'blue')}</strong>
-              <b>-</b>
+              <a class="series-score-url" href="${REPO_URL}" target="_blank" rel="noopener">${escapeHtml(REPO_URL)}</a>
               <strong class="red-score">${scoreForSide(view.match, board, 'red')}</strong>
             </div>
           </div>
-          <div class="broadcast-rule pixel-panel">Turn ${view.turn}</div>
+          <div class="broadcast-rule pixel-panel">Turn ${view.turn}<span class="broadcast-timer" data-turn-timer>${formatTimer(view.timer_seconds_remaining)}</span></div>
         </section>
         <section class="story-banner pixel-panel">
           ${spriteMarkup('relic_0', 0.72, 'story-relic')}
-          <strong>${escapeHtml(storyBannerText(board))}</strong>
+          <strong>${escapeHtml(storyBannerText(board, view.lobby))}</strong>
         </section>
-        ${spectatorPlayerPanel('blue', bluePlayer)}
+        ${spectatorPlayerPanel('blue', bluePlayer, view.timer_seconds_remaining, view.lobby)}
         <section class="board-frame pixel-panel">
           <div class="axis top-axis">${axisLabels('A', 'I')}</div>
           <div id="board" class="board-wrap broadcast-board"></div>
           <div class="axis bottom-axis">${axisLabels('A', 'I')}</div>
+          ${roundEndOverlay(view, board)}
         </section>
-        ${spectatorPlayerPanel('red', redPlayer)}
+        ${spectatorPlayerPanel('red', redPlayer, view.timer_seconds_remaining, view.lobby)}
         <section class="lower-hud">
           <div class="hud-card pixel-panel event-hud">
             <h3>What Just Happened</h3>
@@ -421,11 +186,124 @@ function renderSpectator(view) {
     { showHeader: false, appClass: 'spectator-app' },
   );
   fitSpectatorViewport();
+  resetTurnTimer(view, board);
+  flashNewThoughts(view, board);
+  flashScoreChanges(view, board);
   if (waiting) {
     hydrateBoard(board, { xray: true });
   } else {
-    hydrateBoard(board, { xray: state.xray });
+    hydrateBoard(board, {
+      xray: state.xray,
+      events: view.public_events,
+      gameNumber: view.match?.game_number,
+    });
   }
+}
+
+function flashScoreChanges(view, board) {
+  const score = view.match?.score;
+  if (!score) return;
+  const next = { player_1: score.player_1 ?? 0, player_2: score.player_2 ?? 0 };
+  const prev = state.lastScore;
+  state.lastScore = next;
+  if (!prev) return;
+  for (const slot of ['player_1', 'player_2']) {
+    if (next[slot] > prev[slot]) {
+      const side = board?.players?.blue?.slot === slot ? 'blue' : 'red';
+      const el = document.querySelector(`.${side}-score`);
+      if (!el) continue;
+      el.classList.remove('score-flash');
+      void el.offsetWidth;
+      el.classList.add('score-flash');
+      setTimeout(() => el.classList.remove('score-flash'), 1600);
+    }
+  }
+}
+
+function flashNewThoughts(view, board) {
+  if (view.turn !== state.lastThoughtTurn) {
+    state.lastThoughts = { blue: null, red: null };
+    state.lastThoughtTurn = view.turn;
+  }
+  for (const side of ['blue', 'red']) {
+    const thought = board?.players?.[side]?.action_thought ?? null;
+    if (thought && thought !== state.lastThoughts[side]) {
+      state.lastThoughts[side] = thought;
+      const el = document.querySelector(`.player-hud.${side}`);
+      if (!el) continue;
+      el.classList.remove('thought-flash');
+      void el.offsetWidth;
+      el.classList.add('thought-flash');
+      setTimeout(() => el.classList.remove('thought-flash'), 800);
+    } else if (!thought) {
+      state.lastThoughts[side] = null;
+    }
+  }
+}
+
+function resetTurnTimer(view, board) {
+  state.nextRoundAt = typeof view.next_round_at === 'number' ? view.next_round_at : null;
+  const paused = Boolean(view.paused);
+  const seconds = view.timer_seconds_remaining;
+  const turn = view.turn;
+  const prev = state.timerAnchor;
+  const sameTurn = prev && prev.turn === turn && prev.turnSeconds != null;
+  const turnSeconds = sameTurn ? prev.turnSeconds : typeof seconds === 'number' ? seconds : null;
+  state.timerAnchor = {
+    seconds: typeof seconds === 'number' ? seconds : null,
+    turnSeconds,
+    turn,
+    receivedAt: Date.now(),
+    paused,
+    statuses: {
+      blue: board?.players?.blue?.action_status ?? 'thinking',
+      red: board?.players?.red?.action_status ?? 'thinking',
+    },
+  };
+  paintTurnTimer();
+  if (!state.timerInterval) {
+    state.timerInterval = setInterval(paintTurnTimer, 1000);
+  }
+}
+
+function paintTurnTimer() {
+  paintNextRoundCountdown();
+  const anchor = state.timerAnchor;
+  const turnEl = document.querySelector('[data-turn-timer]');
+  const blueEl = document.querySelector('[data-status-timer="blue"]');
+  const redEl = document.querySelector('[data-status-timer="red"]');
+  if (!turnEl && !blueEl && !redEl) return;
+  if (!anchor || anchor.seconds == null) {
+    if (turnEl) turnEl.textContent = '';
+    if (blueEl) blueEl.textContent = '';
+    if (redEl) redEl.textContent = '';
+    return;
+  }
+  const elapsed = anchor.paused ? 0 : Math.floor((Date.now() - anchor.receivedAt) / 1000);
+  const remaining = Math.max(0, anchor.seconds - elapsed);
+  const turnElapsed = anchor.turnSeconds != null ? Math.max(0, anchor.turnSeconds - remaining) : 0;
+  const remainingLabel = formatTimer(remaining);
+  const elapsedLabel = formatTimer(turnElapsed);
+  if (turnEl) turnEl.textContent = remainingLabel;
+  if (blueEl) blueEl.textContent = anchor.statuses.blue === 'ready' ? '' : elapsedLabel;
+  if (redEl) redEl.textContent = anchor.statuses.red === 'ready' ? '' : elapsedLabel;
+}
+
+function paintNextRoundCountdown() {
+  const el = document.querySelector('[data-next-round-countdown]');
+  if (!el) return;
+  const target = state.nextRoundAt;
+  if (typeof target !== 'number') {
+    el.textContent = '';
+    return;
+  }
+  const remaining = Math.max(0, Math.ceil((target - Date.now()) / 1000));
+  el.textContent = remaining > 0 ? `Next Round In ${remaining}` : 'Starting...';
+}
+
+function formatTimer(seconds) {
+  if (seconds == null || Number.isNaN(seconds)) return '';
+  return `${Math.max(0, Math.floor(seconds))}s`;
 }
 
 function fitSpectatorViewport() {
@@ -440,40 +318,6 @@ function fitSpectatorViewport() {
     window.addEventListener('resize', updateScale);
     state.spectatorResizeBound = true;
   }
-}
-
-function turnStateText(view) {
-  if (view.paused) return 'PAUSED';
-  if (view.action_locked) return 'WAITING FOR OPPONENT';
-  if (view.phase === 'awaiting_action') return 'YOUR TURN';
-  if (view.phase === 'pre_lobby' || view.phase === 'lobby') return 'LOBBY';
-  return 'WAITING FOR OPPONENT';
-}
-
-function startPlayerCountdown(initialSeconds) {
-  const countdown = document.querySelector('[data-countdown]');
-  if (!countdown) {
-    clearInterval(state.playerCountdownTimer);
-    state.playerCountdownTimer = null;
-    return;
-  }
-  const seconds = initialSeconds == null ? NaN : Number(initialSeconds);
-  const turn = state.latest?.state?.turn ?? 0;
-  if (Number.isFinite(seconds) && state.playerCountdownTurn !== turn) {
-    state.playerCountdownTurn = turn;
-    state.playerCountdownEndsAt = Date.now() + seconds * 1000;
-  }
-  const update = () => {
-    if (!Number.isFinite(seconds)) {
-      countdown.textContent = '-s';
-      return;
-    }
-    const remaining = Math.max(0, Math.ceil((state.playerCountdownEndsAt - Date.now()) / 1000));
-    countdown.textContent = `${remaining}s`;
-  };
-  update();
-  clearInterval(state.playerCountdownTimer);
-  state.playerCountdownTimer = setInterval(update, 250);
 }
 
 function scoreText(match, board) {
@@ -522,7 +366,11 @@ function renderAdmin(view) {
     ],
     { appClass: 'admin-app arcade-app' },
   );
-  hydrateBoard(view.current_game.full_board_state, { xray: true });
+  hydrateBoard(view.current_game.full_board_state, {
+    xray: true,
+    events: view.current_game.public_events,
+    gameNumber: view.current_game.match?.game_number,
+  });
   for (const button of document.querySelectorAll('[data-admin]')) {
     button.addEventListener('click', () => {
       state.ws.send(
@@ -547,6 +395,9 @@ function hydrateBoard(boardState, options = {}) {
     state.boardRenderer.attach(target);
   }
   state.boardRenderer.draw(boardState, options);
+  if (options.events) {
+    state.boardRenderer.applyEvents(options.events, boardState, options.gameNumber);
+  }
 }
 
 class BoardRenderer {
@@ -554,6 +405,10 @@ class BoardRenderer {
     this.target = target;
     this.size = size;
     this.animatedActors = [];
+    this.fxActors = [];
+    this.heroPoses = { blue: null, red: null };
+    this.lastEventSeq = -1;
+    this.lastGameNumber = null;
     this.tick = this.tick.bind(this);
     this.app = new PIXI.Application();
     this.ready = this.app
@@ -611,7 +466,6 @@ class BoardRenderer {
     this.highlightLayer.removeChildren();
     this.agentLayer.removeChildren();
     this.carriedRelicLayer.removeChildren();
-    this.fxLayer.removeChildren();
     this.uiLayer.removeChildren();
     this.animatedActors = [];
     const cell = this.size / 9;
@@ -659,12 +513,26 @@ class BoardRenderer {
             height: cell * 0.66,
             animationKind: 'relic',
           });
-        if (sprite.kind === 'hero')
-          this.addWorldActor(this.agentLayer, x + cell * 0.5, y + cell * 1.02, sprite, {
-            animationName: agentAnimationName(sprite.side, sprite.carrying),
+        if (sprite.kind === 'hero') {
+          const baseAnim = agentAnimationName(sprite.side, sprite.carrying, sprite.stunned);
+          const pose = this.heroPoses[sprite.side];
+          const useAnim = pose && pose.expiresAt > performance.now() ? pose.animationName : baseAnim;
+          const heroActor = this.addWorldActor(this.agentLayer, x + cell * 0.5, y + cell * 1.02, sprite, {
+            animationName: useAnim,
             height: cell * 1.08,
-            animationKind: 'hero',
+            animationKind: sprite.stunned ? 'hero_stunned' : 'hero',
           });
+          heroActor.heroSide = sprite.side;
+          heroActor.basePoseAnimation = baseAnim;
+          heroActor.poseExpiresAt = useAnim === baseAnim ? null : pose.expiresAt;
+          if (sprite.stunned) {
+            this.addWorldActor(this.agentLayer, x + cell * 0.5, y + cell * 0.32, sprite, {
+              animationName: 'fx_spark_gold',
+              height: cell * 0.55,
+              animationKind: 'aura',
+            });
+          }
+        }
       });
     }
     for (const action of options.legalActions ?? []) {
@@ -710,6 +578,15 @@ class BoardRenderer {
       actor.y = actor.baseY;
       actor.alpha = 1;
       actor.scale.set(actor.baseScale);
+      if (actor.animationKind === 'hero' && actor.poseExpiresAt && frameNow > actor.poseExpiresAt) {
+        const baseAnim = AGENT_DUEL_ATLAS.animations[actor.basePoseAnimation];
+        if (baseAnim) {
+          actor.animation = baseAnim;
+          actor.animationName = actor.basePoseAnimation;
+        }
+        actor.poseExpiresAt = null;
+        if (actor.heroSide && this.heroPoses[actor.heroSide]) this.heroPoses[actor.heroSide] = null;
+      }
       if (actor.animation) {
         const frameIndex = Math.floor(t * actor.animation.fps) % actor.animation.frames.length;
         const nextFrame = actor.animation.frames[frameIndex];
@@ -723,6 +600,14 @@ class BoardRenderer {
         actor.scale.set(actor.baseScale);
         actor.y = actor.baseY + Math.sin(t * 4.4) * 1.4;
         actor.alpha = actor.hiddenInBush ? 0.5 : 1;
+      } else if (actor.animationKind === 'hero_stunned') {
+        actor.scale.set(actor.baseScale);
+        actor.x = actor.baseX + Math.sin(t * 2.1) * 0.6;
+        actor.alpha = 0.85;
+      } else if (actor.animationKind === 'aura') {
+        actor.scale.set(actor.baseScale * (1 + Math.sin(t * 4.2) * 0.06));
+        actor.y = actor.baseY + Math.sin(t * 3.1) * 1.5;
+        actor.alpha = 0.85 + Math.sin(t * 5.7) * 0.15;
       } else if (actor.animationKind === 'relic') {
         const pulse = 1 + Math.sin(t * 3.6) * 0.045;
         actor.y = actor.baseY + Math.sin(t * 2.8) * 2;
@@ -738,6 +623,177 @@ class BoardRenderer {
       } else if (actor.animationKind === 'fire') {
         actor.scale.set(actor.baseScale * (1 + Math.sin(t * 8.2) * 0.03));
       }
+    }
+    for (let i = this.fxActors.length - 1; i >= 0; i -= 1) {
+      const fx = this.fxActors[i];
+      const elapsed = frameNow - fx.t0;
+      if (elapsed >= fx.lifetime) {
+        fx.sprite.destroy();
+        this.fxActors.splice(i, 1);
+        continue;
+      }
+      if (fx.animation) {
+        const frames = fx.animation.frames;
+        const totalFrames = frames.length;
+        const stepped = Math.floor((elapsed / 1000) * fx.animation.fps);
+        const frameIndex = fx.animation.loop ? stepped % totalFrames : Math.min(totalFrames - 1, stepped);
+        const nextFrame = frames[frameIndex];
+        if (fx.sprite.currentFrame !== nextFrame) {
+          fx.sprite.texture = this.atlas.texture(nextFrame);
+          fx.sprite.currentFrame = nextFrame;
+        }
+      }
+      const progress = elapsed / fx.lifetime;
+      if (fx.fade) fx.sprite.alpha = (fx.alpha ?? 1) * (1 - progress);
+      if (fx.scaleGrow) fx.sprite.scale.set(fx.baseScale * (1 + progress * fx.scaleGrow));
+    }
+  }
+
+  spawnFx(animationOrFrame, x, y, options = {}) {
+    const animation = AGENT_DUEL_ATLAS.animations[animationOrFrame] ?? null;
+    const frameName = animation ? animation.frames[0] : animationOrFrame;
+    const sprite = this.atlas.createSprite(frameName);
+    sprite.anchor.set(options.anchorX ?? 0.5, options.anchorY ?? 0.5);
+    sprite.x = Math.round(x);
+    sprite.y = Math.round(y);
+    const cell = this.size / 9;
+    const targetSize = options.size ?? cell * 0.95;
+    const frame = AGENT_DUEL_ATLAS.frames[frameName];
+    const baseScale = targetSize / frame.h;
+    sprite.scale.set(baseScale);
+    sprite.alpha = options.alpha ?? 1;
+    this.fxLayer.addChild(sprite);
+    const lifetime = options.lifetime ?? (animation ? (animation.frames.length / animation.fps) * 1000 : 600);
+    this.fxActors.push({
+      sprite,
+      animation,
+      t0: performance.now(),
+      lifetime,
+      fade: options.fade ?? false,
+      alpha: options.alpha ?? 1,
+      baseScale,
+      scaleGrow: options.scaleGrow ?? 0,
+    });
+    return sprite;
+  }
+
+  async applyEvents(events, board, gameNumber) {
+    await this.ready;
+    if (!Array.isArray(events) || events.length === 0) return;
+    if (gameNumber !== this.lastGameNumber) {
+      this.lastGameNumber = gameNumber;
+      this.lastEventSeq = -1;
+      for (const fx of this.fxActors) fx.sprite.destroy();
+      this.fxActors = [];
+      this.heroPoses = { blue: null, red: null };
+    }
+    for (const event of events) {
+      if (typeof event.seq !== 'number' || event.seq <= this.lastEventSeq) continue;
+      this.dispatchEvent(event, board);
+      this.lastEventSeq = event.seq;
+    }
+  }
+
+  dispatchEvent(event, board) {
+    const cell = this.size / 9;
+    const tileCenter = (coord) => {
+      if (!coord) return null;
+      const { x, y } = coordPoint(coord);
+      return { x: x * cell + cell * 0.5, y: y * cell + cell * 0.5 };
+    };
+    const opponent = (side) => (side === 'blue' ? 'red' : 'blue');
+    const sideOf = event.actor;
+    const actorPos = sideOf ? board?.players?.[sideOf]?.position : null;
+    switch (event.event_type) {
+      case 'attack': {
+        if (sideOf) {
+          this.heroPoses[sideOf] = {
+            animationName: `agent_${sideOf}_attack`,
+            expiresAt: performance.now() + 500,
+          };
+        }
+        const oppPos = sideOf ? board?.players?.[opponent(sideOf)]?.position : null;
+        const target = tileCenter(oppPos);
+        if (target) {
+          this.spawnFx('fx_hit', target.x, target.y, { size: cell * 1.05, lifetime: 360 });
+          this.spawnFx('target_marker', target.x, target.y, {
+            size: cell * 0.95,
+            lifetime: 1400,
+            fade: true,
+            alpha: 0.85,
+          });
+        }
+        break;
+      }
+      case 'attack_miss': {
+        if (sideOf) {
+          this.heroPoses[sideOf] = {
+            animationName: `agent_${sideOf}_attack`,
+            expiresAt: performance.now() + 500,
+          };
+        }
+        break;
+      }
+      case 'trap_triggered': {
+        const here = tileCenter(actorPos);
+        if (here) {
+          this.spawnFx('trap_trigger', here.x, here.y + cell * 0.1, { size: cell * 1.1, lifetime: 450 });
+          this.spawnFx('fx_hit', here.x, here.y, { size: cell * 1.05, lifetime: 360 });
+          this.spawnFx('danger_marker', here.x, here.y, { size: cell * 0.95, lifetime: 1400, fade: true, alpha: 0.85 });
+        }
+        break;
+      }
+      case 'scan':
+      case 'scan_trap':
+      case 'scan_opponent': {
+        const here = tileCenter(actorPos);
+        if (here) this.spawnFx('fx_scan', here.x, here.y, { size: cell * 2.2, lifetime: 500 });
+        break;
+      }
+      case 'move': {
+        if (event.meta?.dashed && event.meta.from && sideOf) {
+          const from = tileCenter(event.meta.from);
+          if (from) this.spawnFx(`fx_dash_${sideOf}`, from.x, from.y, { size: cell * 1.05, lifetime: 360, fade: true });
+        }
+        break;
+      }
+      case 'fire_damage': {
+        const here = tileCenter(actorPos);
+        if (here) this.spawnFx('fx_hit', here.x, here.y, { size: cell * 0.75, lifetime: 320 });
+        break;
+      }
+      case 'damage': {
+        const here = tileCenter(actorPos);
+        if (here && sideOf)
+          this.spawnFx(`fx_spark_${sideOf}`, here.x, here.y - cell * 0.2, {
+            size: cell * 0.9,
+            lifetime: 360,
+            fade: true,
+          });
+        break;
+      }
+      case 'knockout': {
+        const here = tileCenter(actorPos);
+        if (here) {
+          this.spawnFx('fx_spark_gold', here.x, here.y - cell * 0.25, { size: cell * 1.15, lifetime: 600, fade: true });
+          this.spawnFx('fx_hit', here.x, here.y, { size: cell * 1.0, lifetime: 360 });
+        }
+        break;
+      }
+      case 'relic_picked_up':
+      case 'relic_dropped': {
+        const here = tileCenter(actorPos);
+        if (here)
+          this.spawnFx('fx_spark_gold', here.x, here.y - cell * 0.3, { size: cell * 1.15, lifetime: 600, fade: true });
+        break;
+      }
+      case 'respawn': {
+        const here = tileCenter(actorPos);
+        if (here) this.spawnFx('fx_dust', here.x, here.y, { size: cell * 1.1, lifetime: 500, fade: true });
+        break;
+      }
+      default:
+        break;
     }
   }
 }
@@ -851,7 +907,8 @@ function buildRenderList(board, options) {
   return sprites.sort((a, b) => a.depth - b.depth);
 }
 
-function agentAnimationName(side, carrying) {
+function agentAnimationName(side, carrying, stunned) {
+  if (stunned) return `agent_${side}_stunned`;
   if (side === 'blue' && carrying) return 'agent_blue_carry_idle';
   if (side === 'blue') return 'agent_blue_idle';
   if (carrying) return 'agent_red_carry_idle';
@@ -875,48 +932,6 @@ function coordPoint(coord) {
   return { x: coord.charCodeAt(0) - 65, y: Number(coord.slice(1)) - 1 };
 }
 
-function viewToBoard(view) {
-  const traps = [
-    ...view.known_tiles.own_traps.map((coord) => ({ coord, owner: view.side, visible: true })),
-    ...view.known_tiles.known_enemy_traps.map((coord) => ({
-      coord,
-      owner: view.side === 'blue' ? 'red' : 'blue',
-      visible: true,
-    })),
-  ];
-  return {
-    size: 9,
-    bases: { blue: ['A4', 'A5', 'A6'], red: ['I4', 'I5', 'I6'] },
-    walls: view.known_tiles.walls,
-    bushes: view.known_tiles.bushes,
-    fire: view.known_tiles.fire,
-    traps,
-    relic: { position: view.relic.position },
-    players: {
-      [view.side]: {
-        position: view.you.position,
-        carrying_relic: view.you.carrying_relic,
-        stunned: view.you.stunned,
-        hiddenInBush: false,
-      },
-      [view.side === 'blue' ? 'red' : 'blue']: {
-        position: view.opponent.visible ? view.opponent.position : null,
-        carrying_relic: view.opponent.carrying_relic,
-        stunned: false,
-        hiddenInBush: false,
-      },
-    },
-  };
-}
-
-function actionButton(action, disabled) {
-  const selected = state.selectedAction && JSON.stringify(state.selectedAction) === JSON.stringify(action);
-  const label = action.target
-    ? `${action.action_type.replace('_', ' ')} ${action.target}`
-    : action.action_type.replaceAll('_', ' ');
-  return `<button data-action="${escapeHtml(JSON.stringify(action))}" class="${selected ? 'selected' : ''}" ${disabled ? 'disabled' : ''}>${escapeHtml(label)}</button>`;
-}
-
 function formatGameCount(match) {
   const bestOf = (match.best_of ?? Number(String(match.format ?? 'BO1').replace('BO', ''))) || 1;
   return `GAME ${match.game_number} / ${bestOf}`;
@@ -927,12 +942,61 @@ function scoreForSide(match, board, side) {
   return match.score?.[slot] ?? 0;
 }
 
-function storyBannerText(board) {
+function roundEndOverlay(view, board) {
+  const isGameEnd = view.phase === 'game_end';
+  const isSeriesEnd = view.phase === 'series_end';
+  if (!isGameEnd && !isSeriesEnd) return '';
+  if (isSeriesEnd) {
+    const slot = view.match?.series_winner;
+    const name = slot ? (view.lobby?.slots?.[slot]?.name ?? slot) : null;
+    const headline = name ? `${name} Wins The Series` : 'Series Complete';
+    const sub = `Final Score ${view.match.score?.player_1 ?? 0} - ${view.match.score?.player_2 ?? 0}`;
+    return `
+      <div class="round-end-banner series-end">
+        <div class="round-end-tag">SERIES OVER</div>
+        <h2>${escapeHtml(headline)}</h2>
+        <div class="round-end-sub">${escapeHtml(sub)}</div>
+      </div>
+    `;
+  }
+  const winnerSide = view.winner;
+  const replay = Boolean(view.replay_required);
+  const winnerName = winnerSide ? agentName(winnerSide, board, view.lobby) : null;
+  const headline = replay ? 'Round Replayed' : winnerName ? `${winnerName} Captured The Relic` : 'Round Complete';
+  const sideClass = winnerSide ? `winner-${winnerSide}` : '';
+  const trash = view.trash_talk ?? {};
+  const blueSlot = board?.players?.blue?.slot;
+  const redSlot = board?.players?.red?.slot;
+  const blueTrash = blueSlot ? trash[blueSlot] : null;
+  const redTrash = redSlot ? trash[redSlot] : null;
+  const blueName = agentName('blue', board, view.lobby);
+  const redName = agentName('red', board, view.lobby);
+  const trashRow =
+    blueTrash || redTrash
+      ? `<div class="round-end-trash">
+        ${blueTrash ? `<div class="trash-bubble blue"><span class="trash-name">${escapeHtml(blueName)}</span><span class="trash-text">${escapeHtml(blueTrash)}</span></div>` : ''}
+        ${redTrash ? `<div class="trash-bubble red"><span class="trash-name">${escapeHtml(redName)}</span><span class="trash-text">${escapeHtml(redTrash)}</span></div>` : ''}
+      </div>`
+      : '';
+  const tail =
+    typeof view.next_round_at === 'number'
+      ? `<div class="round-end-countdown" data-next-round-countdown></div>`
+      : `<div class="round-end-sub">Score ${view.match.score?.player_1 ?? 0} - ${view.match.score?.player_2 ?? 0} - Waiting For Both Players To Ready Up</div>`;
+  return `
+    <div class="round-end-banner ${sideClass}">
+      <div class="round-end-tag">ROUND ${view.match?.game_number ?? ''} OVER</div>
+      <h2>${escapeHtml(headline)}</h2>
+      ${trashRow}
+      ${tail}
+    </div>
+  `;
+}
+
+function storyBannerText(board, lobby) {
   const carrier = board.relic?.carriedBy;
   if (carrier && board.players[carrier]?.position) {
     const distance = nearestBaseDistance(board.players[carrier].position, board.bases[carrier]);
-    if (carrier === 'blue') return `Codex Blue Has The Relic - ${distance} Tiles From Home`;
-    return `Codex Red Has The Relic - ${distance} Tiles From Home`;
+    return `${agentName(carrier, board, lobby)} Has The Relic - ${distance} Tiles From Home`;
   }
   if (board.relic?.position) return `The Relic Is Loose At ${board.relic.position} - Both Agents Are Closing In`;
   return 'The Relic Is Contested - Both Agents Are Looking For The Handoff';
@@ -948,8 +1012,11 @@ function nearestBaseDistance(coord, bases) {
   );
 }
 
-function agentName(side) {
-  return side === 'blue' ? 'Codex Blue' : 'Codex Red';
+function agentName(side, board, lobby) {
+  const slot = board?.players?.[side]?.slot;
+  const lobbyName = slot ? lobby?.slots?.[slot]?.name : null;
+  if (lobbyName) return lobbyName;
+  return side === 'blue' ? 'Blue' : 'Red';
 }
 
 function spriteMarkup(frameName, scale = 1, className = '') {
@@ -1008,50 +1075,12 @@ function legendGrid() {
   return `<div class="legend-grid">${items.map(([frame, label]) => `<span>${spriteMarkup(frame, 0.42)}${escapeHtml(label)}</span>`).join('')}</div>`;
 }
 
-function statusPanel(title, player, side) {
-  return `
-    <div class="panel pixel-panel player-card ${side}">
-      <div class="panel-header"><h2 class="panel-title">${escapeHtml(title)}</h2><span class="pill ${side}">${escapeHtml(side.toUpperCase())}</span></div>
-      <div class="panel-body stack">
-        <div class="status-grid">
-          <div class="stat"><div class="stat-label">Position</div><div class="stat-value">${escapeHtml(player.position ?? 'Hidden')}</div></div>
-          <div class="stat"><div class="stat-label">Relic</div><div class="stat-value">${player.carrying_relic ? 'Carrying' : 'No'}</div></div>
-          <div class="stat"><div class="stat-label">Health</div><div class="stat-value">${player.health ?? '?'} / ${player.max_health ?? 10}</div><div class="health"><span style="width:${((player.health ?? 0) / (player.max_health ?? 10)) * 100}%"></span></div></div>
-          <div class="stat"><div class="stat-label">State</div><div class="stat-value">${player.stunned ? 'Stunned' : 'Ready'}</div></div>
-        </div>
-        ${
-          player.inventory
-            ? `<div class="pill-row">${Object.entries(player.inventory)
-                .map(([k, v]) => `<span class="pill">${escapeHtml(k)} x${v}</span>`)
-                .join('')}</div>`
-            : ''
-        }
-      </div>
-    </div>
-  `;
-}
-
-function opponentPanel(opponent, side) {
-  return statusPanel(
-    'Opponent',
-    {
-      position: opponent.visible ? opponent.position : 'Hidden',
-      carrying_relic: opponent.carrying_relic,
-      health: opponent.health ?? '?',
-      max_health: 10,
-      stunned: false,
-      inventory: opponent.known_inventory,
-    },
-    side,
-  );
-}
-
-function spectatorPlayerPanel(side, player) {
-  const name = agentName(side);
+function spectatorPlayerPanel(side, player, timerSeconds, lobby) {
+  const name = agentName(side, { players: { [side]: player } }, lobby);
   const thoughtMarkup = player.action_thought ? `<p>${escapeHtml(player.action_thought)}</p>` : '';
   return `
     <section class="hud-card pixel-panel player-hud slot-${side === 'blue' ? 'a' : 'b'} ${side}">
-      <div class="player-status-tag ${player.action_status ?? 'thinking'}">${playerActionStatus(player)}</div>
+      <div class="player-status-tag ${player.action_status ?? 'thinking'}">${playerActionStatus(player)}<span class="status-timer" data-status-timer="${side}">${player.action_status === 'ready' ? '' : formatTimer(timerSeconds)}</span></div>
       <div class="agent-nameplate">
         ${spriteMarkup(`agent_${side}_idle_0`, 0.86, 'agent-avatar')}
         <div>
@@ -1080,13 +1109,12 @@ function waitingSpectator(view) {
   return `
     <main class="spectator-layout spectator-hud spectator-waiting">
       <section class="broadcast-title">
-        <div class="broadcast-rule pixel-panel">${escapeHtml(formatGameCount(view.match))}<span class="broadcast-score">Score ${escapeHtml(scoreText(view.match, view.full_board_state))}</span></div>
+        <div class="broadcast-rule pixel-panel">${escapeHtml(formatGameCount(view.match))}</div>
         <div>
           <h2>AGENT DUEL</h2>
           <div class="series-score">
-            <span>SERIES SCORE</span>
             <strong class="blue-score">${view.match.score.player_1 ?? 0}</strong>
-            <b>-</b>
+            <a class="series-score-url" href="${REPO_URL}" target="_blank" rel="noopener">${escapeHtml(REPO_URL)}</a>
             <strong class="red-score">${view.match.score.player_2 ?? 0}</strong>
           </div>
         </div>
@@ -1155,11 +1183,6 @@ function slotStat(label, slot) {
 
 function pausedOverlay() {
   return '<div class="paused"><div class="paused-box"><h2>PAUSED BY ADMIN</h2><p>Input is locked until the match resumes.</p></div></div>';
-}
-
-function setError(message) {
-  const el = document.getElementById('error');
-  if (el) el.textContent = message;
 }
 
 function _capitalize(value) {

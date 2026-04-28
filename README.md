@@ -14,7 +14,8 @@ Something where the strategy is legible in five seconds and the matches read on 
 Agent Duel is a turn-based deterministic 1v1 duel for LLMs. Two agents play **Capture the Relic** on a 9x9 grid: simultaneous turns, hidden information from player choices only, no in-match randomness, BO1/3/5/7 series with sides swapping each game.
 
 - **Deterministic** - no RNG inside a match. Same actions, same outcome. Replays are exact.
-- **Livestream-ready** - three views (player, spectator, admin) over WebSocket, no setup, no DB.
+- **Livestream-ready** - spectator and admin browser views, no setup, no DB.
+- **Agent-native API** - players are LLM agents that join over plain-text HTTP. Every response includes the briefing, current grid, and the exact curl to run next.
 - **Real hidden information** - fog of war from bushes, scans, and traps. Vision is earned, not given.
 
 ## Quick Start
@@ -22,18 +23,22 @@ Agent Duel is a turn-based deterministic 1v1 duel for LLMs. Two agents play **Ca
 ```sh
 $ npm install                           # install deps
 $ npm start                             # serve on http://localhost:4178
-Agent Duel listening on http://localhost:4178
 
-# open these in separate browser tabs
-http://localhost:4178/?player=spectate
-http://localhost:4178/?player=admin
-http://localhost:4178/?player=1&name=GPT
-http://localhost:4178/?player=2&name=CLAUDE
+# open these in a browser (spectator + operator views)
+http://localhost:4178/?player=admin     # admin controls
+http://localhost:4178/?player=spectate  # spectator view
 ```
 
-Spectator and admin can be opened first; the match starts once both players ready up. Admin sets series length (BO1/3/5/7) before lock and can pause/resume/restart.
+Players are LLM agents that talk to the server over HTTP. Tell each agent:
 
-## Install
+```
+Play Agent Duel at `curl http://localhost:4178/player1` as "GPT 5.5".
+Play Agent Duel at `curl http://localhost:4178/player2` as "OPUS 4.7".
+```
+
+That's it. The first response includes the full briefing and tells the agent exactly what to call next; every subsequent response does the same. The full HTTP contract is in `api-spec.md`. Admin can set series length (BO1/3/5/7) before lock and can pause/resume/restart.
+
+## Run From Source
 
 **From source**
 
@@ -44,43 +49,29 @@ npm install
 npm start
 ```
 
-Set `PORT` to override the default `4178`. Node 18+ recommended (uses the built-in `node:test` runner and `WebSocket`).
+Set `PORT` to override the default `4178`. Node 18+ recommended (uses the built-in `node:test` runner and `fetch`).
 
 ## How It Works
 
 ```
-┌──────────────┐     submit_action      ┌──────────────────┐
+┌──────────────┐  POST /player1/action  ┌──────────────────┐
 │  Player 1    │ ─────────────────────► │                  │
-│  (LLM/human) │                        │   server.js      │
-└──────────────┘ ◄───────────────────── │   (WebSocket     │
-                       state            │   harness, turn  │
-┌──────────────┐                        │   timer, lobby)  │
+│  (LLM agent) │   GET /player1         │   server.js      │
+└──────────────┘ ◄───────────────────── │  (HTTP API for   │
+                       text view        │  players, WS for │
+┌──────────────┐                        │  spectator/admin)│
 │  Player 2    │ ─────────────────────► │                  │
-│  (LLM/human) │ ◄───────────────────── └────────┬─────────┘
-└──────────────┘       state                     │
+│  (LLM agent) │ ◄───────────────────── └────────┬─────────┘
+└──────────────┘       text view                 │
                                    resolveTurn   │ pure
                                    (blue, red)   ▼
                                           ┌──────────────┐
 ┌──────────────┐                          │              │
 │  Spectator   │ ◄─────────────────────── │  engine.js   │
-│   + Admin    │   broadcast state +      │  (immutable, │
-└──────────────┘   public events          │   tested)    │
+│   + Admin    │   broadcast state        │  (immutable, │
+└──────────────┘   over WebSocket         │   tested)    │
                                           └──────────────┘
 ```
-
-- **Pure engine** - `resolveTurn(game, { blue, red })` clones the game and returns the next state plus an event log. No I/O, no time, no globals.
-- **Two-strike validation** - first invalid action gets a retry prompt; second invalid action locks the side as `WAIT` for the turn. Keeps griefing and prompt-confusion bounded.
-- **Path invariants** - wall placement runs a BFS check on a trial clone, so no player can seal off the relic or either base.
-- **Sides swap each game** - slot identity (`player_1`/`player_2`) is stable across the series; sides (`blue`/`red`) flip on odd/even games to neutralize map asymmetry.
-
-## URLs
-
-| URL                      | Role                                            |
-| ------------------------ | ----------------------------------------------- |
-| `/?player=spectate`      | Read-only board view, optional X-ray            |
-| `/?player=admin`         | Series length, pause/resume, restart, next game |
-| `/?player=1&name=GPT`    | Player 1 (name required)                        |
-| `/?player=2&name=CLAUDE` | Player 2 (name required)                        |
 
 ## Development
 

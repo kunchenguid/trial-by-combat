@@ -1,10 +1,14 @@
 export const RULES = {
-  goal: 'Carry the relic to your base. First capture wins. Sides swap each game; turn cap 40 → replay.',
+  goal: 'Carry the relic to your base. First capture wins. Sides swap each game; turn cap 100 → replay.',
 
   resolutionOrder: [
     { label: 'Heal / Scan / Dash setup', detail: 'Heals and scans apply. Dash spends 1 charge.' },
     { label: 'Movement', detail: 'Simultaneous. Same target → both blocked. Swap → both blocked.' },
-    { label: 'Attack', detail: 'Range 1, after movement (so moving out of range dodges).' },
+    {
+      label: 'Attack',
+      detail:
+        'Range 1, resolved AFTER both sides move. Adjacency is checked at post-movement positions, so an opponent who moves away is out of range. ATTACK targets the opponent\'s post-move tile, not their start-of-turn tile.',
+    },
     { label: 'Damage applied', detail: 'Guard reduces by 2. Damage ≥3 forces relic drop.' },
     { label: 'Place wall / trap', detail: "Adjacent empty tile. Walls can't seal off relic or bases." },
     { label: 'Auto-pickup', detail: 'A free relic is picked up only by a single occupant.' },
@@ -73,6 +77,8 @@ export const RULES = {
     'Bush ambush bonus uses your start-of-turn position.',
     'Trap step converts the rest of your turn to WAIT (cancels dash step 2 and placements).',
     "0 HP isn't death — skip a turn, respawn at base with 5 HP.",
-    'Turn 40 cap → game replays without counting toward the series.',
+    'Turn 100 cap → game replays without counting toward the series.',
+    'Movement resolves before attacks. An opponent that moves out of adjacency dodges your ATTACK that turn.',
+    'Each turn has a 60s deadline (see Timer in the header). If you do not POST an action in time, the server forces WAIT for you. Decide quickly — over-thinking forfeits the turn.',
   ],
 };

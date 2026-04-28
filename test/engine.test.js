@@ -116,6 +116,45 @@ test('dash moves up to two tiles, consumes dash, stops on trap, and cannot be us
   assert.equal(validateAction(result.game, 'blue', { action_type: ACTIONS.DASH_WEST }).valid, false);
 });
 
+test('events carry monotonically increasing seq across turns and dash move events report meta', () => {
+  const game = gameWith();
+  game.players.blue.position = 'B5';
+  game.players.red.position = 'I5';
+
+  const turnOne = resolveTurn(game, {
+    blue: { action_type: ACTIONS.DASH_EAST },
+    red: wait,
+  });
+  const dashMoves = turnOne.events.filter((e) => e.event_type === 'move' && e.actor === 'blue');
+  assert.equal(dashMoves.length, 2);
+  assert.deepEqual(
+    dashMoves.map((e) => ({ from: e.meta.from, to: e.meta.to, dashed: e.meta.dashed, step: e.meta.step })),
+    [
+      { from: 'B5', to: 'C5', dashed: true, step: 1 },
+      { from: 'C5', to: 'D5', dashed: true, step: 2 },
+    ],
+  );
+
+  const turnOneSeqs = turnOne.events.map((e) => e.seq);
+  for (const seq of turnOneSeqs) assert.equal(typeof seq, 'number');
+  assert.deepEqual([...turnOneSeqs].sort((a, b) => a - b), turnOneSeqs);
+  assert.equal(new Set(turnOneSeqs).size, turnOneSeqs.length);
+
+  const turnTwo = resolveTurn(turnOne.game, {
+    blue: { action_type: ACTIONS.MOVE_NORTH },
+    red: wait,
+  });
+  const allSeqs = [...turnOneSeqs, ...turnTwo.events.map((e) => e.seq)];
+  assert.deepEqual(allSeqs, allSeqs.map((_, idx) => idx));
+
+  const moveEvent = turnTwo.events.find((e) => e.event_type === 'move' && e.actor === 'blue');
+  assert.equal(moveEvent.meta.dashed, false);
+  assert.equal(moveEvent.meta.step, 1);
+
+  const view = getSpectatorView(turnTwo.game);
+  assert.equal(view.public_events.every((e) => typeof e.seq === 'number'), true);
+});
+
 test('wall placement requires adjacency, empty non-base target, and preserves all relic paths', () => {
   const game = gameWith();
   game.players.blue.position = 'B5';
