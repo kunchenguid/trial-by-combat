@@ -1,11 +1,6 @@
-import {
-  drawDetailedFloor,
-  palette,
-} from './assets/pixel-assets.js?v=detailed-atlas-128-clean-floor';
+import { drawDetailedFloor, palette } from './assets/pixel-assets.js?v=detailed-atlas-128-clean-floor';
 import { AGENT_DUEL_ATLAS } from './assets/sprite-atlas.js?v=production-atlas-2048-v1';
-import {
-  buildTerrainSprites,
-} from './assets/terrain-layout.js?v=detailed-atlas-128-clean-floor';
+import { buildTerrainSprites } from './assets/terrain-layout.js?v=detailed-atlas-128-clean-floor';
 import { RULES } from './rules.js?v=1';
 
 const params = new URLSearchParams(window.location.search);
@@ -77,7 +72,10 @@ function render() {
 }
 
 function renderShell(title, subtitle, content, pills = [], options = {}) {
-  const header = options.showHeader === false ? '' : `
+  const header =
+    options.showHeader === false
+      ? ''
+      : `
     <header class="topbar pixel-panel">
       <div class="brand">
         <div class="brand-mark"></div>
@@ -172,13 +170,15 @@ function renderPlayer(view) {
       updateSubmitState();
       return;
     }
-    state.ws.send(JSON.stringify({
-      type: 'submit_action',
-      action: {
-        ...state.selectedAction,
-        intent_summary: intentText.split(/\s+/).slice(0, 20).join(' '),
-      },
-    }));
+    state.ws.send(
+      JSON.stringify({
+        type: 'submit_action',
+        action: {
+          ...state.selectedAction,
+          intent_summary: intentText.split(/\s+/).slice(0, 20).join(' '),
+        },
+      }),
+    );
   });
   startPlayerCountdown(view.turn_timer_seconds_remaining);
 }
@@ -212,7 +212,9 @@ function renderBriefing(view) {
               <div class="panel-header"><h3 class="panel-title">Each Turn Resolves In Order</h3></div>
               <div class="panel-body">
                 <ol class="briefing-order">
-                  ${RULES.resolutionOrder.map((step, i) => `
+                  ${RULES.resolutionOrder
+                    .map(
+                      (step, i) => `
                     <li>
                       <span class="briefing-order-num">${i + 1}</span>
                       <div>
@@ -220,7 +222,9 @@ function renderBriefing(view) {
                         <p>${escapeHtml(step.detail)}</p>
                       </div>
                     </li>
-                  `).join('')}
+                  `,
+                    )
+                    .join('')}
                 </ol>
               </div>
             </article>
@@ -229,7 +233,9 @@ function renderBriefing(view) {
               <div class="panel-header"><h3 class="panel-title">Tiles</h3></div>
               <div class="panel-body">
                 <ul class="briefing-list">
-                  ${RULES.tiles.map((tile) => `
+                  ${RULES.tiles
+                    .map(
+                      (tile) => `
                     <li>
                       ${tile.sprite ? spriteMarkup(tile.sprite, 0.5, 'briefing-icon') : '<span class="briefing-icon-placeholder"></span>'}
                       <div>
@@ -237,7 +243,9 @@ function renderBriefing(view) {
                         <p>${escapeHtml(tile.effect)}</p>
                       </div>
                     </li>
-                  `).join('')}
+                  `,
+                    )
+                    .join('')}
                 </ul>
               </div>
             </article>
@@ -266,11 +274,15 @@ function renderBriefing(view) {
             <article class="panel pixel-panel briefing-section">
               <div class="panel-header"><h3 class="panel-title">Actions</h3></div>
               <div class="panel-body briefing-actions">
-                ${RULES.actionGroups.map((group) => `
+                ${RULES.actionGroups
+                  .map(
+                    (group) => `
                   <div class="briefing-action-group">
                     <h4>${escapeHtml(group.title)}</h4>
                     <ul class="briefing-list">
-                      ${group.items.map((item) => `
+                      ${group.items
+                        .map(
+                          (item) => `
                         <li>
                           ${item.sprite ? spriteMarkup(briefingSpriteFor(item.sprite, side), 0.46, 'briefing-icon') : '<span class="briefing-icon-placeholder"></span>'}
                           <div>
@@ -278,10 +290,14 @@ function renderBriefing(view) {
                             <p>${escapeHtml(item.effect)}</p>
                           </div>
                         </li>
-                      `).join('')}
+                      `,
+                        )
+                        .join('')}
                     </ul>
                   </div>
-                `).join('')}
+                `,
+                  )
+                  .join('')}
               </div>
             </article>
 
@@ -289,13 +305,17 @@ function renderBriefing(view) {
               <div class="panel-header"><h3 class="panel-title">You Start With</h3></div>
               <div class="panel-body">
                 <div class="briefing-inventory">
-                  ${RULES.startingInventory.map((item) => `
+                  ${RULES.startingInventory
+                    .map(
+                      (item) => `
                     <div class="briefing-inv-chip">
                       ${spriteMarkup(briefingSpriteFor(item.sprite, side), 0.5)}
                       <strong>x${item.count}</strong>
                       <span>${escapeHtml(item.kind.toUpperCase())}</span>
                     </div>
-                  `).join('')}
+                  `,
+                    )
+                    .join('')}
                 </div>
                 <p class="briefing-health">${escapeHtml(RULES.health.summary)}</p>
               </div>
@@ -304,9 +324,10 @@ function renderBriefing(view) {
         </section>
 
         <section class="briefing-cta panel pixel-panel ${side}">
-          ${ready
-            ? `<div class="briefing-waiting"><span class="briefing-spinner" aria-hidden="true"></span><strong>Waiting for opponent…</strong><p>The match starts the moment they hit Ready.</p></div>`
-            : `<div class="briefing-cta-text"><strong>Read the briefing, then jump in.</strong><p>Once both sides are ready, the match starts and the rest of the page becomes the gameplay HUD.</p></div>
+          ${
+            ready
+              ? `<div class="briefing-waiting"><span class="briefing-spinner" aria-hidden="true"></span><strong>Waiting for opponent…</strong><p>The match starts the moment they hit Ready.</p></div>`
+              : `<div class="briefing-cta-text"><strong>Read the briefing, then jump in.</strong><p>Once both sides are ready, the match starts and the rest of the page becomes the gameplay HUD.</p></div>
                <button id="ready" class="briefing-ready ${side}">Ready</button>`
           }
         </section>
@@ -343,7 +364,9 @@ function renderSpectator(view) {
   renderShell(
     'AGENT DUEL',
     'Capture the Relic',
-    waiting ? waitingSpectator(view) : `
+    waiting
+      ? waitingSpectator(view)
+      : `
       <main class="spectator-layout spectator-hud">
         <section class="broadcast-title">
           <div class="broadcast-rule pixel-panel">${escapeHtml(formatGameCount(view.match))}<span class="broadcast-score">Score ${escapeHtml(scoreText(view.match, board))}</span></div>
@@ -502,11 +525,13 @@ function renderAdmin(view) {
   hydrateBoard(view.current_game.full_board_state, { xray: true });
   for (const button of document.querySelectorAll('[data-admin]')) {
     button.addEventListener('click', () => {
-      state.ws.send(JSON.stringify({
-        type: 'admin',
-        action: button.dataset.admin,
-        ...(button.dataset.bestOf ? { bestOf: Number(button.dataset.bestOf) } : {}),
-      }));
+      state.ws.send(
+        JSON.stringify({
+          type: 'admin',
+          action: button.dataset.admin,
+          ...(button.dataset.bestOf ? { bestOf: Number(button.dataset.bestOf) } : {}),
+        }),
+      );
     });
   }
 }
@@ -531,36 +556,38 @@ class BoardRenderer {
     this.animatedActors = [];
     this.tick = this.tick.bind(this);
     this.app = new PIXI.Application();
-    this.ready = this.app.init({
-      width: this.size,
-      height: this.size,
-      background: palette.background,
-      antialias: false,
-      resolution: 1,
-    }).then(() => {
-      this.atlas = new SpriteAtlas();
-      this.floorLayer = new PIXI.Container();
-      this.terrainLayer = new PIXI.Container();
-      this.relicGroundLayer = new PIXI.Container();
-      this.highlightLayer = new PIXI.Container();
-      this.agentLayer = new PIXI.Container();
-      this.carriedRelicLayer = new PIXI.Container();
-      this.fxLayer = new PIXI.Container();
-      this.uiLayer = new PIXI.Container();
-      this.app.stage.addChild(
-        this.floorLayer,
-        this.terrainLayer,
-        this.relicGroundLayer,
-        this.highlightLayer,
-        this.agentLayer,
-        this.carriedRelicLayer,
-        this.fxLayer,
-        this.uiLayer,
-      );
-      this.app.ticker.add(this.tick);
-      this.attach(target);
-      return this.atlas.ready;
-    });
+    this.ready = this.app
+      .init({
+        width: this.size,
+        height: this.size,
+        background: palette.background,
+        antialias: false,
+        resolution: 1,
+      })
+      .then(() => {
+        this.atlas = new SpriteAtlas();
+        this.floorLayer = new PIXI.Container();
+        this.terrainLayer = new PIXI.Container();
+        this.relicGroundLayer = new PIXI.Container();
+        this.highlightLayer = new PIXI.Container();
+        this.agentLayer = new PIXI.Container();
+        this.carriedRelicLayer = new PIXI.Container();
+        this.fxLayer = new PIXI.Container();
+        this.uiLayer = new PIXI.Container();
+        this.app.stage.addChild(
+          this.floorLayer,
+          this.terrainLayer,
+          this.relicGroundLayer,
+          this.highlightLayer,
+          this.agentLayer,
+          this.carriedRelicLayer,
+          this.fxLayer,
+          this.uiLayer,
+        );
+        this.app.ticker.add(this.tick);
+        this.attach(target);
+        return this.atlas.ready;
+      });
   }
 
   attach(target) {
@@ -590,7 +617,7 @@ class BoardRenderer {
     const cell = this.size / 9;
     for (let row = 1; row <= 9; row += 1) {
       for (let col = 0; col < 9; col += 1) {
-        const coord = `${String.fromCharCode(65 + col)}${row}`;
+        const _coord = `${String.fromCharCode(65 + col)}${row}`;
         const x = col * cell;
         const y = (row - 1) * cell;
         const floor = new PIXI.Graphics();
@@ -600,13 +627,44 @@ class BoardRenderer {
     }
     for (const sprite of buildRenderList(board, options)) {
       drawSpriteAt(sprite, cell, (x, y) => {
-        if (sprite.kind === 'base') this.addWorldActor(this.terrainLayer, x, y, sprite, { animationName: sprite.animationName, width: cell, height: cell, anchor: [0, 0], animationKind: 'base' });
-        if (sprite.kind === 'bush') this.addAtlasSprite(this.terrainLayer, sprite.frame, x, y, { width: cell, height: cell, anchor: [0, 0] });
-        if (sprite.kind === 'fire') this.addWorldActor(this.terrainLayer, x + cell * 0.5, y + cell * 0.98, sprite, { animationName: 'fire_loop', height: cell * 0.86, animationKind: 'fire' });
-        if (sprite.kind === 'wall') this.addAtlasSprite(this.terrainLayer, sprite.frame, x, y, { width: cell, height: cell, anchor: [0, 0] });
-        if (sprite.kind === 'trap') this.addWorldActor(this.terrainLayer, x, y, sprite, { frameName: sprite.hidden ? 'trap_hidden' : 'trap_armed', width: cell, height: cell, anchor: [0, 0], animationKind: sprite.hidden ? 'static' : 'trap' });
-        if (sprite.kind === 'relic') this.addWorldActor(this.relicGroundLayer, x + cell * 0.5, y + cell * 0.74, sprite, { animationName: 'relic_shimmer', height: cell * 0.66, animationKind: 'relic' });
-        if (sprite.kind === 'hero') this.addWorldActor(this.agentLayer, x + cell * 0.5, y + cell * 1.02, sprite, { animationName: agentAnimationName(sprite.side, sprite.carrying), height: cell * 1.08, animationKind: 'hero' });
+        if (sprite.kind === 'base')
+          this.addWorldActor(this.terrainLayer, x, y, sprite, {
+            animationName: sprite.animationName,
+            width: cell,
+            height: cell,
+            anchor: [0, 0],
+            animationKind: 'base',
+          });
+        if (sprite.kind === 'bush')
+          this.addAtlasSprite(this.terrainLayer, sprite.frame, x, y, { width: cell, height: cell, anchor: [0, 0] });
+        if (sprite.kind === 'fire')
+          this.addWorldActor(this.terrainLayer, x + cell * 0.5, y + cell * 0.98, sprite, {
+            animationName: 'fire_loop',
+            height: cell * 0.86,
+            animationKind: 'fire',
+          });
+        if (sprite.kind === 'wall')
+          this.addAtlasSprite(this.terrainLayer, sprite.frame, x, y, { width: cell, height: cell, anchor: [0, 0] });
+        if (sprite.kind === 'trap')
+          this.addWorldActor(this.terrainLayer, x, y, sprite, {
+            frameName: sprite.hidden ? 'trap_hidden' : 'trap_armed',
+            width: cell,
+            height: cell,
+            anchor: [0, 0],
+            animationKind: sprite.hidden ? 'static' : 'trap',
+          });
+        if (sprite.kind === 'relic')
+          this.addWorldActor(this.relicGroundLayer, x + cell * 0.5, y + cell * 0.74, sprite, {
+            animationName: 'relic_shimmer',
+            height: cell * 0.66,
+            animationKind: 'relic',
+          });
+        if (sprite.kind === 'hero')
+          this.addWorldActor(this.agentLayer, x + cell * 0.5, y + cell * 1.02, sprite, {
+            animationName: agentAnimationName(sprite.side, sprite.carrying),
+            height: cell * 1.08,
+            animationKind: 'hero',
+          });
       });
     }
     for (const action of options.legalActions ?? []) {
@@ -635,7 +693,7 @@ class BoardRenderer {
     sprite.baseY = y;
     sprite.targetHeight = height;
     sprite.animationKind = animationKind;
-    sprite.phase = (coordPoint(spriteData.coord).x * 0.47) + (coordPoint(spriteData.coord).y * 0.71);
+    sprite.phase = coordPoint(spriteData.coord).x * 0.47 + coordPoint(spriteData.coord).y * 0.71;
     sprite.animation = animation;
     sprite.animationName = animationName;
     sprite.hiddenInBush = Boolean(spriteData.hiddenInBush);
@@ -744,13 +802,14 @@ function positionAndScaleSprite(sprite, frame, x, y, options = {}) {
   sprite.anchor.set(anchor[0], anchor[1]);
   sprite.x = Math.round(x);
   sprite.y = Math.round(y);
-  const scale = options.width && options.height
-    ? Math.min(options.width / frame.w, options.height / frame.h)
-    : options.width
-      ? options.width / frame.w
-      : options.height
-        ? options.height / frame.h
-        : 1;
+  const scale =
+    options.width && options.height
+      ? Math.min(options.width / frame.w, options.height / frame.h)
+      : options.width
+        ? options.width / frame.w
+        : options.height
+          ? options.height / frame.h
+          : 1;
   sprite.scale.set(scale);
   sprite.baseScale = scale;
 }
@@ -773,7 +832,8 @@ function buildRenderList(board, options) {
   for (const coord of board.fire ?? []) push(coord, 'fire', { depthOffset: 0.14 });
   sprites.push(...buildTerrainSprites(board.walls, 'wall'));
   for (const trap of board.traps ?? []) {
-    if (trap.visible || options.xray) push(trap.coord, 'trap', { hidden: !options.xray && !trap.visible, depthOffset: 0.08 });
+    if (trap.visible || options.xray)
+      push(trap.coord, 'trap', { hidden: !options.xray && !trap.visible, depthOffset: 0.08 });
   }
   if (board.relic?.position) push(board.relic.position, 'relic', { depthOffset: 0.1 });
   for (const side of ['blue', 'red']) {
@@ -818,7 +878,11 @@ function coordPoint(coord) {
 function viewToBoard(view) {
   const traps = [
     ...view.known_tiles.own_traps.map((coord) => ({ coord, owner: view.side, visible: true })),
-    ...view.known_tiles.known_enemy_traps.map((coord) => ({ coord, owner: view.side === 'blue' ? 'red' : 'blue', visible: true })),
+    ...view.known_tiles.known_enemy_traps.map((coord) => ({
+      coord,
+      owner: view.side === 'blue' ? 'red' : 'blue',
+      visible: true,
+    })),
   ];
   return {
     size: 9,
@@ -847,7 +911,9 @@ function viewToBoard(view) {
 
 function actionButton(action, disabled) {
   const selected = state.selectedAction && JSON.stringify(state.selectedAction) === JSON.stringify(action);
-  const label = action.target ? `${action.action_type.replace('_', ' ')} ${action.target}` : action.action_type.replaceAll('_', ' ');
+  const label = action.target
+    ? `${action.action_type.replace('_', ' ')} ${action.target}`
+    : action.action_type.replaceAll('_', ' ');
   return `<button data-action="${escapeHtml(JSON.stringify(action))}" class="${selected ? 'selected' : ''}" ${disabled ? 'disabled' : ''}>${escapeHtml(label)}</button>`;
 }
 
@@ -874,10 +940,12 @@ function storyBannerText(board) {
 
 function nearestBaseDistance(coord, bases) {
   const point = coordPoint(coord);
-  return Math.min(...bases.map((base) => {
-    const target = coordPoint(base);
-    return Math.abs(point.x - target.x) + Math.abs(point.y - target.y);
-  }));
+  return Math.min(
+    ...bases.map((base) => {
+      const target = coordPoint(base);
+      return Math.abs(point.x - target.x) + Math.abs(point.y - target.y);
+    }),
+  );
 }
 
 function agentName(side) {
@@ -917,7 +985,9 @@ function healthHearts(side, health, maxHealth) {
   const frameFull = side === 'blue' ? 'hp_blue_full' : 'hp_red_full';
   const frameEmpty = side === 'blue' ? 'hp_blue_empty' : 'hp_red_empty';
   const hearts = Math.ceil(maxHealth / 2);
-  return Array.from({ length: hearts }, (_, index) => spriteMarkup(index * 2 < health ? frameFull : frameEmpty, 0.34, 'heart-sprite')).join('');
+  return Array.from({ length: hearts }, (_, index) =>
+    spriteMarkup(index * 2 < health ? frameFull : frameEmpty, 0.34, 'heart-sprite'),
+  ).join('');
 }
 
 function toolChip(side, kind, count) {
@@ -949,21 +1019,31 @@ function statusPanel(title, player, side) {
           <div class="stat"><div class="stat-label">Health</div><div class="stat-value">${player.health ?? '?'} / ${player.max_health ?? 10}</div><div class="health"><span style="width:${((player.health ?? 0) / (player.max_health ?? 10)) * 100}%"></span></div></div>
           <div class="stat"><div class="stat-label">State</div><div class="stat-value">${player.stunned ? 'Stunned' : 'Ready'}</div></div>
         </div>
-        ${player.inventory ? `<div class="pill-row">${Object.entries(player.inventory).map(([k, v]) => `<span class="pill">${escapeHtml(k)} x${v}</span>`).join('')}</div>` : ''}
+        ${
+          player.inventory
+            ? `<div class="pill-row">${Object.entries(player.inventory)
+                .map(([k, v]) => `<span class="pill">${escapeHtml(k)} x${v}</span>`)
+                .join('')}</div>`
+            : ''
+        }
       </div>
     </div>
   `;
 }
 
 function opponentPanel(opponent, side) {
-  return statusPanel('Opponent', {
-    position: opponent.visible ? opponent.position : 'Hidden',
-    carrying_relic: opponent.carrying_relic,
-    health: opponent.health ?? '?',
-    max_health: 10,
-    stunned: false,
-    inventory: opponent.known_inventory,
-  }, side);
+  return statusPanel(
+    'Opponent',
+    {
+      position: opponent.visible ? opponent.position : 'Hidden',
+      carrying_relic: opponent.carrying_relic,
+      health: opponent.health ?? '?',
+      max_health: 10,
+      stunned: false,
+      inventory: opponent.known_inventory,
+    },
+    side,
+  );
 }
 
 function spectatorPlayerPanel(side, player) {
@@ -986,7 +1066,10 @@ function spectatorPlayerPanel(side, player) {
       <div class="tools-box">
         <h3>Tools</h3>
         <div class="tool-grid">
-          ${Object.entries(player.inventory).filter(([k]) => ['wall', 'trap', 'scan', 'dash'].includes(k)).map(([k, v]) => toolChip(side, k, v)).join('')}
+          ${Object.entries(player.inventory)
+            .filter(([k]) => ['wall', 'trap', 'scan', 'dash'].includes(k))
+            .map(([k, v]) => toolChip(side, k, v))
+            .join('')}
         </div>
       </div>
     </section>
@@ -1042,14 +1125,16 @@ function axisLabels(start, end) {
   return labels.join('');
 }
 
-function itemIcon(kind) {
-  return {
-    wall: '#',
-    trap: '^',
-    scan: 'O',
-    dash: '>>',
-    heal: '+',
-  }[kind] ?? '◆';
+function _itemIcon(kind) {
+  return (
+    {
+      wall: '#',
+      trap: '^',
+      scan: 'O',
+      dash: '>>',
+      heal: '+',
+    }[kind] ?? '◆'
+  );
 }
 
 function playerActionStatus(player) {
@@ -1058,7 +1143,10 @@ function playerActionStatus(player) {
 
 function eventList(events) {
   if (!events?.length) return '<div class="event">Waiting for the first move.</div>';
-  return events.slice(-5).map((event) => `<div class="event">${escapeHtml(event.summary)}</div>`).join('');
+  return events
+    .slice(-5)
+    .map((event) => `<div class="event">${escapeHtml(event.summary)}</div>`)
+    .join('');
 }
 
 function slotStat(label, slot) {
@@ -1074,7 +1162,7 @@ function setError(message) {
   if (el) el.textContent = message;
 }
 
-function capitalize(value) {
+function _capitalize(value) {
   return value[0].toUpperCase() + value.slice(1);
 }
 

@@ -57,7 +57,10 @@ test('fire tiles are visible passable hazards that damage shortcut movement', ()
 
   assert.equal(result.game.players.blue.position, 'D2');
   assert.equal(result.game.players.blue.health, 8);
-  assert.equal(result.events.some((event) => event.event_type === 'fire_damage' && event.summary.includes('D2')), true);
+  assert.equal(
+    result.events.some((event) => event.event_type === 'fire_damage' && event.summary.includes('D2')),
+    true,
+  );
   assert.deepEqual(getSpectatorView(result.game).full_board_state.fire, ['D2', 'F6']);
 });
 
@@ -139,7 +142,7 @@ test('traps are hidden, arm after placement, trigger on opponent movement, and s
   assert.equal(getPlayerView(game, 'red').known_tiles.known_enemy_traps.length, 0);
 
   game.players.red.position = 'E5';
-  let scanResult = resolveTurn(game, {
+  const scanResult = resolveTurn(game, {
     blue: wait,
     red: { action_type: ACTIONS.SCAN },
   });
@@ -261,8 +264,14 @@ test('legal actions expose only currently valid actions and target coordinates',
   assert.equal(names.includes(ACTIONS.MOVE_EAST), true);
   assert.equal(names.includes(ACTIONS.MOVE_WEST), true);
   assert.equal(names.includes(ACTIONS.DASH_EAST), true);
-  assert.equal(legal.some((action) => action.action_type === ACTIONS.PLACE_WALL && action.target === 'C5'), true);
-  assert.equal(legal.some((action) => action.action_type === ACTIONS.PLACE_TRAP && action.target === 'A5'), false);
+  assert.equal(
+    legal.some((action) => action.action_type === ACTIONS.PLACE_WALL && action.target === 'C5'),
+    true,
+  );
+  assert.equal(
+    legal.some((action) => action.action_type === ACTIONS.PLACE_TRAP && action.target === 'A5'),
+    false,
+  );
 });
 
 test('player-visible legal actions do not leak unrevealed adjacent enemy traps', () => {
@@ -270,12 +279,20 @@ test('player-visible legal actions do not leak unrevealed adjacent enemy traps',
   game.players.blue.position = 'B5';
   game.traps.set('C5', { owner: 'red', armed: true, revealedTo: new Set() });
 
-  assert.equal(getLegalActions(game, 'blue').some((action) => action.action_type === ACTIONS.PLACE_WALL && action.target === 'C5'), false);
-  assert.equal(getPlayerView(game, 'blue').legal_actions.some((action) => action.action_type === ACTIONS.PLACE_WALL && action.target === 'C5'), true);
+  assert.equal(
+    getLegalActions(game, 'blue').some((action) => action.action_type === ACTIONS.PLACE_WALL && action.target === 'C5'),
+    false,
+  );
+  assert.equal(
+    getPlayerView(game, 'blue').legal_actions.some(
+      (action) => action.action_type === ACTIONS.PLACE_WALL && action.target === 'C5',
+    ),
+    true,
+  );
 });
 
 test('series swaps sides, ignores turn-cap replays, and decides odd-N formats', () => {
-  let series = createSeries({ bestOf: 3, playerNames: { player_1: 'Ada', player_2: 'Turing' } });
+  const series = createSeries({ bestOf: 3, playerNames: { player_1: 'Ada', player_2: 'Turing' } });
 
   assert.equal(series.currentGame.slotSides.player_1, 'blue');
   assert.equal(series.currentGame.slotSides.player_2, 'red');

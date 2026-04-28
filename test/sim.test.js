@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import { ACTIONS, CENTER_CHOKE } from '../src/engine.js';
-import { simulate, makeRng } from '../src/sim.js';
+import { makeRng, simulate } from '../src/sim.js';
 
 const wait = () => ({ action_type: ACTIONS.WAIT });
 
@@ -55,7 +55,7 @@ test('simulate produces a winner when one side captures the relic', () => {
 
 test('simulate is deterministic given the same seed and agents', () => {
   const map = CENTER_CHOKE;
-  const randAgent = (game, side, rng) => {
+  const randAgent = (_game, _side, rng) => {
     const choices = [ACTIONS.MOVE_NORTH, ACTIONS.MOVE_SOUTH, ACTIONS.MOVE_EAST, ACTIONS.MOVE_WEST, ACTIONS.WAIT];
     return { action_type: choices[Math.floor(rng() * choices.length)] };
   };
@@ -74,7 +74,7 @@ test('simulate respects custom turnCap', () => {
 
 test('simulate passes a side-scoped rng to agents and exposes it as 3rd arg', () => {
   const seen = { blue: [], red: [] };
-  const agent = (side) => (game, s, rng) => {
+  const agent = (_side) => (_game, s, rng) => {
     seen[s].push(rng());
     return { action_type: ACTIONS.WAIT };
   };

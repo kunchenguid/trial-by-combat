@@ -77,12 +77,25 @@ test('server starts match after both slots ready and resolves submitted actions'
     p1.send(JSON.stringify({ type: 'ready' }));
     p2.send(JSON.stringify({ type: 'ready' }));
 
-    const started = await waitForMessage(p1, (message) => message.type === 'state' && message.state.phase === 'awaiting_action');
+    const started = await waitForMessage(
+      p1,
+      (message) => message.type === 'state' && message.state.phase === 'awaiting_action',
+    );
     assert.equal(started.state.turn, 0);
     assert.equal(started.state.you.position, 'A5');
 
-    p1.send(JSON.stringify({ type: 'submit_action', action: { action_type: 'MOVE_NORTH', intent_summary: 'stepping out of the start tile' } }));
-    p2.send(JSON.stringify({ type: 'submit_action', action: { action_type: 'WAIT', intent_summary: 'holding position for now' } }));
+    p1.send(
+      JSON.stringify({
+        type: 'submit_action',
+        action: { action_type: 'MOVE_NORTH', intent_summary: 'stepping out of the start tile' },
+      }),
+    );
+    p2.send(
+      JSON.stringify({
+        type: 'submit_action',
+        action: { action_type: 'WAIT', intent_summary: 'holding position for now' },
+      }),
+    );
 
     const resolved = await waitForMessage(p1, (message) => message.type === 'state' && message.state.turn === 1);
     assert.equal(resolved.state.you.position, 'A4');
@@ -114,7 +127,12 @@ test('server requires thinking text before accepting a submitted action', async 
     const rejected = await waitForMessage(p1, (message) => message.type === 'validation_error');
     assert.match(rejected.error, /thinking/i);
 
-    p1.send(JSON.stringify({ type: 'submit_action', action: { action_type: 'WAIT', intent_summary: 'watching the center lane' } }));
+    p1.send(
+      JSON.stringify({
+        type: 'submit_action',
+        action: { action_type: 'WAIT', intent_summary: 'watching the center lane' },
+      }),
+    );
     const accepted = await waitForMessage(p1, (message) => message.type === 'action_locked');
     assert.equal(accepted.action.intent_summary, 'watching the center lane');
 
@@ -140,22 +158,29 @@ test('spectator state reports thinking or ready for each player during a turn', 
 
     p1.send(JSON.stringify({ type: 'ready' }));
     p2.send(JSON.stringify({ type: 'ready' }));
-    const started = await waitForMessage(spectator, (message) => (
-      message.type === 'state' &&
-      message.state.phase === 'match' &&
-      message.state.full_board_state.players.blue.action_status === 'thinking' &&
-      message.state.full_board_state.players.red.action_status === 'thinking'
-    ));
+    const started = await waitForMessage(
+      spectator,
+      (message) =>
+        message.type === 'state' &&
+        message.state.phase === 'match' &&
+        message.state.full_board_state.players.blue.action_status === 'thinking' &&
+        message.state.full_board_state.players.red.action_status === 'thinking',
+    );
     assert.equal(started.state.full_board_state.players.blue.action_status, 'thinking');
     assert.equal(started.state.full_board_state.players.red.action_status, 'thinking');
     assert.equal(started.state.full_board_state.players.blue.action_thought, null);
     assert.equal(started.state.full_board_state.players.red.action_thought, null);
 
-    p1.send(JSON.stringify({ type: 'submit_action', action: { action_type: 'WAIT', intent_summary: 'waiting to see red move' } }));
-    const updated = await waitForMessage(spectator, (message) => (
-      message.type === 'state' &&
-      message.state.full_board_state.players.blue.action_status === 'ready'
-    ));
+    p1.send(
+      JSON.stringify({
+        type: 'submit_action',
+        action: { action_type: 'WAIT', intent_summary: 'waiting to see red move' },
+      }),
+    );
+    const updated = await waitForMessage(
+      spectator,
+      (message) => message.type === 'state' && message.state.full_board_state.players.blue.action_status === 'ready',
+    );
     assert.equal(updated.state.full_board_state.players.blue.action_status, 'ready');
     assert.equal(updated.state.full_board_state.players.red.action_status, 'thinking');
     assert.equal(updated.state.full_board_state.players.blue.action_thought, 'waiting to see red move');

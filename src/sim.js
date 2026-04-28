@@ -1,7 +1,7 @@
 import { ACTIONS, createGame, resolveTurn, TURN_CAP } from './engine.js';
 
 export function makeRng(seed) {
-  let s = (seed >>> 0) || 1;
+  let s = seed >>> 0 || 1;
   return function next() {
     s = (s + 0x6d2b79f5) >>> 0;
     let t = s;
@@ -44,7 +44,7 @@ function safeAgent(agent, game, side, rng) {
   try {
     const action = agent(game, side, rng);
     if (action && typeof action === 'object' && action.action_type) return action;
-  } catch (err) {
+  } catch (_err) {
     // Fall through to WAIT.
   }
   return { action_type: ACTIONS.WAIT };

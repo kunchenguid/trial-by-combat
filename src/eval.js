@@ -1,9 +1,8 @@
-import { Worker } from 'node:worker_threads';
 import { fileURLToPath } from 'node:url';
-
-import { ACTIONS, getLegalActions, resolveTurn, createGame } from './engine.js';
+import { Worker } from 'node:worker_threads';
 import { greedyBot, mctsBot } from './bots.js';
-import { simulate, makeRng } from './sim.js';
+import { createGame, getLegalActions, resolveTurn } from './engine.js';
+import { makeRng, simulate } from './sim.js';
 
 const DEFAULTS = {
   mctsLowIters: 100,
@@ -63,13 +62,7 @@ export async function evaluateMap(map, opts = {}) {
   }
 }
 
-export function computeScore({
-  ladderEloGaps,
-  mctsMirrorWinrate,
-  meanT15Divergence,
-  turnCapRate,
-  medianGameLength,
-}) {
+export function computeScore({ ladderEloGaps, mctsMirrorWinrate, meanT15Divergence, turnCapRate, medianGameLength }) {
   const g1 = Math.max(0, ladderEloGaps.greedyToLow);
   const g2 = Math.max(0, ladderEloGaps.lowToMid);
   const g3 = Math.max(0, ladderEloGaps.midToHigh);
@@ -78,9 +71,9 @@ export function computeScore({
   const weighted_elo_gap = (w.greedyToLow * g1 + w.lowToMid * g2 + w.midToHigh * g3) / wsum;
   const ladder_separation = 1 - Math.exp(-weighted_elo_gap / LADDER_TARGET_ELO);
 
-  const horizon = clamp(meanT15Divergence / 0.30, 0, 1);
-  const side_fairness = 1 - clamp((Math.abs(mctsMirrorWinrate - 0.5) - 0.10) / 0.30, 0, 1);
-  const turn_cap_penalty = 1 - clamp((turnCapRate - 0.10) / 0.30, 0, 1);
+  const horizon = clamp(meanT15Divergence / 0.3, 0, 1);
+  const side_fairness = 1 - clamp((Math.abs(mctsMirrorWinrate - 0.5) - 0.1) / 0.3, 0, 1);
+  const turn_cap_penalty = 1 - clamp((turnCapRate - 0.1) / 0.3, 0, 1);
   const length_penalty = medianGameLength >= 12 ? 1 : medianGameLength / 12;
   const score = 100 * ladder_separation * horizon * side_fairness * turn_cap_penalty * length_penalty;
   return {
@@ -168,7 +161,7 @@ async function evalLadder(map, config, pool) {
 
   const elo = computeLadderElo(LADDER_RUNGS, pairwise);
   const gaps = {
-    greedyToLow: elo['mcts-low'] - elo['greedy'],
+    greedyToLow: elo['mcts-low'] - elo.greedy,
     lowToMid: elo['mcts-mid'] - elo['mcts-low'],
     midToHigh: elo['mcts-high'] - elo['mcts-mid'],
   };
@@ -271,16 +264,20 @@ async function evalFairness(map, config, pool) {
 
 async function runSimTasks(tasks, map, config, pool) {
   if (pool) {
-    return Promise.all(tasks.map((t) => pool.runSim({
-      map,
-      seed: t.seed,
-      turnCap: config.turnCap,
-      blueSpec: t.blueSpec,
-      redSpec: t.redSpec,
-      blueIters: t.blueIters,
-      redIters: t.redIters,
-      rolloutDepth: config.mctsRolloutDepth,
-    })));
+    return Promise.all(
+      tasks.map((t) =>
+        pool.runSim({
+          map,
+          seed: t.seed,
+          turnCap: config.turnCap,
+          blueSpec: t.blueSpec,
+          redSpec: t.redSpec,
+          blueIters: t.blueIters,
+          redIters: t.redIters,
+          rolloutDepth: config.mctsRolloutDepth,
+        }),
+      ),
+    );
   }
   return tasks.map((t) => {
     const blueAgent = makeAgent(t.blueSpec, t.blueIters, config.mctsRolloutDepth);
@@ -325,7 +322,7 @@ function evalHorizon(map, config) {
   };
 }
 
-function sampleDivergence(map, T, seed, config) {
+function sampleDivergence(map, T, seed, _config) {
   // Walk forward T turns with greedy-vs-greedy from a seeded fresh game.
   const baseSeedB = seed ^ 0x11a;
   const baseSeedR = seed ^ 0x22b;
@@ -374,13 +371,14 @@ function otherAction(game, perturbSide, seed) {
 }
 
 function stepForward(game, perturbAction, otherSideAction, perturbSide) {
-  const actions = perturbSide === 'blue'
-    ? { blue: perturbAction, red: otherSideAction }
-    : { blue: otherSideAction, red: perturbAction };
+  const actions =
+    perturbSide === 'blue'
+      ? { blue: perturbAction, red: otherSideAction }
+      : { blue: otherSideAction, red: perturbAction };
   return resolveTurn(game, actions).game;
 }
 
-function continueForward(game, perturbSide, seedB, seedR) {
+function continueForward(game, _perturbSide, seedB, seedR) {
   const rngB = makeRng(seedB ^ 0x71e);
   const rngR = makeRng(seedR ^ 0x82f);
   let g = game;

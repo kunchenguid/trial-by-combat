@@ -1,18 +1,11 @@
 import assert from 'node:assert/strict';
-import test from 'node:test';
 import fs from 'node:fs';
-import path from 'node:path';
 import os from 'node:os';
+import path from 'node:path';
+import test from 'node:test';
 
 import { CENTER_CHOKE } from '../src/engine.js';
-import {
-  validateMapDefinition,
-  loadMap,
-  saveMap,
-  saveEval,
-  appendIndexEntry,
-  RUNS_DIR,
-} from '../src/storage.js';
+import { appendIndexEntry, loadMap, RUNS_DIR, saveEval, saveMap, validateMapDefinition } from '../src/storage.js';
 
 function tmpDir() {
   return fs.mkdtempSync(path.join(os.tmpdir(), 'agent-duel-test-'));
@@ -29,11 +22,16 @@ test('validateMapDefinition rejects out-of-range coordinates', () => {
     bases: { blue: ['Z9'], red: ['I9'] },
     starts: { blue: 'Z9', red: 'I9' },
     relicStart: 'E5',
-    walls: [], bushes: [], fire: [],
+    walls: [],
+    bushes: [],
+    fire: [],
   };
   const result = validateMapDefinition(map);
   assert.equal(result.valid, false);
-  assert.ok(result.errors.some((e) => e.includes('Z9')), JSON.stringify(result.errors));
+  assert.ok(
+    result.errors.some((e) => e.includes('Z9')),
+    JSON.stringify(result.errors),
+  );
 });
 
 test('validateMapDefinition rejects overlap between walls/bushes/fire/bases', () => {
@@ -42,7 +40,9 @@ test('validateMapDefinition rejects overlap between walls/bushes/fire/bases', ()
     bases: { blue: ['A5'], red: ['I5'] },
     starts: { blue: 'A5', red: 'I5' },
     relicStart: 'E5',
-    walls: ['B5'], bushes: ['B5'], fire: [],
+    walls: ['B5'],
+    bushes: ['B5'],
+    fire: [],
   };
   const result = validateMapDefinition(map);
   assert.equal(result.valid, false);
@@ -55,7 +55,9 @@ test('validateMapDefinition rejects empty base for a side', () => {
     bases: { blue: [], red: ['I5'] },
     starts: { blue: 'A5', red: 'I5' },
     relicStart: 'E5',
-    walls: [], bushes: [], fire: [],
+    walls: [],
+    bushes: [],
+    fire: [],
   };
   const result = validateMapDefinition(map);
   assert.equal(result.valid, false);
@@ -67,7 +69,9 @@ test('validateMapDefinition rejects starts that are walls', () => {
     bases: { blue: ['A5'], red: ['I5'] },
     starts: { blue: 'A5', red: 'I5' },
     relicStart: 'E5',
-    walls: ['A5'], bushes: [], fire: [],
+    walls: ['A5'],
+    bushes: [],
+    fire: [],
   };
   const result = validateMapDefinition(map);
   assert.equal(result.valid, false);
@@ -94,7 +98,9 @@ test('validateMapDefinition rejects start not in or adjacent to its own base', (
     bases: { blue: ['A5'], red: ['I5'] },
     starts: { blue: 'C5', red: 'I5' }, // C5 is 2 tiles from A5
     relicStart: 'E5',
-    walls: [], bushes: [], fire: [],
+    walls: [],
+    bushes: [],
+    fire: [],
   };
   const result = validateMapDefinition(map);
   assert.equal(result.valid, false);

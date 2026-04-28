@@ -38,7 +38,10 @@ test('spectator UI uses the polished broadcast overlay and detailed pixel render
   assert.match(app, /spriteMarkup\('icon_relic', WIN_CONDITION_ICON_SCALE, 'win-icon win-icon-relic'/);
   assert.match(app, /spriteMarkup\('agent_blue_idle_0', WIN_CONDITION_ICON_SCALE, 'win-icon win-icon-agent'/);
   assert.match(app, /spriteMarkup\('base_blue_0', WIN_CONDITION_BASE_SCALE, 'win-icon win-icon-base'/);
-  assert.doesNotMatch(app, /spriteMarkup\('icon_relic', 0\.78\)[\s\S]*spriteMarkup\('agent_blue_idle_0', 0\.54\)[\s\S]*spriteMarkup\('base_blue_0', 0\.48\)/);
+  assert.doesNotMatch(
+    app,
+    /spriteMarkup\('icon_relic', 0\.78\)[\s\S]*spriteMarkup\('agent_blue_idle_0', 0\.54\)[\s\S]*spriteMarkup\('base_blue_0', 0\.48\)/,
+  );
   assert.match(app, /this\.terrainLayer/);
   assert.match(app, /this\.relicGroundLayer/);
   assert.match(app, /this\.highlightLayer/);

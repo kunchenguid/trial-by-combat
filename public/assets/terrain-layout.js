@@ -9,7 +9,7 @@ export function buildTerrainSprites(coords, kind) {
       frame: `${kind}_${mask}`,
       mask,
       footprint: { width: 1, height: 1 },
-      depth: (y * 10) + x + (kind === 'wall' ? 0.18 : 0.12),
+      depth: y * 10 + x + (kind === 'wall' ? 0.18 : 0.12),
     };
   });
 }

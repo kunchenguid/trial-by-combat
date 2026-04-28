@@ -1,9 +1,8 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-
-import { ACTIONS, CENTER_CHOKE, createGame, resolveTurn, validateAction } from '../src/engine.js';
-import { randomBot, greedyBot, mctsBot } from '../src/bots.js';
-import { simulate, makeRng } from '../src/sim.js';
+import { greedyBot, mctsBot, randomBot } from '../src/bots.js';
+import { ACTIONS, CENTER_CHOKE, createGame, validateAction } from '../src/engine.js';
+import { makeRng, simulate } from '../src/sim.js';
 
 test('randomBot returns a legal action', () => {
   const game = createGame({ map: CENTER_CHOKE });
@@ -98,9 +97,11 @@ test('greedy beats random over a series of mirrored games on Center Choke', () =
     const redAgent = blueIsGreedy ? randomBot : greedyBot;
     const result = simulate(CENTER_CHOKE, blueAgent, redAgent, { seed: i + 1, turnCap: 40 });
     if (result.winner === 'blue') {
-      if (blueIsGreedy) greedyWins += 1; else randomWins += 1;
+      if (blueIsGreedy) greedyWins += 1;
+      else randomWins += 1;
     } else if (result.winner === 'red') {
-      if (blueIsGreedy) randomWins += 1; else greedyWins += 1;
+      if (blueIsGreedy) randomWins += 1;
+      else greedyWins += 1;
     }
   }
   // Greedy should clearly outperform random.

@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { ACTIONS, createGame, resolveTurn, CENTER_CHOKE } from '../src/engine.js';
+import { ACTIONS, CENTER_CHOKE, createGame, resolveTurn } from '../src/engine.js';
 
 const wait = { action_type: ACTIONS.WAIT };
 

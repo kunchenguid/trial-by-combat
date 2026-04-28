@@ -78,7 +78,9 @@ function buildRuntime(source) {
   bitmask: Object.freeze(${JSON.stringify(source.bitmask)}),
   terrainAutotiles: deepFreeze(${JSON.stringify(source.terrainAutotiles, null, 2)}),
   frames: Object.freeze({
-${Object.values(source.sprites).map((sprite) => `    ${sprite.id}: f(${sprite.x}, ${sprite.y}, ${sprite.w}, ${sprite.h}),`).join('\n')}
+${Object.values(source.sprites)
+  .map((sprite) => `    ${sprite.id}: f(${sprite.x}, ${sprite.y}, ${sprite.w}, ${sprite.h}),`)
+  .join('\n')}
   }),
   animations: deepFreeze(${JSON.stringify(source.animations, null, 2)}),
 });

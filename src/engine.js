@@ -197,9 +197,7 @@ export function createSeries({ bestOf = 1, playerNames = { player_1: 'Player 1',
 }
 
 export function slotSidesForGame(gameNumber) {
-  return gameNumber % 2 === 1
-    ? { player_1: 'blue', player_2: 'red' }
-    : { player_1: 'red', player_2: 'blue' };
+  return gameNumber % 2 === 1 ? { player_1: 'blue', player_2: 'red' } : { player_1: 'red', player_2: 'blue' };
 }
 
 function invertSlotSides(slotSides) {
@@ -310,7 +308,8 @@ export function validateAction(game, side, action, options = {}) {
   if (!player) return invalid('Unknown player side.');
   if (!action || !Object.values(ACTIONS).includes(action.action_type)) return invalid('Unknown action.');
   if (game.winner || game.replayRequired) return invalid('Game is over.');
-  if (player.stunned && action.action_type !== ACTIONS.WAIT) return invalid('You are stunned and must skip this action.');
+  if (player.stunned && action.action_type !== ACTIONS.WAIT)
+    return invalid('You are stunned and must skip this action.');
 
   const type = action.action_type;
   if (type === ACTIONS.WAIT) return valid();
@@ -422,7 +421,9 @@ export function resolveTurn(inputGame, actionsBySide) {
     guarded[side] = normalized[side].action_type === ACTIONS.GUARD;
     if (!validation.valid) {
       game.invalidAttempts[side] += 1;
-      events.push(publicEvent(game, 'invalid_action', side, `${label(side)} invalid action became WAIT: ${validation.error}`));
+      events.push(
+        publicEvent(game, 'invalid_action', side, `${label(side)} invalid action became WAIT: ${validation.error}`),
+      );
     }
   }
 
@@ -527,7 +528,9 @@ export function resolveTurn(inputGame, actionsBySide) {
     const item = action.action_type === ACTIONS.PLACE_WALL ? 'wall' : 'trap';
     const validation = validatePlacement(game, side, action.target, item);
     if (!validation.valid) {
-      events.push(publicEvent(game, 'placement_failed', side, `${label(side)} could not place ${item}: ${validation.error}`));
+      events.push(
+        publicEvent(game, 'placement_failed', side, `${label(side)} could not place ${item}: ${validation.error}`),
+      );
       continue;
     }
     game.players[side].inventory[item] -= 1;
@@ -647,7 +650,9 @@ function applyScan(game, side, events) {
 function autoPickupRelic(game, events) {
   if (game.relic.carriedBy || !game.relic.position) return;
   if (game.relic.pickupBlockedTurn === game.turn) return;
-  const occupants = SIDES.filter((side) => game.players[side].position === game.relic.position && !game.players[side].stunned);
+  const occupants = SIDES.filter(
+    (side) => game.players[side].position === game.relic.position && !game.players[side].stunned,
+  );
   if (occupants.length === 1) {
     const side = occupants[0];
     game.players[side].carryingRelic = true;
@@ -696,16 +701,19 @@ function nearestRespawnTile(game, side) {
   for (const base of baseTiles) {
     for (const coord of adjacentCoords(base)) candidates.add(coord);
   }
-  return [...candidates]
-    .filter((coord) => !occupiedBy(game, coord, side) && !game.map.walls.has(coord))
-    .sort((a, b) => manhattan(a, baseTiles[1]) - manhattan(b, baseTiles[1]) || a.localeCompare(b))[0] ?? baseTiles[1];
+  return (
+    [...candidates]
+      .filter((coord) => !occupiedBy(game, coord, side) && !game.map.walls.has(coord))
+      .sort((a, b) => manhattan(a, baseTiles[1]) - manhattan(b, baseTiles[1]) || a.localeCompare(b))[0] ?? baseTiles[1]
+  );
 }
 
 function isEmptyForPlacement(game, coord, side = null, options = {}) {
   if (game.map.walls.has(coord)) return false;
   if (game.traps.has(coord)) {
     const trap = game.traps.get(coord);
-    const hiddenEnemyTrap = side && trap.owner !== side && !trap.revealedTo.has(side) && !game.players[side].knownEnemyTraps.has(coord);
+    const hiddenEnemyTrap =
+      side && trap.owner !== side && !trap.revealedTo.has(side) && !game.players[side].knownEnemyTraps.has(coord);
     if (!(options.playerVisible && hiddenEnemyTrap)) return false;
   }
   if (game.relic.position === coord) return false;
@@ -715,7 +723,10 @@ function isEmptyForPlacement(game, coord, side = null, options = {}) {
 }
 
 function occupiedBy(game, coord, exceptSide = null) {
-  return SIDES.find((side) => side !== exceptSide && game.players[side].position === coord && !game.players[side].stunned) ?? null;
+  return (
+    SIDES.find((side) => side !== exceptSide && game.players[side].position === coord && !game.players[side].stunned) ??
+    null
+  );
 }
 
 function adjacentCoords(coord) {
@@ -805,7 +816,9 @@ export function getPlayerView(game, side, timerSecondsRemaining = null) {
       own_traps: ownTraps,
     },
     legal_actions: getLegalActions(game, side, { playerVisible: true }),
-    last_events_visible_to_you: visibleEventsFor(game, side).slice(-6).map((event) => `Turn ${event.turn}: ${event.summary}`),
+    last_events_visible_to_you: visibleEventsFor(game, side)
+      .slice(-6)
+      .map((event) => `Turn ${event.turn}: ${event.summary}`),
     turn_timer_seconds_remaining: timerSecondsRemaining,
     winner: game.winner,
     replay_required: game.replayRequired,
@@ -840,7 +853,10 @@ function visibleEventsFor(game, side) {
   return game.eventLog.filter((event) => event.visibility === 'public' || event.visibility === `private_${side}`);
 }
 
-export function getSpectatorView(game, { xray = false, timerSecondsRemaining = null, actionStatuses = {}, actionThoughts = {} } = {}) {
+export function getSpectatorView(
+  game,
+  { xray = false, timerSecondsRemaining = null, actionStatuses = {}, actionThoughts = {} } = {},
+) {
   return {
     turn: game.turn,
     phase: game.phase,
@@ -872,7 +888,9 @@ function serializeBoard(game, { xray = false, actionStatuses = {}, actionThought
       armed: trap.armed,
     })),
     relic: { ...game.relic },
-    players: Object.fromEntries(SIDES.map((side) => [side, publicPlayer(game, game.players[side], actionStatuses[side], actionThoughts[side])])),
+    players: Object.fromEntries(
+      SIDES.map((side) => [side, publicPlayer(game, game.players[side], actionStatuses[side], actionThoughts[side])]),
+    ),
   };
 }
 
@@ -895,7 +913,10 @@ function publicPlayer(game, player, actionStatus, actionThought) {
 function privateState(game, side) {
   return {
     known_enemy_traps: [...game.players[side].knownEnemyTraps].sort(),
-    own_traps: [...game.traps.entries()].filter(([, trap]) => trap.owner === side).map(([coord]) => coord).sort(),
+    own_traps: [...game.traps.entries()]
+      .filter(([, trap]) => trap.owner === side)
+      .map(([coord]) => coord)
+      .sort(),
   };
 }
 
@@ -919,7 +940,10 @@ export function computeAdvantage(game) {
   const healthDiff = game.players.blue.health - game.players.red.health;
   if (healthDiff !== 0) {
     blue += healthDiff * 1.5;
-    factors.push({ label: `${healthDiff > 0 ? 'Blue' : 'Red'} is healthier`, supports: healthDiff > 0 ? 'blue' : 'red' });
+    factors.push({
+      label: `${healthDiff > 0 ? 'Blue' : 'Red'} is healthier`,
+      supports: healthDiff > 0 ? 'blue' : 'red',
+    });
   }
   const itemDiff = inventoryTotal(game.players.blue.inventory) - inventoryTotal(game.players.red.inventory);
   if (itemDiff !== 0) {

@@ -6,7 +6,7 @@ export const RULES = {
     { label: 'Movement', detail: 'Simultaneous. Same target → both blocked. Swap → both blocked.' },
     { label: 'Attack', detail: 'Range 1, after movement (so moving out of range dodges).' },
     { label: 'Damage applied', detail: 'Guard reduces by 2. Damage ≥3 forces relic drop.' },
-    { label: 'Place wall / trap', detail: 'Adjacent empty tile. Walls can\'t seal off relic or bases.' },
+    { label: 'Place wall / trap', detail: "Adjacent empty tile. Walls can't seal off relic or bases." },
     { label: 'Auto-pickup', detail: 'A free relic is picked up only by a single occupant.' },
   ],
 
@@ -45,7 +45,11 @@ export const RULES = {
 
   tiles: [
     { name: 'Wall', sprite: 'icon_wall', effect: 'Impassable.' },
-    { name: 'Bush', sprite: 'icon_bush', effect: 'Hides you unless opponent in range 2 or you carry relic. +1 dmg to bush attacks.' },
+    {
+      name: 'Bush',
+      sprite: 'icon_bush',
+      effect: 'Hides you unless opponent in range 2 or you carry relic. +1 dmg to bush attacks.',
+    },
     { name: 'Fire', sprite: 'icon_fire', effect: '-2 HP when you walk onto it.' },
     { name: 'Trap', sprite: 'icon_trap', effect: '-3 HP on enemy step, cancels rest of their turn. Hidden.' },
     { name: 'Relic', sprite: 'icon_relic', effect: 'The objective. Auto-pickup when alone on it.' },
@@ -68,7 +72,7 @@ export const RULES = {
   gotchas: [
     'Bush ambush bonus uses your start-of-turn position.',
     'Trap step converts the rest of your turn to WAIT (cancels dash step 2 and placements).',
-    '0 HP isn\'t death — skip a turn, respawn at base with 5 HP.',
+    "0 HP isn't death — skip a turn, respawn at base with 5 HP.",
     'Turn 40 cap → game replays without counting toward the series.',
   ],
 };

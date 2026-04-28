@@ -27,7 +27,10 @@ test('atlas follows the production 2048 usage guide', async () => {
 
   const frames = Object.values(AGENT_DUEL_ATLAS.frames);
   assert.equal(frames.length, 153);
-  assert.ok(frames.every((frame) => frame.w === 64 && frame.h === 64), 'every production sprite is one 64x64 cell');
+  assert.ok(
+    frames.every((frame) => frame.w === 64 && frame.h === 64),
+    'every production sprite is one 64x64 cell',
+  );
   assertNoMagentaKeyPixels(png);
 });
 

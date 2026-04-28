@@ -44,12 +44,26 @@ saveEval(id, result);
 const elo = result.ladder.elo;
 const gaps = result.ladder.gaps;
 console.log(`  score:              ${result.score.toFixed(2)}`);
-console.log(`  ladder_separation:  ${result.score_components.ladder_separation.toFixed(3)}  (weighted Elo gap ${result.score_components.weighted_elo_gap.toFixed(0)})`);
-console.log(`  ladder Elo:         greedy=${elo['greedy'].toFixed(0)}  low=${elo['mcts-low'].toFixed(0)}  mid=${elo['mcts-mid'].toFixed(0)}  high=${elo['mcts-high'].toFixed(0)}`);
-console.log(`  adjacent gaps:      g->low=${gaps.greedyToLow.toFixed(0)}  low->mid=${gaps.lowToMid.toFixed(0)}  mid->high=${gaps.midToHigh.toFixed(0)}`);
-console.log(`  horizon:            ${result.score_components.horizon.toFixed(3)}  (mean T+15 divergence ${result.horizon.meanT15.toFixed(3)})`);
-console.log(`  side_fairness:      ${result.score_components.side_fairness.toFixed(3)}  (blue mirror winrate ${result.fairness.blueWinrate.toFixed(3)})`);
-console.log(`  turn_cap_penalty:   ${result.score_components.turn_cap_penalty.toFixed(3)}  (turn-cap rate ${result.guardrails.turnCapRate.toFixed(3)})`);
-console.log(`  length_penalty:     ${result.score_components.length_penalty.toFixed(3)}  (median length ${result.guardrails.medianGameLength})`);
+console.log(
+  `  ladder_separation:  ${result.score_components.ladder_separation.toFixed(3)}  (weighted Elo gap ${result.score_components.weighted_elo_gap.toFixed(0)})`,
+);
+console.log(
+  `  ladder Elo:         greedy=${elo.greedy.toFixed(0)}  low=${elo['mcts-low'].toFixed(0)}  mid=${elo['mcts-mid'].toFixed(0)}  high=${elo['mcts-high'].toFixed(0)}`,
+);
+console.log(
+  `  adjacent gaps:      g->low=${gaps.greedyToLow.toFixed(0)}  low->mid=${gaps.lowToMid.toFixed(0)}  mid->high=${gaps.midToHigh.toFixed(0)}`,
+);
+console.log(
+  `  horizon:            ${result.score_components.horizon.toFixed(3)}  (mean T+15 divergence ${result.horizon.meanT15.toFixed(3)})`,
+);
+console.log(
+  `  side_fairness:      ${result.score_components.side_fairness.toFixed(3)}  (blue mirror winrate ${result.fairness.blueWinrate.toFixed(3)})`,
+);
+console.log(
+  `  turn_cap_penalty:   ${result.score_components.turn_cap_penalty.toFixed(3)}  (turn-cap rate ${result.guardrails.turnCapRate.toFixed(3)})`,
+);
+console.log(
+  `  length_penalty:     ${result.score_components.length_penalty.toFixed(3)}  (median length ${result.guardrails.medianGameLength})`,
+);
 console.log(`  ran ${result.ladder.games.length + result.fairness.games.length} games in ${elapsed}s`);
 console.log(`  wrote runs/evals/${id}.json`);

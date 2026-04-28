@@ -39,23 +39,60 @@ export function drawDetailedFloor(g, x, y, size, variant = 0) {
   rect(g, x, y, 2, size, 0x656a73);
 
   const cracks = [
-    [[0.15, 0.26], [0.35, 0.36], [0.42, 0.58]],
-    [[0.62, 0.12], [0.55, 0.3], [0.74, 0.48], [0.68, 0.8]],
-    [[0.18, 0.72], [0.36, 0.6], [0.58, 0.66]],
-    [[0.12, 0.18], [0.28, 0.16], [0.48, 0.28], [0.78, 0.24]],
+    [
+      [0.15, 0.26],
+      [0.35, 0.36],
+      [0.42, 0.58],
+    ],
+    [
+      [0.62, 0.12],
+      [0.55, 0.3],
+      [0.74, 0.48],
+      [0.68, 0.8],
+    ],
+    [
+      [0.18, 0.72],
+      [0.36, 0.6],
+      [0.58, 0.66],
+    ],
+    [
+      [0.12, 0.18],
+      [0.28, 0.16],
+      [0.48, 0.28],
+      [0.78, 0.24],
+    ],
   ][variant % 4];
   for (let i = 0; i < cracks.length - 1; i += 1) {
     const a = cracks[i];
     const b = cracks[i + 1];
     line(g, x + a[0] * size, y + a[1] * size, x + b[0] * size, y + b[1] * size, 0x1d222a, Math.max(1, size * 0.025));
-    line(g, x + a[0] * size, y + a[1] * size - 1, x + b[0] * size, y + b[1] * size - 1, 0x4d535d, Math.max(1, size * 0.012));
+    line(
+      g,
+      x + a[0] * size,
+      y + a[1] * size - 1,
+      x + b[0] * size,
+      y + b[1] * size - 1,
+      0x4d535d,
+      Math.max(1, size * 0.012),
+    );
   }
 
   const speckles = [
-    [0.2, 0.2], [0.78, 0.16], [0.42, 0.82], [0.68, 0.62], [0.18, 0.55],
+    [0.2, 0.2],
+    [0.78, 0.16],
+    [0.42, 0.82],
+    [0.68, 0.62],
+    [0.18, 0.55],
   ];
   for (const [sx, sy] of speckles.slice(0, 3 + (variant % 3))) {
-    rect(g, x + sx * size, y + sy * size, Math.max(2, size * 0.035), Math.max(2, size * 0.035), variant % 2 ? 0x454a53 : 0x252b34);
+    rect(
+      g,
+      x + sx * size,
+      y + sy * size,
+      Math.max(2, size * 0.035),
+      Math.max(2, size * 0.035),
+      variant % 2 ? 0x454a53 : 0x252b34,
+    );
   }
 }
 
@@ -168,10 +205,18 @@ export function drawTallWall(g, x, y, size) {
   g.ellipse(x + 12 * u, y + 22 * u, 11 * u, 3 * u).fill({ color: 0x000000, alpha: 0.32 });
   rect(g, x + 3 * u, y + 5 * u, 18 * u, 17 * u, palette.wallShadow);
   const blocks = [
-    [4, 3, 6, 4], [10, 3, 7, 4], [17, 4, 4, 4],
-    [3, 7, 7, 4], [10, 7, 6, 4], [16, 8, 6, 4],
-    [4, 11, 5, 4], [9, 11, 8, 4], [17, 12, 4, 4],
-    [3, 15, 7, 4], [10, 15, 6, 4], [16, 16, 6, 4],
+    [4, 3, 6, 4],
+    [10, 3, 7, 4],
+    [17, 4, 4, 4],
+    [3, 7, 7, 4],
+    [10, 7, 6, 4],
+    [16, 8, 6, 4],
+    [4, 11, 5, 4],
+    [9, 11, 8, 4],
+    [17, 12, 4, 4],
+    [3, 15, 7, 4],
+    [10, 15, 6, 4],
+    [16, 16, 6, 4],
   ];
   for (const [bx, by, bw, bh] of blocks) {
     rect(g, x + bx * u, y + by * u, bw * u, bh * u, palette.wall);
@@ -219,10 +264,14 @@ export function drawWall(g, x, y, size) {
   const unit = size / 16;
   rect(g, x + 2 * unit, y + 3 * unit, 12 * unit, 10 * unit, palette.wallShadow);
   const rows = [
-    [3, 2, 4, 3], [7, 2, 5, 3],
-    [2, 5, 5, 3], [7, 5, 6, 3],
-    [3, 8, 4, 3], [7, 8, 5, 3],
-    [2, 11, 6, 3], [8, 11, 5, 3],
+    [3, 2, 4, 3],
+    [7, 2, 5, 3],
+    [2, 5, 5, 3],
+    [7, 5, 6, 3],
+    [3, 8, 4, 3],
+    [7, 8, 5, 3],
+    [2, 11, 6, 3],
+    [8, 11, 5, 3],
   ];
   for (const [rx, ry, rw, rh] of rows) {
     rect(g, x + rx * unit, y + ry * unit, rw * unit, rh * unit, palette.wall);

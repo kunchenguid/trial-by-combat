@@ -8,8 +8,8 @@ test('computeScore produces a positive score on a healthy ladder', () => {
   const r = computeScore({
     ladderEloGaps: { greedyToLow: 200, lowToMid: 200, midToHigh: 200 },
     mctsMirrorWinrate: 0.55,
-    meanT15Divergence: 0.30,
-    turnCapRate: 0.10,
+    meanT15Divergence: 0.3,
+    turnCapRate: 0.1,
     medianGameLength: 20,
   });
   // weighted_elo_gap = (1*200 + 2*200 + 3*200) / 6 = 200
@@ -30,15 +30,24 @@ test('computeScore weights the top adjacent gap most', () => {
   // gap should score higher than putting it all at the bottom gap.
   const top = computeScore({
     ladderEloGaps: { greedyToLow: 0, lowToMid: 0, midToHigh: 300 },
-    mctsMirrorWinrate: 0.5, meanT15Divergence: 0.3, turnCapRate: 0, medianGameLength: 30,
+    mctsMirrorWinrate: 0.5,
+    meanT15Divergence: 0.3,
+    turnCapRate: 0,
+    medianGameLength: 30,
   });
   const middle = computeScore({
     ladderEloGaps: { greedyToLow: 0, lowToMid: 300, midToHigh: 0 },
-    mctsMirrorWinrate: 0.5, meanT15Divergence: 0.3, turnCapRate: 0, medianGameLength: 30,
+    mctsMirrorWinrate: 0.5,
+    meanT15Divergence: 0.3,
+    turnCapRate: 0,
+    medianGameLength: 30,
   });
   const bottom = computeScore({
     ladderEloGaps: { greedyToLow: 300, lowToMid: 0, midToHigh: 0 },
-    mctsMirrorWinrate: 0.5, meanT15Divergence: 0.3, turnCapRate: 0, medianGameLength: 30,
+    mctsMirrorWinrate: 0.5,
+    meanT15Divergence: 0.3,
+    turnCapRate: 0,
+    medianGameLength: 30,
   });
   assert.ok(top.score > middle.score);
   assert.ok(middle.score > bottom.score);
@@ -49,11 +58,17 @@ test('computeScore clips negative ladder gaps (inversions earn no credit)', () =
   // same as if that gap were 0 — flat or inverted spots contribute nothing.
   const inverted = computeScore({
     ladderEloGaps: { greedyToLow: 200, lowToMid: 200, midToHigh: -150 },
-    mctsMirrorWinrate: 0.5, meanT15Divergence: 0.3, turnCapRate: 0, medianGameLength: 30,
+    mctsMirrorWinrate: 0.5,
+    meanT15Divergence: 0.3,
+    turnCapRate: 0,
+    medianGameLength: 30,
   });
   const flat = computeScore({
     ladderEloGaps: { greedyToLow: 200, lowToMid: 200, midToHigh: 0 },
-    mctsMirrorWinrate: 0.5, meanT15Divergence: 0.3, turnCapRate: 0, medianGameLength: 30,
+    mctsMirrorWinrate: 0.5,
+    meanT15Divergence: 0.3,
+    turnCapRate: 0,
+    medianGameLength: 30,
   });
   assert.ok(Math.abs(inverted.score - flat.score) < 1e-9);
 });
@@ -62,7 +77,10 @@ test('computeScore asymptotes toward 100 — never reaches it', () => {
   // Even at absurd Elo gaps, score should be < 100 (no hard ceiling).
   const huge = computeScore({
     ladderEloGaps: { greedyToLow: 2000, lowToMid: 2000, midToHigh: 2000 },
-    mctsMirrorWinrate: 0.5, meanT15Divergence: 0.5, turnCapRate: 0, medianGameLength: 30,
+    mctsMirrorWinrate: 0.5,
+    meanT15Divergence: 0.5,
+    turnCapRate: 0,
+    medianGameLength: 30,
   });
   assert.ok(huge.score < 100);
   assert.ok(huge.score > 99);
@@ -72,7 +90,7 @@ test('computeScore penalizes extreme side bias', () => {
   const r = computeScore({
     ladderEloGaps: { greedyToLow: 200, lowToMid: 200, midToHigh: 200 },
     mctsMirrorWinrate: 0.95,
-    meanT15Divergence: 0.30,
+    meanT15Divergence: 0.3,
     turnCapRate: 0.0,
     medianGameLength: 30,
   });
@@ -85,8 +103,8 @@ test('computeScore penalizes high turn-cap rate', () => {
   const r = computeScore({
     ladderEloGaps: { greedyToLow: 200, lowToMid: 200, midToHigh: 200 },
     mctsMirrorWinrate: 0.5,
-    meanT15Divergence: 0.30,
-    turnCapRate: 0.40,
+    meanT15Divergence: 0.3,
+    turnCapRate: 0.4,
     medianGameLength: 30,
   });
   assert.equal(r.turn_cap_penalty, 0);
@@ -97,7 +115,7 @@ test('computeScore applies length penalty when games are too short', () => {
   const r = computeScore({
     ladderEloGaps: { greedyToLow: 200, lowToMid: 200, midToHigh: 200 },
     mctsMirrorWinrate: 0.5,
-    meanT15Divergence: 0.30,
+    meanT15Divergence: 0.3,
     turnCapRate: 0.0,
     medianGameLength: 6,
   });
@@ -124,7 +142,7 @@ test('evaluateMap runs end-to-end on a tiny config and returns the documented sh
   assert.equal(typeof result.timestamp, 'string');
   assert.ok(result.ladder && typeof result.ladder.elo === 'object');
   assert.deepEqual(result.ladder.rungs, ['greedy', 'mcts-low', 'mcts-mid', 'mcts-high']);
-  assert.ok(typeof result.ladder.elo['greedy'] === 'number');
+  assert.ok(typeof result.ladder.elo.greedy === 'number');
   assert.ok(typeof result.ladder.gaps.greedyToLow === 'number');
   assert.ok(typeof result.ladder.gaps.lowToMid === 'number');
   assert.ok(typeof result.ladder.gaps.midToHigh === 'number');

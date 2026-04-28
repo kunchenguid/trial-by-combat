@@ -54,9 +54,9 @@ export function validateMapDefinition(map) {
 
   // 2. No tile in more than one set.
   const sets = {
-    'walls': new Set(walls),
-    'bushes': new Set(bushes),
-    'fire': new Set(fire),
+    walls: new Set(walls),
+    bushes: new Set(bushes),
+    fire: new Set(fire),
     'bases.blue': new Set(map.bases.blue),
     'bases.red': new Set(map.bases.red),
   };
@@ -153,7 +153,7 @@ export function indexPath(opts = {}) {
 export function saveMap(map, opts = {}) {
   const dir = path.join(resolveRunsDir(opts), 'maps');
   ensureDir(dir);
-  fs.writeFileSync(mapPath(map.id, opts), JSON.stringify(map, null, 2) + '\n');
+  fs.writeFileSync(mapPath(map.id, opts), `${JSON.stringify(map, null, 2)}\n`);
 }
 
 export function loadMap(id, opts = {}) {
@@ -164,7 +164,7 @@ export function loadMap(id, opts = {}) {
 export function saveEval(id, evalResult, opts = {}) {
   const dir = path.join(resolveRunsDir(opts), 'evals');
   ensureDir(dir);
-  fs.writeFileSync(evalPath(id, opts), JSON.stringify(evalResult, null, 2) + '\n');
+  fs.writeFileSync(evalPath(id, opts), `${JSON.stringify(evalResult, null, 2)}\n`);
 }
 
 export function loadEval(id, opts = {}) {
@@ -174,5 +174,5 @@ export function loadEval(id, opts = {}) {
 
 export function appendIndexEntry(entry, opts = {}) {
   ensureDir(resolveRunsDir(opts));
-  fs.appendFileSync(indexPath(opts), JSON.stringify(entry) + '\n');
+  fs.appendFileSync(indexPath(opts), `${JSON.stringify(entry)}\n`);
 }

@@ -9,6 +9,9 @@
     "start": "node src/server.js",
     "test": "node --test",
     "test:engine": "node --test test/engine.test.js",
+    "lint": "biome check",
+    "lint:fix": "biome check --write",
+    "format": "biome format --write",
     "map:validate": "node scripts/map-validate.mjs",
     "map:evaluate": "node scripts/map-evaluate.mjs",
     "map:record": "node scripts/map-record.mjs"
@@ -17,5 +20,7 @@
     "express": "^4.19.2",
     "ws": "^8.17.1"
   },
-  "devDependencies": {}
+  "devDependencies": {
+    "@biomejs/biome": "2.4.13"
+  }
 }

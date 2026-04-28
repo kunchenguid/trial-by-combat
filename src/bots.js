@@ -104,10 +104,12 @@ function selectActionFromRoot(root, side, iters, rng, opts, game) {
   // by mean reward (with a minimum visit count) and break ties toward greedy's choice.
   // Falls back to greedy if MCTS hasn't gathered enough samples to be confident.
   const minVisits = Math.max(2, Math.floor(iters / Math.max(8, root.actions[side].length)));
-  const candidates = root.actions[side].map((action) => {
-    const stat = root.stats[side].get(actionKey(action));
-    return { action, visits: stat?.visits ?? 0, mean: stat ? stat.total / stat.visits : 0 };
-  }).filter((c) => c.visits >= minVisits);
+  const candidates = root.actions[side]
+    .map((action) => {
+      const stat = root.stats[side].get(actionKey(action));
+      return { action, visits: stat?.visits ?? 0, mean: stat ? stat.total / stat.visits : 0 };
+    })
+    .filter((c) => c.visits >= minVisits);
 
   if (candidates.length === 0) return greedyBot(game, side, rng);
 
@@ -122,7 +124,6 @@ function selectActionFromRoot(root, side, iters, rng, opts, game) {
   }
   return top.action;
 }
-
 
 // ---- helpers ----
 
@@ -213,8 +214,14 @@ function prunedLegalActions(game, side) {
   const wantTypes = new Set([
     ACTIONS.WAIT,
     ACTIONS.ATTACK,
-    ACTIONS.MOVE_NORTH, ACTIONS.MOVE_SOUTH, ACTIONS.MOVE_EAST, ACTIONS.MOVE_WEST,
-    ACTIONS.DASH_NORTH, ACTIONS.DASH_SOUTH, ACTIONS.DASH_EAST, ACTIONS.DASH_WEST,
+    ACTIONS.MOVE_NORTH,
+    ACTIONS.MOVE_SOUTH,
+    ACTIONS.MOVE_EAST,
+    ACTIONS.MOVE_WEST,
+    ACTIONS.DASH_NORTH,
+    ACTIONS.DASH_SOUTH,
+    ACTIONS.DASH_EAST,
+    ACTIONS.DASH_WEST,
     ACTIONS.DROP_RELIC,
   ]);
   if (player.health < player.maxHealth && player.inventory.heal > 0) wantTypes.add(ACTIONS.HEAL);
@@ -254,7 +261,7 @@ function runIteration(root, rolloutDepth, c, rolloutEpsilon, rng) {
   }
 }
 
-function selectChildAction(node, side, c, rng) {
+function selectChildAction(node, side, c, _rng) {
   const acts = node.actions[side];
   if (acts.length === 0) return { action_type: ACTIONS.WAIT };
   // Try unexplored first (in order, so iteration is deterministic given stable legal-action ordering).

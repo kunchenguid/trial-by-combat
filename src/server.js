@@ -5,15 +5,7 @@ import { fileURLToPath } from 'node:url';
 import express from 'express';
 import { WebSocketServer } from 'ws';
 
-import {
-  ACTIONS,
-  createGame,
-  createSeries,
-  getPlayerView,
-  getSpectatorView,
-  resolveTurn,
-  validateAction,
-} from './engine.js';
+import { ACTIONS, createSeries, getPlayerView, getSpectatorView, resolveTurn, validateAction } from './engine.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const publicDir = path.join(__dirname, '..', 'public');
@@ -464,7 +456,9 @@ function sanitizeAction(action) {
   return {
     action_type: action.action_type,
     ...(action.target ? { target: String(action.target).toUpperCase() } : {}),
-    ...(action.intent_summary ? { intent_summary: String(action.intent_summary).split(/\s+/).slice(0, 20).join(' ') } : {}),
+    ...(action.intent_summary
+      ? { intent_summary: String(action.intent_summary).split(/\s+/).slice(0, 20).join(' ') }
+      : {}),
   };
 }
 
