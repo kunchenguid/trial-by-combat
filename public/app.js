@@ -677,6 +677,27 @@ class BoardRenderer {
     return sprite;
   }
 
+  applyHeroPose(side, animationName, durationMs) {
+    const pose = {
+      animationName,
+      expiresAt: performance.now() + durationMs,
+    };
+    this.heroPoses[side] = pose;
+    const animation = AGENT_DUEL_ATLAS.animations[animationName];
+    if (!animation) return;
+    for (const actor of this.animatedActors) {
+      if (actor.heroSide === side) {
+        actor.animation = animation;
+        actor.animationName = animationName;
+        actor.poseExpiresAt = pose.expiresAt;
+        const nextFrame = animation.frames[0];
+        actor.texture = this.atlas.texture(nextFrame);
+        actor.currentFrame = nextFrame;
+        rescaleAnimatedSprite(actor, this.atlas.frame(nextFrame));
+      }
+    }
+  }
+
   async applyEvents(events, board, gameNumber) {
     await this.ready;
     if (!Array.isArray(events) || events.length === 0) return;
@@ -713,10 +734,7 @@ class BoardRenderer {
     switch (event.event_type) {
       case 'attack': {
         if (sideOf) {
-          this.heroPoses[sideOf] = {
-            animationName: `agent_${sideOf}_attack`,
-            expiresAt: performance.now() + 500,
-          };
+          this.applyHeroPose(sideOf, `agent_${sideOf}_attack`, 500);
         }
         const oppPos = sideOf ? board?.players?.[opponent(sideOf)]?.position : null;
         const target = tileCenter(oppPos);
@@ -733,10 +751,7 @@ class BoardRenderer {
       }
       case 'attack_miss': {
         if (sideOf) {
-          this.heroPoses[sideOf] = {
-            animationName: `agent_${sideOf}_attack`,
-            expiresAt: performance.now() + 500,
-          };
+          this.applyHeroPose(sideOf, `agent_${sideOf}_attack`, 500);
         }
         break;
       }

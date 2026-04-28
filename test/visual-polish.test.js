@@ -202,3 +202,12 @@ test('spectator player panels give spare vertical space to thinking text', async
   assert.match(styles, /\.agent-nameplate \{[\s\S]*padding-bottom: 14px/);
   assert.match(styles, /\.thinking-box \{[\s\S]*min-height: 200px/);
 });
+
+test('attack events update the currently drawn hero actor pose', async () => {
+  const app = await readFile(new URL('../public/app.js', import.meta.url), 'utf8');
+
+  assert.match(app, /applyHeroPose\(sideOf, `agent_\$\{sideOf\}_attack`, 500\)/);
+  assert.match(app, /actor\.heroSide === side/);
+  assert.match(app, /actor\.animationName = animationName/);
+  assert.match(app, /actor\.poseExpiresAt = pose\.expiresAt/);
+});
