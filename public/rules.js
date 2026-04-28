@@ -7,7 +7,7 @@ export const RULES = {
     {
       label: 'Attack',
       detail:
-        'Range 1, resolved AFTER both sides move. Adjacency is checked at post-movement positions, so an opponent who moves away is out of range. ATTACK targets the opponent\'s post-move tile, not their start-of-turn tile.',
+        "Range 1, resolved AFTER both sides move. Adjacency is checked at post-movement positions, so an opponent who moves away is out of range. ATTACK targets the opponent's post-move tile, not their start-of-turn tile.",
     },
     { label: 'Damage applied', detail: 'Guard reduces by 2. Damage ≥3 forces relic drop.' },
     { label: 'Place wall / trap', detail: "Adjacent empty tile. Walls can't seal off relic or bases." },

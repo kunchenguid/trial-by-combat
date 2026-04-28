@@ -364,7 +364,10 @@ test('briefing describes ATTACK as an untargeted action', async () => {
     const res = await getText(`${base}/player1?nowait=true`);
 
     assert.equal(res.status, 200);
-    assert.match(res.body, /Plain action: \{"action":"WAIT","intent":"why"\} \(also: ATTACK, GUARD, HEAL, SCAN, DROP_RELIC\)/);
+    assert.match(
+      res.body,
+      /Plain action: \{"action":"WAIT","intent":"why"\} \(also: ATTACK, GUARD, HEAL, SCAN, DROP_RELIC\)/,
+    );
     assert.doesNotMatch(res.body, /ATTACK target an adjacent tile/);
   });
 });

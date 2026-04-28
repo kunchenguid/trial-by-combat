@@ -137,7 +137,10 @@ test('events carry monotonically increasing seq across turns and dash move event
 
   const turnOneSeqs = turnOne.events.map((e) => e.seq);
   for (const seq of turnOneSeqs) assert.equal(typeof seq, 'number');
-  assert.deepEqual([...turnOneSeqs].sort((a, b) => a - b), turnOneSeqs);
+  assert.deepEqual(
+    [...turnOneSeqs].sort((a, b) => a - b),
+    turnOneSeqs,
+  );
   assert.equal(new Set(turnOneSeqs).size, turnOneSeqs.length);
 
   const turnTwo = resolveTurn(turnOne.game, {
@@ -145,14 +148,20 @@ test('events carry monotonically increasing seq across turns and dash move event
     red: wait,
   });
   const allSeqs = [...turnOneSeqs, ...turnTwo.events.map((e) => e.seq)];
-  assert.deepEqual(allSeqs, allSeqs.map((_, idx) => idx));
+  assert.deepEqual(
+    allSeqs,
+    allSeqs.map((_, idx) => idx),
+  );
 
   const moveEvent = turnTwo.events.find((e) => e.event_type === 'move' && e.actor === 'blue');
   assert.equal(moveEvent.meta.dashed, false);
   assert.equal(moveEvent.meta.step, 1);
 
   const view = getSpectatorView(turnTwo.game);
-  assert.equal(view.public_events.every((e) => typeof e.seq === 'number'), true);
+  assert.equal(
+    view.public_events.every((e) => typeof e.seq === 'number'),
+    true,
+  );
 });
 
 test('wall placement requires adjacency, empty non-base target, and preserves all relic paths', () => {
