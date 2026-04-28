@@ -11,7 +11,7 @@
       "**",
       "!**/runs",
       "!**/public/assets/sprite-atlas.js",
-      "!**/public/assets/agent-duel-sprite-sheet.meta.json",
+      "!**/public/assets/trial-by-combat-sprite-sheet.meta.json",
       "!**/public/assets/source"
     ]
   },

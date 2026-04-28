@@ -12,6 +12,6 @@
   "walls": ["D6", "D7", "F2", "F3", "B4", "C4", "G4", "H4"],
   "bushes": ["B2", "C2", "C3", "C5", "C7", "E3", "G5", "G6", "G7", "H2", "H3", "I2"],
   "fire": ["D2", "F6"],
-  "notes": "Reference baseline map used by Agent Duel. Mirrored corridor with central relic, two flanking bush clusters, and minor fire hazards.",
+  "notes": "Reference baseline map used by Trial by Combat. Mirrored corridor with central relic, two flanking bush clusters, and minor fire hazards.",
   "conclusion": "Frozen reference. Map authors compare new attempts against the eval at runs/evals/_baseline_center_choke.json."
 }

@@ -15,8 +15,8 @@ test('spectator UI uses the polished broadcast overlay and detailed pixel render
   assert.match(app, /spectator-hud/);
   assert.match(index, /app\.js\?v=production-atlas-2048-v1/);
   assert.match(app, /sprite-atlas\.js\?v=production-atlas-2048-v1/);
-  assert.match(atlas, /agent-duel-sprite-sheet\.png\?v=production-atlas-2048-v1/);
-  assert.match(app, /'AGENT DUEL'/);
+  assert.match(atlas, /trial-by-combat-sprite-sheet\.png\?v=production-atlas-2048-v1/);
+  assert.match(app, /'TRIAL BY COMBAT'/);
   assert.match(app, /lastStateFingerprint/);
   assert.match(app, /stateFingerprint\(message\)/);
   assert.match(app, /return;/);
@@ -57,7 +57,7 @@ test('spectator UI uses the polished broadcast overlay and detailed pixel render
   assert.match(app, /texture\.updateUvs\?\.\(\)/);
   assert.match(app, /actor\.targetHeight/);
   assert.match(app, /rescaleAnimatedSprite\(actor, this\.atlas\.frame\(nextFrame\)\)/);
-  assert.match(app, /AGENT_DUEL_ATLAS/);
+  assert.match(app, /TRIAL_BY_COMBAT_ATLAS/);
   assert.match(app, /agent_blue_idle/);
   assert.match(app, /agent_blue_carry_idle/);
   assert.match(app, /relic_shimmer/);
@@ -69,7 +69,7 @@ test('spectator UI uses the polished broadcast overlay and detailed pixel render
   assert.match(app, /THOUGHT/);
   assert.match(app, /What Just Happened/);
   assert.match(app, /showHeader: false/);
-  assert.match(app, /function waitingSpectator[\s\S]*<h2>AGENT DUEL<\/h2>/);
+  assert.match(app, /function waitingSpectator[\s\S]*<h2>TRIAL BY COMBAT<\/h2>/);
   assert.match(app, /waitingSlotText\(1, view\.lobby\.slots\.player_1\)/);
   assert.match(app, /Waiting for player \$\{slotNumber\} to join/);
   assert.doesNotMatch(app, /Slot 1: \$\{escapeHtml\(view\.lobby\.slots\.player_1\.name \?\? 'waiting'\)/);
@@ -146,7 +146,7 @@ test('spectator UI uses the polished broadcast overlay and detailed pixel render
   assert.match(assets, /export function drawTallWall/);
   assert.match(assets, /drawLeafCluster/);
   assert.match(assets, /bushTrunk/);
-  assert.match(atlas, /agent-duel-sprite-sheet\.png/);
+  assert.match(atlas, /trial-by-combat-sprite-sheet\.png/);
   assert.match(atlas, /filterMode: 'nearest'/);
   assert.match(atlas, /compression: 'lossless'/);
   assert.match(atlas, /mipmaps: false/);

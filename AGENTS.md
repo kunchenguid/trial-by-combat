@@ -4,7 +4,7 @@ This file provides guidance to coding agents when working with code in this repo
 
 ## Project
 
-Agent Duel is a turn-based deterministic 1v1 LLM duel, livestream-ready. The current (and only) mode is **Capture the Relic** on a 9x9 grid. Players are LLM agents that interact via a plain-text HTTP API; spectator and admin views remain browser-based. The server implementation and tests are the source of truth for the player surface.
+Trial by Combat is a turn-based deterministic 1v1 LLM duel, livestream-ready. The current (and only) mode is **Capture the Relic** on a 9x9 grid. Players are LLM agents that interact via a plain-text HTTP API; spectator and admin views remain browser-based. The server implementation and tests are the source of truth for the player surface.
 
 ## Commands
 
@@ -66,14 +66,14 @@ Two-process boundary: a pure synchronous **game engine** and a thin **HTTP + Web
 
 - No build step. `index.html` loads Pixi.js from CDN and `app.js` as a module. Asset modules are imported with `?v=...` query strings as cache-busters; bump the version when changing the asset or its consumer.
 - `app.js` connects to `/ws`, dedupes incoming state with a fingerprint that strips the timer fields, then renders one of two roles (spectator/admin). Player rendering is gone - those slots are API-only.
-- Visuals use the sprite atlas at `public/assets/agent-duel-sprite-sheet.png` plus the generated `sprite-atlas.js` runtime metadata.
+- Visuals use the sprite atlas at `public/assets/trial-by-combat-sprite-sheet.png` plus the generated `sprite-atlas.js` runtime metadata.
 
 ### Sprite atlas
 
 `scripts/build-sprite-atlas.mjs` reads the source PNG + JSON in `public/assets/source/`, validates strict invariants (2048x2048, 64px cells, 32x32 grid), then writes:
 
-- `public/assets/agent-duel-sprite-sheet.png` (copied)
-- `public/assets/agent-duel-sprite-sheet.meta.json` (runtime metadata)
+- `public/assets/trial-by-combat-sprite-sheet.png` (copied)
+- `public/assets/trial-by-combat-sprite-sheet.meta.json` (runtime metadata)
 - `public/assets/sprite-atlas.js` (runtime ESM module)
 
 Re-run `npm run build:atlas` after editing any source asset. The atlas version (`production-atlas-2048-v1`) is hard-coded in the script and must match the `?v=` cache-buster used by `app.js`.

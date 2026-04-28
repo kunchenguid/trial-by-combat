@@ -1,5 +1,5 @@
 import { drawDetailedFloor, palette } from './assets/pixel-assets.js?v=detailed-atlas-128-clean-floor';
-import { AGENT_DUEL_ATLAS } from './assets/sprite-atlas.js?v=production-atlas-2048-v1';
+import { TRIAL_BY_COMBAT_ATLAS } from './assets/sprite-atlas.js?v=production-atlas-2048-v1';
 import { buildTerrainSprites } from './assets/terrain-layout.js?v=detailed-atlas-128-clean-floor';
 
 const params = new URLSearchParams(window.location.search);
@@ -23,7 +23,7 @@ const state = {
   nextRoundAt: null,
 };
 
-const REPO_URL = 'https://github.com/kunchenguid/agent-duel';
+const REPO_URL = 'https://github.com/kunchenguid/trial-by-combat';
 
 const appEl = document.getElementById('app');
 const WIN_CONDITION_ICON_SCALE = 0.62;
@@ -127,7 +127,7 @@ function renderSpectator(view) {
   const redPlayer = board.players.red;
   const waiting = view.phase === 'pre_lobby' || view.phase === 'lobby';
   renderShell(
-    'AGENT DUEL',
+    'TRIAL BY COMBAT',
     'Capture the Relic',
     waiting
       ? waitingSpectator(view)
@@ -136,7 +136,7 @@ function renderSpectator(view) {
         <section class="broadcast-title">
           <div class="broadcast-rule pixel-panel">${escapeHtml(formatGameCount(view.match))}</div>
           <div>
-            <h2>AGENT DUEL</h2>
+            <h2>TRIAL BY COMBAT</h2>
             <div class="series-score">
               <strong class="blue-score">${scoreForSide(view.match, board, 'blue')}</strong>
               <a class="series-score-url" href="${REPO_URL}" target="_blank" rel="noopener">${escapeHtml(REPO_URL)}</a>
@@ -326,7 +326,7 @@ function scoreText(match, board) {
 
 function renderAdmin(view) {
   renderShell(
-    'Agent Duel Admin',
+    'Trial by Combat Admin',
     'Operator controls',
     `
       <main class="admin-layout arcade-layout">
@@ -554,7 +554,7 @@ class BoardRenderer {
   }
 
   addWorldActor(layer, x, y, spriteData, { frameName, animationName, width, height, anchor, animationKind }) {
-    const animation = animationName ? AGENT_DUEL_ATLAS.animations[animationName] : null;
+    const animation = animationName ? TRIAL_BY_COMBAT_ATLAS.animations[animationName] : null;
     const firstFrame = frameName ?? animation.frames[0];
     const sprite = this.addAtlasSprite(layer, firstFrame, x, y, { width, height, anchor });
     sprite.baseX = x;
@@ -579,7 +579,7 @@ class BoardRenderer {
       actor.alpha = 1;
       actor.scale.set(actor.baseScale);
       if (actor.animationKind === 'hero' && actor.poseExpiresAt && frameNow > actor.poseExpiresAt) {
-        const baseAnim = AGENT_DUEL_ATLAS.animations[actor.basePoseAnimation];
+        const baseAnim = TRIAL_BY_COMBAT_ATLAS.animations[actor.basePoseAnimation];
         if (baseAnim) {
           actor.animation = baseAnim;
           actor.animationName = actor.basePoseAnimation;
@@ -650,7 +650,7 @@ class BoardRenderer {
   }
 
   spawnFx(animationOrFrame, x, y, options = {}) {
-    const animation = AGENT_DUEL_ATLAS.animations[animationOrFrame] ?? null;
+    const animation = TRIAL_BY_COMBAT_ATLAS.animations[animationOrFrame] ?? null;
     const frameName = animation ? animation.frames[0] : animationOrFrame;
     const sprite = this.atlas.createSprite(frameName);
     sprite.anchor.set(options.anchorX ?? 0.5, options.anchorY ?? 0.5);
@@ -658,7 +658,7 @@ class BoardRenderer {
     sprite.y = Math.round(y);
     const cell = this.size / 9;
     const targetSize = options.size ?? cell * 0.95;
-    const frame = AGENT_DUEL_ATLAS.frames[frameName];
+    const frame = TRIAL_BY_COMBAT_ATLAS.frames[frameName];
     const baseScale = targetSize / frame.h;
     sprite.scale.set(baseScale);
     sprite.alpha = options.alpha ?? 1;
@@ -683,7 +683,7 @@ class BoardRenderer {
       expiresAt: performance.now() + durationMs,
     };
     this.heroPoses[side] = pose;
-    const animation = AGENT_DUEL_ATLAS.animations[animationName];
+    const animation = TRIAL_BY_COMBAT_ATLAS.animations[animationName];
     if (!animation) return;
     for (const actor of this.animatedActors) {
       if (actor.heroSide === side) {
@@ -826,9 +826,9 @@ class SpriteAtlas {
   }
 
   async load() {
-    this.baseTexture = await PIXI.Assets.load(AGENT_DUEL_ATLAS.image);
+    this.baseTexture = await PIXI.Assets.load(TRIAL_BY_COMBAT_ATLAS.image);
     configureAtlasTexture(this.baseTexture);
-    for (const [name, frame] of Object.entries(AGENT_DUEL_ATLAS.frames)) {
+    for (const [name, frame] of Object.entries(TRIAL_BY_COMBAT_ATLAS.frames)) {
       const texture = new PIXI.Texture({
         source: this.baseTexture,
         frame: new PIXI.Rectangle(frame.x, frame.y, frame.w, frame.h),
@@ -846,7 +846,7 @@ class SpriteAtlas {
   }
 
   frame(name) {
-    return AGENT_DUEL_ATLAS.frames[name];
+    return TRIAL_BY_COMBAT_ATLAS.frames[name];
   }
 
   createSprite(name) {
@@ -1041,7 +1041,7 @@ function agentName(side, board, lobby) {
 }
 
 function spriteMarkup(frameName, scale = 1, className = '') {
-  const frame = AGENT_DUEL_ATLAS.frames[frameName];
+  const frame = TRIAL_BY_COMBAT_ATLAS.frames[frameName];
   const width = frame.w * scale;
   const height = frame.h * scale;
   return `<span class="atlas-sprite-wrap ${className}" style="width:${width}px;height:${height}px" aria-hidden="true"><span class="atlas-sprite" style="${spriteStyle(frameName, scale)}"></span></span>`;
@@ -1058,12 +1058,12 @@ function winConditionIcons() {
 }
 
 function spriteStyle(frameName, scale = 1) {
-  const frame = AGENT_DUEL_ATLAS.frames[frameName];
+  const frame = TRIAL_BY_COMBAT_ATLAS.frames[frameName];
   return [
     `width:${frame.w}px`,
     `height:${frame.h}px`,
-    `background-image:url('${AGENT_DUEL_ATLAS.image}')`,
-    `background-size:${AGENT_DUEL_ATLAS.width}px ${AGENT_DUEL_ATLAS.height}px`,
+    `background-image:url('${TRIAL_BY_COMBAT_ATLAS.image}')`,
+    `background-size:${TRIAL_BY_COMBAT_ATLAS.width}px ${TRIAL_BY_COMBAT_ATLAS.height}px`,
     `background-position:-${frame.x}px -${frame.y}px`,
     `transform:scale(${scale})`,
   ].join(';');
@@ -1132,7 +1132,7 @@ function waitingSpectator(view) {
       <section class="broadcast-title">
         <div class="broadcast-rule pixel-panel">${escapeHtml(formatGameCount(view.match))}</div>
         <div>
-          <h2>AGENT DUEL</h2>
+          <h2>TRIAL BY COMBAT</h2>
           <div class="series-score">
             <strong class="blue-score">${view.match.score.player_1 ?? 0}</strong>
             <a class="series-score-url" href="${REPO_URL}" target="_blank" rel="noopener">${escapeHtml(REPO_URL)}</a>

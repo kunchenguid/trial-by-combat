@@ -3,29 +3,29 @@ import { readFile } from 'node:fs/promises';
 import test from 'node:test';
 import { inflateSync } from 'node:zlib';
 
-import { AGENT_DUEL_ATLAS } from '../public/assets/sprite-atlas.js';
+import { TRIAL_BY_COMBAT_ATLAS } from '../public/assets/sprite-atlas.js';
 
 test('atlas follows the production 2048 usage guide', async () => {
-  const png = decodePng(await readFile(new URL('../public/assets/agent-duel-sprite-sheet.png', import.meta.url)), {
+  const png = decodePng(await readFile(new URL('../public/assets/trial-by-combat-sprite-sheet.png', import.meta.url)), {
     decodePixels: true,
   });
 
   assert.equal(png.width, 2048);
   assert.equal(png.height, 2048);
-  assert.equal(AGENT_DUEL_ATLAS.width, 2048);
-  assert.equal(AGENT_DUEL_ATLAS.height, 2048);
-  assert.equal(AGENT_DUEL_ATLAS.cellSize, 64);
-  assert.equal(AGENT_DUEL_ATLAS.columns, 32);
-  assert.equal(AGENT_DUEL_ATLAS.rows, 32);
-  assert.deepEqual(AGENT_DUEL_ATLAS.settings, {
+  assert.equal(TRIAL_BY_COMBAT_ATLAS.width, 2048);
+  assert.equal(TRIAL_BY_COMBAT_ATLAS.height, 2048);
+  assert.equal(TRIAL_BY_COMBAT_ATLAS.cellSize, 64);
+  assert.equal(TRIAL_BY_COMBAT_ATLAS.columns, 32);
+  assert.equal(TRIAL_BY_COMBAT_ATLAS.rows, 32);
+  assert.deepEqual(TRIAL_BY_COMBAT_ATLAS.settings, {
     filterMode: 'nearest',
     compression: 'lossless',
     mipmaps: false,
     wrapMode: 'clamp',
   });
-  assert.deepEqual(AGENT_DUEL_ATLAS.bitmask, { N: 1, E: 2, S: 4, W: 8 });
+  assert.deepEqual(TRIAL_BY_COMBAT_ATLAS.bitmask, { N: 1, E: 2, S: 4, W: 8 });
 
-  const frames = Object.values(AGENT_DUEL_ATLAS.frames);
+  const frames = Object.values(TRIAL_BY_COMBAT_ATLAS.frames);
   assert.equal(frames.length, 153);
   assert.ok(
     frames.every((frame) => frame.w === 64 && frame.h === 64),
@@ -36,17 +36,17 @@ test('atlas follows the production 2048 usage guide', async () => {
 
 test('atlas metadata is generated from the production metadata used by runtime frames', async () => {
   const metadata = JSON.parse(
-    await readFile(new URL('../public/assets/agent-duel-sprite-sheet.meta.json', import.meta.url), 'utf8'),
+    await readFile(new URL('../public/assets/trial-by-combat-sprite-sheet.meta.json', import.meta.url), 'utf8'),
   );
 
-  assert.equal(metadata.atlas.image, 'agent-duel-sprite-sheet.png');
-  assert.equal(metadata.atlas.width, AGENT_DUEL_ATLAS.width);
-  assert.equal(metadata.atlas.height, AGENT_DUEL_ATLAS.height);
-  assert.equal(metadata.atlas.cellSize, AGENT_DUEL_ATLAS.cellSize);
+  assert.equal(metadata.atlas.image, 'trial-by-combat-sprite-sheet.png');
+  assert.equal(metadata.atlas.width, TRIAL_BY_COMBAT_ATLAS.width);
+  assert.equal(metadata.atlas.height, TRIAL_BY_COMBAT_ATLAS.height);
+  assert.equal(metadata.atlas.cellSize, TRIAL_BY_COMBAT_ATLAS.cellSize);
   assert.equal(Object.keys(metadata.sprites).length, 153);
 
   for (const sprite of Object.values(metadata.sprites)) {
-    assert.deepEqual(AGENT_DUEL_ATLAS.frames[sprite.id], {
+    assert.deepEqual(TRIAL_BY_COMBAT_ATLAS.frames[sprite.id], {
       x: sprite.x,
       y: sprite.y,
       w: sprite.w,
@@ -58,41 +58,41 @@ test('atlas metadata is generated from the production metadata used by runtime f
 });
 
 test('core production sprite rects match the art package', () => {
-  assert.deepEqual(AGENT_DUEL_ATLAS.frames.agent_blue_idle_0, { x: 0, y: 0, w: 64, h: 64 });
-  assert.deepEqual(AGENT_DUEL_ATLAS.frames.agent_blue_carry_walk_3, { x: 832, y: 0, w: 64, h: 64 });
-  assert.deepEqual(AGENT_DUEL_ATLAS.frames.agent_red_idle_0, { x: 0, y: 64, w: 64, h: 64 });
-  assert.deepEqual(AGENT_DUEL_ATLAS.frames.relic_0, { x: 0, y: 128, w: 64, h: 64 });
-  assert.deepEqual(AGENT_DUEL_ATLAS.frames.base_blue_0, { x: 256, y: 128, w: 64, h: 64 });
-  assert.deepEqual(AGENT_DUEL_ATLAS.frames.floor_3, { x: 192, y: 192, w: 64, h: 64 });
-  assert.deepEqual(AGENT_DUEL_ATLAS.frames.trap_hidden, { x: 512, y: 192, w: 64, h: 64 });
-  assert.deepEqual(AGENT_DUEL_ATLAS.frames.wall_15, { x: 960, y: 256, w: 64, h: 64 });
-  assert.deepEqual(AGENT_DUEL_ATLAS.frames.bush_15, { x: 960, y: 320, w: 64, h: 64 });
-  assert.deepEqual(AGENT_DUEL_ATLAS.frames.fx_dash_red_3, { x: 960, y: 512, w: 64, h: 64 });
+  assert.deepEqual(TRIAL_BY_COMBAT_ATLAS.frames.agent_blue_idle_0, { x: 0, y: 0, w: 64, h: 64 });
+  assert.deepEqual(TRIAL_BY_COMBAT_ATLAS.frames.agent_blue_carry_walk_3, { x: 832, y: 0, w: 64, h: 64 });
+  assert.deepEqual(TRIAL_BY_COMBAT_ATLAS.frames.agent_red_idle_0, { x: 0, y: 64, w: 64, h: 64 });
+  assert.deepEqual(TRIAL_BY_COMBAT_ATLAS.frames.relic_0, { x: 0, y: 128, w: 64, h: 64 });
+  assert.deepEqual(TRIAL_BY_COMBAT_ATLAS.frames.base_blue_0, { x: 256, y: 128, w: 64, h: 64 });
+  assert.deepEqual(TRIAL_BY_COMBAT_ATLAS.frames.floor_3, { x: 192, y: 192, w: 64, h: 64 });
+  assert.deepEqual(TRIAL_BY_COMBAT_ATLAS.frames.trap_hidden, { x: 512, y: 192, w: 64, h: 64 });
+  assert.deepEqual(TRIAL_BY_COMBAT_ATLAS.frames.wall_15, { x: 960, y: 256, w: 64, h: 64 });
+  assert.deepEqual(TRIAL_BY_COMBAT_ATLAS.frames.bush_15, { x: 960, y: 320, w: 64, h: 64 });
+  assert.deepEqual(TRIAL_BY_COMBAT_ATLAS.frames.fx_dash_red_3, { x: 960, y: 512, w: 64, h: 64 });
 
-  assert.equal('blue_idle_1' in AGENT_DUEL_ATLAS.frames, false);
-  assert.equal('blue_base_1' in AGENT_DUEL_ATLAS.frames, false);
-  assert.equal('floor_variant' in AGENT_DUEL_ATLAS.frames, false);
+  assert.equal('blue_idle_1' in TRIAL_BY_COMBAT_ATLAS.frames, false);
+  assert.equal('blue_base_1' in TRIAL_BY_COMBAT_ATLAS.frames, false);
+  assert.equal('floor_variant' in TRIAL_BY_COMBAT_ATLAS.frames, false);
 });
 
 test('runtime animations map production frames onto game animation names', () => {
   assert.deepEqual(
-    AGENT_DUEL_ATLAS.animations.agent_blue_idle,
+    TRIAL_BY_COMBAT_ATLAS.animations.agent_blue_idle,
     animation(['agent_blue_idle_0', 'agent_blue_idle_1', 'agent_blue_idle_2', 'agent_blue_idle_3'], 4, true),
   );
   assert.deepEqual(
-    AGENT_DUEL_ATLAS.animations.agent_blue_carry_idle,
+    TRIAL_BY_COMBAT_ATLAS.animations.agent_blue_carry_idle,
     animation(['agent_blue_carry_idle_0', 'agent_blue_carry_idle_1'], 3, true),
   );
   assert.deepEqual(
-    AGENT_DUEL_ATLAS.animations.agent_red_attack,
+    TRIAL_BY_COMBAT_ATLAS.animations.agent_red_attack,
     animation(['agent_red_attack_0', 'agent_red_attack_1'], 8, false),
   );
   assert.deepEqual(
-    AGENT_DUEL_ATLAS.animations.trap_trigger,
+    TRIAL_BY_COMBAT_ATLAS.animations.trap_trigger,
     animation(['trap_trigger_0', 'trap_trigger_1', 'trap_trigger_2', 'trap_trigger_3'], 10, false),
   );
   assert.deepEqual(
-    AGENT_DUEL_ATLAS.animations.fx_dash_blue,
+    TRIAL_BY_COMBAT_ATLAS.animations.fx_dash_blue,
     animation(['fx_dash_blue_0', 'fx_dash_blue_1', 'fx_dash_blue_2', 'fx_dash_blue_3'], 12, false),
   );
 });

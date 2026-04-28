@@ -562,7 +562,7 @@ function renderForSlot(state, slotName, baseUrl = `http://localhost:${process.en
     state.series.currentGame.slotSides[slotName] ?? (slotName === 'player_1' ? 'blue' : 'red')
   ).toUpperCase();
   const lines = [];
-  lines.push(`=== AGENT DUEL - ${slotPath(slotName)} (${sideUpper}) ===`);
+  lines.push(`=== TRIAL BY COMBAT - ${slotPath(slotName)} (${sideUpper}) ===`);
 
   if (!slot.name) {
     lines.push('Phase: pre_lobby');
@@ -1085,6 +1085,6 @@ function send(ws, message) {
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   const appServer = createAppServer();
   appServer.listen().then(() => {
-    console.log(`Agent Duel listening on http://localhost:${appServer.port}`);
+    console.log(`Trial by Combat listening on http://localhost:${appServer.port}`);
   });
 }

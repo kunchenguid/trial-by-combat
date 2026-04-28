@@ -31,7 +31,7 @@ test('spectator HTTP page is served and player browser routes 404', async () => 
 
     const spectator = await fetch(`${base}/?player=spectate`);
     assert.equal(spectator.status, 200);
-    assert.match(await spectator.text(), /Agent Duel/);
+    assert.match(await spectator.text(), /Trial by Combat/);
   } finally {
     await app.close();
   }

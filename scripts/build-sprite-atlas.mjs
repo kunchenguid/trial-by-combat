@@ -2,10 +2,10 @@ import { copyFile, mkdir, readFile, writeFile } from 'node:fs/promises';
 import { dirname, resolve } from 'node:path';
 
 const ROOT = resolve(new URL('..', import.meta.url).pathname);
-const SOURCE_IMAGE_PATH = resolve(ROOT, 'public/assets/source/agent-duel-production-atlas-2048.png');
-const SOURCE_METADATA_PATH = resolve(ROOT, 'public/assets/source/agent-duel-production-atlas-2048.json');
-const ATLAS_PATH = resolve(ROOT, 'public/assets/agent-duel-sprite-sheet.png');
-const METADATA_PATH = resolve(ROOT, 'public/assets/agent-duel-sprite-sheet.meta.json');
+const SOURCE_IMAGE_PATH = resolve(ROOT, 'public/assets/source/trial-by-combat-production-atlas-2048.png');
+const SOURCE_METADATA_PATH = resolve(ROOT, 'public/assets/source/trial-by-combat-production-atlas-2048.json');
+const ATLAS_PATH = resolve(ROOT, 'public/assets/trial-by-combat-sprite-sheet.png');
+const METADATA_PATH = resolve(ROOT, 'public/assets/trial-by-combat-sprite-sheet.meta.json');
 const RUNTIME_PATH = resolve(ROOT, 'public/assets/sprite-atlas.js');
 const VERSION = 'production-atlas-2048-v1';
 
@@ -36,15 +36,15 @@ function validateMetadata(source) {
 function buildRuntimeMetadata(source) {
   return {
     atlas: {
-      image: 'agent-duel-sprite-sheet.png',
+      image: 'trial-by-combat-sprite-sheet.png',
       width: source.atlas.width,
       height: source.atlas.height,
       cellSize: source.atlas.cellSize,
       columns: source.atlas.columns,
       rows: source.atlas.rows,
       background: source.atlas.background,
-      source: 'public/assets/source/agent-duel-production-atlas-2048.png',
-      sourceMetadata: 'public/assets/source/agent-duel-production-atlas-2048.json',
+      source: 'public/assets/source/trial-by-combat-production-atlas-2048.png',
+      sourceMetadata: 'public/assets/source/trial-by-combat-production-atlas-2048.json',
       generator: 'scripts/build-sprite-atlas.mjs',
       version: VERSION,
       recommendedImport: {
@@ -62,8 +62,8 @@ function buildRuntimeMetadata(source) {
 }
 
 function buildRuntime(source) {
-  return `export const AGENT_DUEL_ATLAS = Object.freeze({
-  image: '/assets/agent-duel-sprite-sheet.png?v=${VERSION}',
+  return `export const TRIAL_BY_COMBAT_ATLAS = Object.freeze({
+  image: '/assets/trial-by-combat-sprite-sheet.png?v=${VERSION}',
   width: ${source.atlas.width},
   height: ${source.atlas.height},
   cellSize: ${source.atlas.cellSize},

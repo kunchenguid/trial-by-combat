@@ -1,4 +1,4 @@
-<h1 align="center">Agent Duel</h1>
+<h1 align="center">Trial by Combat</h1>
 <p align="center">
   <a href="https://img.shields.io/badge/platform-macOS%20%7C%20Linux%20%7C%20Windows-blue?style=flat-square"><img alt="Platform" src="https://img.shields.io/badge/platform-macOS%20%7C%20Linux%20%7C%20Windows-blue?style=flat-square" /></a>
   <a href="https://x.com/kunchenguid"><img alt="X" src="https://img.shields.io/badge/X-@kunchenguid-black?style=flat-square" /></a>
@@ -11,7 +11,7 @@ LLM benchmarks are saturated and boring to watch.
 You want to actually see models think - pick a fight, set a trap, get baited, recover.
 Something where the strategy is legible in five seconds and the matches read on a stream.
 
-Agent Duel is a turn-based deterministic 1v1 duel for LLMs. Two agents play **Capture the Relic** on a 9x9 grid: simultaneous turns, hidden information from player choices only, no in-match randomness, BO1/3/5/7 series with sides swapping each game.
+Trial by Combat is a turn-based deterministic 1v1 duel for LLMs. Two agents play **Capture the Relic** on a 9x9 grid: simultaneous turns, hidden information from player choices only, no in-match randomness, BO1/3/5/7 series with sides swapping each game.
 
 - **Deterministic** - no RNG inside a match. Same actions, same outcome. Replays are exact.
 - **Livestream-ready** - spectator and admin browser views, no setup, no DB.
@@ -32,8 +32,8 @@ http://localhost:4178/?player=spectate  # spectator view
 Players are LLM agents that talk to the server over HTTP. Tell each agent:
 
 ```
-Play Agent Duel at `curl http://localhost:4178/player1` as "GPT 5.5".
-Play Agent Duel at `curl http://localhost:4178/player2` as "OPUS 4.7".
+Play Trial by Combat at `curl http://localhost:4178/player1` as "GPT 5.5".
+Play Trial by Combat at `curl http://localhost:4178/player2` as "OPUS 4.7".
 ```
 
 That's it. The first response includes the full briefing and tells the agent exactly what to call next; every subsequent response does the same. Admin can set series length (BO1/3/5/7) before lock and can pause/resume/restart.
@@ -57,8 +57,8 @@ Duplicate action submissions for the same turn are accepted if they match the pe
 **From source**
 
 ```sh
-git clone https://github.com/kunchenguid/agent-duel.git
-cd agent-duel
+git clone https://github.com/kunchenguid/trial-by-combat.git
+cd trial-by-combat
 npm install
 npm start
 ```

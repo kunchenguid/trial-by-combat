@@ -1,13 +1,13 @@
-# Agent Duel — Production Atlas 2048 Usage Guide
+# Trial by Combat — Production Atlas 2048 Usage Guide
 
 This package contains a real 2048×2048 transparent PNG atlas with deterministic sprite/frame placement.
 
 ## Files
 
-- `agent_duel_production_atlas_2048.png` — production sprite atlas, 2048×2048, transparent background.
-- `agent_duel_production_atlas_2048.json` — authoritative sprite metadata and animations.
-- `agent_duel_production_atlas_2048_sprite_rects.csv` — flat sprite rect table for quick import.
-- `agent_duel_production_atlas_2048_usage.md` — this guide.
+- `trial_by_combat_production_atlas_2048.png` — production sprite atlas, 2048×2048, transparent background.
+- `trial_by_combat_production_atlas_2048.json` — authoritative sprite metadata and animations.
+- `trial_by_combat_production_atlas_2048_sprite_rects.csv` — flat sprite rect table for quick import.
+- `trial_by_combat_production_atlas_2048_usage.md` — this guide.
 
 ## Import settings
 

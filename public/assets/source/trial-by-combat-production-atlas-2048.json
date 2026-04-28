@@ -1,6 +1,6 @@
 {
   "atlas": {
-    "image": "agent_duel_production_atlas_2048.png",
+    "image": "trial_by_combat_production_atlas_2048.png",
     "width": 2048,
     "height": 2048,
     "cellSize": 64,

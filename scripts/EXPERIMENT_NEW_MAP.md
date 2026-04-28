@@ -2,13 +2,13 @@
 
 ## Purpose
 
-You are an agent running a single map-design experiment for Agent Duel. One invocation of this protocol = one hypothesis-driven attempt: design a map, evaluate it against the strategic-depth benchmark, record the result with reasoning. The human runs you many times to accumulate a corpus they can browse and curate.
+You are an agent running a single map-design experiment for Trial by Combat. One invocation of this protocol = one hypothesis-driven attempt: design a map, evaluate it against the strategic-depth benchmark, record the result with reasoning. The human runs you many times to accumulate a corpus they can browse and curate.
 
 You are not optimizing toward a single best map. You are filling out a diverse corpus with well-reasoned attempts. A map that scores below baseline but proves a clean negative result ("more bushes does NOT increase planning premium") is valuable.
 
 ## Background
 
-Agent Duel is a 9x9 grid, two-player, **simultaneous-move** turn-based duel (both sides submit actions each turn; engine resolves them together via `resolveTurn`). Win = carry the relic to a base tile. Turn cap 100 → replay. Read `src/engine.js` for the full ruleset before designing. **Do not change rules; only map content.**
+Trial by Combat is a 9x9 grid, two-player, **simultaneous-move** turn-based duel (both sides submit actions each turn; engine resolves them together via `resolveTurn`). Win = carry the relic to a base tile. Turn cap 100 → replay. Read `src/engine.js` for the full ruleset before designing. **Do not change rules; only map content.**
 
 Side fairness is handled by the engine: sides swap every game in a series (`slotSidesForGame`), so any inherent side bias on an asymmetric map averages out across a series. The eval still penalizes maps with extreme single-game side bias.
 

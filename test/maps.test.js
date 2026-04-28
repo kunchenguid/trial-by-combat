@@ -8,7 +8,7 @@ import { CENTER_CHOKE } from '../src/engine.js';
 import { appendIndexEntry, loadMap, RUNS_DIR, saveEval, saveMap, validateMapDefinition } from '../src/storage.js';
 
 function tmpDir() {
-  return fs.mkdtempSync(path.join(os.tmpdir(), 'agent-duel-test-'));
+  return fs.mkdtempSync(path.join(os.tmpdir(), 'trial-by-combat-test-'));
 }
 
 test('validateMapDefinition accepts Center Choke', () => {

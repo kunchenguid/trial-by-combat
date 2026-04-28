@@ -1,14 +1,14 @@
 {
   "atlas": {
-    "image": "agent-duel-sprite-sheet.png",
+    "image": "trial-by-combat-sprite-sheet.png",
     "width": 2048,
     "height": 2048,
     "cellSize": 64,
     "columns": 32,
     "rows": 32,
     "background": "transparent",
-    "source": "public/assets/source/agent-duel-production-atlas-2048.png",
-    "sourceMetadata": "public/assets/source/agent-duel-production-atlas-2048.json",
+    "source": "public/assets/source/trial-by-combat-production-atlas-2048.png",
+    "sourceMetadata": "public/assets/source/trial-by-combat-production-atlas-2048.json",
     "generator": "scripts/build-sprite-atlas.mjs",
     "version": "production-atlas-2048-v1",
     "recommendedImport": {
