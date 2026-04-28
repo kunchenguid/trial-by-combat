@@ -36,7 +36,7 @@ Play Agent Duel at `curl http://localhost:4178/player1` as "GPT 5.5".
 Play Agent Duel at `curl http://localhost:4178/player2` as "OPUS 4.7".
 ```
 
-That's it. The first response includes the full briefing and tells the agent exactly what to call next; every subsequent response does the same. The full HTTP contract is in `api-spec.md`. Admin can set series length (BO1/3/5/7) before lock and can pause/resume/restart.
+That's it. The first response includes the full briefing and tells the agent exactly what to call next; every subsequent response does the same. Admin can set series length (BO1/3/5/7) before lock and can pause/resume/restart.
 
 ## Run From Source
 

@@ -4,7 +4,7 @@ This file provides guidance to coding agents when working with code in this repo
 
 ## Project
 
-Agent Duel is a turn-based deterministic 1v1 LLM duel, livestream-ready. The current (and only) mode is **Capture the Relic** on a 9x9 grid. Players are LLM agents that interact via a plain-text HTTP API; spectator and admin views remain browser-based. The full API contract lives in `api-spec.md` - treat it as the source of truth for the player surface.
+Agent Duel is a turn-based deterministic 1v1 LLM duel, livestream-ready. The current (and only) mode is **Capture the Relic** on a 9x9 grid. Players are LLM agents that interact via a plain-text HTTP API; spectator and admin views remain browser-based. The server implementation and tests are the source of truth for the player surface.
 
 ## Commands
 
@@ -30,7 +30,7 @@ Browser (spectator and admin only):
 
 WebSocket endpoint `/ws` is for spectator and admin only; a player WS upgrade is rejected.
 
-Player HTTP API (`api-spec.md` is authoritative):
+Player HTTP API:
 
 - `GET /player1` and `GET /player2` - long-poll text view + briefing + DO NEXT block
 - `POST /player1/{join,ready,action,leave}` (and `/player2/...`) - JSON bodies, plain-text replies
@@ -56,11 +56,11 @@ Two-process boundary: a pure synchronous **game engine** and a thin **HTTP + Web
 - Long-polling for `GET /playerN` is driven by a per-state `EventEmitter` - `notifyChange(state)` both wakes the long-pollers and broadcasts to spectator/admin WS.
 - Turn timer is a single `setTimeout`; on expiry, any side without a `pendingActions` entry is auto-WAIT'd. Pause/resume preserves remaining seconds in `remainingWhenPaused`.
 - Validation has two strikes per turn: first invalid action returns 400 with a retry hint; second invalid action this turn locks the side as WAIT.
-- Action body translation: HTTP uses uniform `{action, target, intent}`. The harness translates `MOVE`/`DASH` + `target` coord into the engine's directional `MOVE_NORTH` / `DASH_EAST` shape; targeted actions (`ATTACK`, `PLACE_WALL`, `PLACE_TRAP`) keep their coord; intent maps to `intent_summary`.
+- Action body translation: HTTP uses uniform `{action, target, intent}`. The harness translates `MOVE`/`DASH` + `target` coord into the engine's directional `MOVE_NORTH` / `DASH_EAST` shape; `PLACE_WALL`/`PLACE_TRAP` keep their target coord; `ATTACK` is untargeted; intent maps to `intent_summary`.
 - Spectator/admin still receive `{ type: 'state', role, state }` over `/ws`:
   - Spectator view: `getSpectatorView` with optional X-ray (`set_xray` toggle on the WS).
   - Admin view: full payload + spectator view forced to xray.
-- Player view rendering for the API is implemented as text (grid + metadata + DO NEXT) directly in `server.js`; see `api-spec.md` for the layout.
+- Player view rendering for the API is implemented as text (grid + metadata + DO NEXT) directly in `server.js`.
 
 ### `public/` - browser client
 
@@ -84,4 +84,4 @@ Re-run `npm run build:atlas` after editing any source asset. The atlas version (
 - Engine functions take a side (`'blue'`/`'red'`) at the boundary; convert from slot via `game.slotSides` / `game.sideSlots`.
 - Events have `visibility: 'public' | 'private_blue' | 'private_red'`. Player views filter via `visibleEventsFor`; never leak a `private_*` event to the wrong side.
 - Tests use the built-in `node:test` runner (no Jest, no Mocha). API tests in `test/api.test.js` spin up `createAppServer` on port 0 and use real `fetch`; spectator/admin WS coverage lives in `test/server.test.js`.
-- When changing rules, also bump `RULESET_VERSION` in `engine.js` and update `api-spec.md` if the player surface is affected.
+- When changing rules, also bump `RULESET_VERSION` in `engine.js` and update server tests if the player surface is affected.
