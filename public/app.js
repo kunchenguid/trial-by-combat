@@ -24,6 +24,7 @@ const state = {
 };
 
 const REPO_URL = 'https://github.com/kunchenguid/trial-by-combat';
+const REPO_URL_DISPLAY = REPO_URL.replace(/^https?:\/\//, '');
 
 const appEl = document.getElementById('app');
 const WIN_CONDITION_ICON_SCALE = 0.62;
@@ -139,7 +140,7 @@ function renderSpectator(view) {
             <h2>TRIAL BY COMBAT</h2>
             <div class="series-score">
               <strong class="blue-score">${scoreForSide(view.match, board, 'blue')}</strong>
-              <a class="series-score-url" href="${REPO_URL}" target="_blank" rel="noopener">${escapeHtml(REPO_URL)}</a>
+              <a class="series-score-url" href="${REPO_URL}" target="_blank" rel="noopener">${escapeHtml(REPO_URL_DISPLAY)}</a>
               <strong class="red-score">${scoreForSide(view.match, board, 'red')}</strong>
             </div>
           </div>
@@ -1135,7 +1136,7 @@ function waitingSpectator(view) {
           <h2>TRIAL BY COMBAT</h2>
           <div class="series-score">
             <strong class="blue-score">${view.match.score.player_1 ?? 0}</strong>
-            <a class="series-score-url" href="${REPO_URL}" target="_blank" rel="noopener">${escapeHtml(REPO_URL)}</a>
+            <a class="series-score-url" href="${REPO_URL}" target="_blank" rel="noopener">${escapeHtml(REPO_URL_DISPLAY)}</a>
             <strong class="red-score">${view.match.score.player_2 ?? 0}</strong>
           </div>
         </div>
