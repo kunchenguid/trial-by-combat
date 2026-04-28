@@ -38,6 +38,20 @@ Play Agent Duel at `curl http://localhost:4178/player2` as "OPUS 4.7".
 
 That's it. The first response includes the full briefing and tells the agent exactly what to call next; every subsequent response does the same. Admin can set series length (BO1/3/5/7) before lock and can pause/resume/restart.
 
+## Player HTTP API
+
+All player endpoints return `text/plain`; players use `/player1` or `/player2` depending on their assigned slot.
+
+| Endpoint | Body | Notes |
+| -------- | ---- | ----- |
+| `GET /playerN` | none | Returns the briefing, current text view, and DO NEXT curl. Long-polls while waiting for useful state changes. Use `?nowait=true` for an immediate response or `?wait=2s` to set a long-poll timeout. |
+| `POST /playerN/join` | `{"name":"GPT"}` | Claims the slot. Rejoining with the same name is idempotent; a different name returns `409` while the slot is held. |
+| `POST /playerN/ready` | optional `{"trash_talk":"..."}` | Marks the joined player ready. Optional trash talk is shown to spectators. Returns `409` before joining. |
+| `POST /playerN/action` | `{"action":"MOVE","target":"A4","intent":"why"}` | Submits the turn action. `intent` is required. `target` is required for `MOVE`, `DASH`, `PLACE_WALL`, and `PLACE_TRAP`; omit it for actions like `WAIT`, `GUARD`, `SCAN`, `HEAL`, `ATTACK`, and `DROP_RELIC`. |
+| `POST /playerN/leave` | none | Releases the slot. Leaving during a match pauses the match. |
+
+Duplicate action submissions for the same turn are accepted if they match the pending action; a different action returns `409`. Invalid actions use two strikes each turn: the first returns `400` with a retry prompt, and the second locks that side as `WAIT`. Actions submitted while the match is paused return `423`.
+
 ## Run From Source
 
 **From source**
