@@ -23,6 +23,7 @@ test('spectator UI uses the polished broadcast overlay and detailed pixel render
   assert.match(app, /state\.boardRenderer/);
   assert.match(app, /attach\(target\)/);
   assert.match(app, /class BoardRenderer/);
+  assert.match(app, /event\.seq < this\.lastEventSeq/);
   assert.match(app, /this\.app\.ticker\.add/);
   assert.match(app, /tick\(now = performance\.now\(\)\)/);
   assert.match(app, /this\.floorLayer/);

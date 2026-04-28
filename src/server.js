@@ -403,15 +403,22 @@ function handlePostAction(state, slotName, req, res) {
 
   const side = sideFor(state, slotName);
   const game = state.series.currentGame;
+  const existing = state.pendingActions.get(side);
   let translated;
   try {
     translated = translateAction(game, side, body, intent);
   } catch (error) {
+    if (existing) {
+      res
+        .status(409)
+        .type('text/plain')
+        .send(`A different action is already pending this turn: ${describeAction(existing)}. Wait for the next turn.`);
+      return;
+    }
     handleInvalidAction(state, side, { action_type: ACTIONS.WAIT, intent_summary: intent }, error.message, res);
     return;
   }
 
-  const existing = state.pendingActions.get(side);
   if (existing) {
     if (sameAction(existing, translated)) {
       res
@@ -472,6 +479,7 @@ function handlePostLeave(state, slotName, _req, res) {
   slot.ready = false;
   slot.briefingShown = false;
   if (state.phase === 'match') pause(state);
+  cancelNextRound(state);
   state.series.playerNames[slotName] = `Player ${slotName === 'player_1' ? '1' : '2'}`;
   state.series.currentGame.playerNames[slotName] = state.series.playerNames[slotName];
   notifyChange(state);

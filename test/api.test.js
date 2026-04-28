@@ -155,6 +155,25 @@ test('POST /player1/action with a different body after one is pending returns 40
   });
 });
 
+test('malformed follow-up action cannot replace an already pending action', async () => {
+  await withServer(60, async (base, app) => {
+    await bothReady(base);
+    const side = app.state.series.currentGame.slotSides.player_1;
+
+    const first = await postJson(`${base}/player1/action`, { action: 'GUARD', intent: 'hold ground' });
+    const bad = await postJson(`${base}/player1/action`, {
+      action: 'MOVE',
+      target: 'not-a-coord',
+      intent: 'bad follow up',
+    });
+
+    assert.equal(first.status, 200);
+    assert.equal(bad.status, 409);
+    assert.equal(app.state.pendingActions.get(side).action_type, 'GUARD');
+    assert.equal(app.state.invalidAttemptsThisTurn[side], 0);
+  });
+});
+
 test('GET /player1?wait=2s long-polls and returns when the turn changes', async () => {
   await withServer(60, async (base) => {
     await bothReady(base);
@@ -265,6 +284,28 @@ test('closing during next-round countdown clears the pending timer', async () =>
   await app.close();
 
   assert.equal(app.state.nextRoundTimer, null);
+});
+
+test('leaving during next-round countdown cancels the countdown', async () => {
+  await withServer(60, async (base, app) => {
+    await bothReady(base);
+    app.state.bestOf = 3;
+    app.state.series.bestOf = 3;
+    app.state.series.recordGame('player_1');
+    app.state.phase = 'game_end';
+    app.state.slots.player_1.ready = false;
+    app.state.slots.player_2.ready = false;
+
+    await postJson(`${base}/player1/ready`);
+    await postJson(`${base}/player2/ready`);
+    assert.notEqual(app.state.nextRoundTimer, null);
+
+    const leave = await postJson(`${base}/player1/leave`);
+
+    assert.equal(leave.status, 200);
+    assert.equal(app.state.nextRoundTimer, null);
+    assert.equal(app.state.nextRoundAt, null);
+  });
 });
 
 test('stored action intent is capped at 20 words', async () => {

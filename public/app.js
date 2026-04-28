@@ -688,6 +688,12 @@ class BoardRenderer {
       this.heroPoses = { blue: null, red: null };
     }
     for (const event of events) {
+      if (event.seq < this.lastEventSeq) {
+        this.lastEventSeq = -1;
+        for (const fx of this.fxActors) fx.sprite.destroy();
+        this.fxActors = [];
+        this.heroPoses = { blue: null, red: null };
+      }
       if (typeof event.seq !== 'number' || event.seq <= this.lastEventSeq) continue;
       this.dispatchEvent(event, board);
       this.lastEventSeq = event.seq;
