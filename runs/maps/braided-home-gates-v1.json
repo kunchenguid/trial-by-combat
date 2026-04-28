@@ -1,0 +1,17 @@
+{
+  "id": "braided-home-gates-v1",
+  "bases": {
+    "blue": ["A4", "A5", "A6"],
+    "red": ["I4", "I5", "I6"]
+  },
+  "starts": {
+    "blue": "A5",
+    "red": "I5"
+  },
+  "relicStart": "E5",
+  "walls": ["B5", "D4", "D6", "F4", "F6", "H5", "E3", "E7"],
+  "bushes": ["C3", "C5", "C7", "D5", "F5", "G3", "G5", "G7"],
+  "fire": ["B4", "B6", "E4", "E6", "H4", "H6"],
+  "notes": "This keeps the high-score central braided ambush arena intact, but closes the direct B5/H5 home lane and taxes the two home-side gate tiles with fire. The hypothesis is that the central planning premium survives while carrier returns become one or two turns less automatic, raising median game length without creating a forced maze or changing base geometry.",
+  "conclusion": "This map set a new high score of 62.99, beating braided-ambush-gates-v1 despite lower ladder separation because the home gates raised median game length to 12 and earned full length credit. The central planning structure still worked: horizon stayed at 1.000, side fairness was effectively perfect at a 0.525 blue mirror winrate, and the ladder kept meaningful adjacent gaps of 251 Elo from low to mid and 222 Elo from mid to high. The tradeoff is that the weighted Elo gap fell from 281 to 199, so the added home delay made search scaling less explosive while improving the score formula enough to win. The surprising result is that taxing B4/B6/H4/H6 produced the desired tempo increase with only a 1.4% turn-cap rate, unlike earlier central or approach fire taxes. A concrete next experiment would keep the B5/H5 home walls but remove or soften one pair of home fire tiles to see whether some of the lost high-rung ladder separation can be recovered while preserving median length 12."
+}

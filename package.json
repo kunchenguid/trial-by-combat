@@ -1,0 +1,21 @@
+{
+  "name": "agent-duel",
+  "version": "0.1.0",
+  "private": true,
+  "license": "MIT",
+  "type": "module",
+  "scripts": {
+    "build:atlas": "node scripts/build-sprite-atlas.mjs",
+    "start": "node src/server.js",
+    "test": "node --test",
+    "test:engine": "node --test test/engine.test.js",
+    "map:validate": "node scripts/map-validate.mjs",
+    "map:evaluate": "node scripts/map-evaluate.mjs",
+    "map:record": "node scripts/map-record.mjs"
+  },
+  "dependencies": {
+    "express": "^4.19.2",
+    "ws": "^8.17.1"
+  },
+  "devDependencies": {}
+}

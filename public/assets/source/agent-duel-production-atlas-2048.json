@@ -1,0 +1,3158 @@
+{
+  "atlas": {
+    "image": "agent_duel_production_atlas_2048.png",
+    "width": 2048,
+    "height": 2048,
+    "cellSize": 64,
+    "columns": 32,
+    "rows": 32,
+    "background": "transparent",
+    "textureImport": {
+      "filterMode": "Point/Nearest",
+      "compression": "None or lossless",
+      "mipmaps": false,
+      "wrapMode": "Clamp",
+      "pixelsPerUnit": 64
+    }
+  },
+  "bitmask": {
+    "N": 1,
+    "E": 2,
+    "S": 4,
+    "W": 8
+  },
+  "terrainAutotiles": {
+    "wall": {
+      "0": "wall_0",
+      "1": "wall_1",
+      "2": "wall_2",
+      "3": "wall_3",
+      "4": "wall_4",
+      "5": "wall_5",
+      "6": "wall_6",
+      "7": "wall_7",
+      "8": "wall_8",
+      "9": "wall_9",
+      "10": "wall_10",
+      "11": "wall_11",
+      "12": "wall_12",
+      "13": "wall_13",
+      "14": "wall_14",
+      "15": "wall_15"
+    },
+    "bush": {
+      "0": "bush_0",
+      "1": "bush_1",
+      "2": "bush_2",
+      "3": "bush_3",
+      "4": "bush_4",
+      "5": "bush_5",
+      "6": "bush_6",
+      "7": "bush_7",
+      "8": "bush_8",
+      "9": "bush_9",
+      "10": "bush_10",
+      "11": "bush_11",
+      "12": "bush_12",
+      "13": "bush_13",
+      "14": "bush_14",
+      "15": "bush_15"
+    }
+  },
+  "animations": {
+    "agent_blue_idle": {
+      "frames": [
+        "agent_blue_idle_0",
+        "agent_blue_idle_1",
+        "agent_blue_idle_2",
+        "agent_blue_idle_3"
+      ],
+      "fps": 4,
+      "loop": true
+    },
+    "agent_blue_walk": {
+      "frames": [
+        "agent_blue_walk_0",
+        "agent_blue_walk_1",
+        "agent_blue_walk_2",
+        "agent_blue_walk_3"
+      ],
+      "fps": 8,
+      "loop": true
+    },
+    "agent_blue_carry_idle": {
+      "frames": [
+        "agent_blue_carry_idle_0",
+        "agent_blue_carry_idle_1"
+      ],
+      "fps": 3,
+      "loop": true
+    },
+    "agent_blue_carry_walk": {
+      "frames": [
+        "agent_blue_carry_walk_0",
+        "agent_blue_carry_walk_1",
+        "agent_blue_carry_walk_2",
+        "agent_blue_carry_walk_3"
+      ],
+      "fps": 8,
+      "loop": true
+    },
+    "agent_blue_attack": {
+      "frames": [
+        "agent_blue_attack_0",
+        "agent_blue_attack_1"
+      ],
+      "fps": 8,
+      "loop": false
+    },
+    "agent_red_idle": {
+      "frames": [
+        "agent_red_idle_0",
+        "agent_red_idle_1",
+        "agent_red_idle_2",
+        "agent_red_idle_3"
+      ],
+      "fps": 4,
+      "loop": true
+    },
+    "agent_red_walk": {
+      "frames": [
+        "agent_red_walk_0",
+        "agent_red_walk_1",
+        "agent_red_walk_2",
+        "agent_red_walk_3"
+      ],
+      "fps": 8,
+      "loop": true
+    },
+    "agent_red_carry_idle": {
+      "frames": [
+        "agent_red_carry_idle_0",
+        "agent_red_carry_idle_1"
+      ],
+      "fps": 3,
+      "loop": true
+    },
+    "agent_red_carry_walk": {
+      "frames": [
+        "agent_red_carry_walk_0",
+        "agent_red_carry_walk_1",
+        "agent_red_carry_walk_2",
+        "agent_red_carry_walk_3"
+      ],
+      "fps": 8,
+      "loop": true
+    },
+    "agent_red_attack": {
+      "frames": [
+        "agent_red_attack_0",
+        "agent_red_attack_1"
+      ],
+      "fps": 8,
+      "loop": false
+    },
+    "relic_shimmer": {
+      "frames": [
+        "relic_0",
+        "relic_1",
+        "relic_2",
+        "relic_3"
+      ],
+      "fps": 5,
+      "loop": true
+    },
+    "base_blue_flag": {
+      "frames": [
+        "base_blue_0",
+        "base_blue_1",
+        "base_blue_2",
+        "base_blue_3"
+      ],
+      "fps": 4,
+      "loop": true
+    },
+    "base_red_flag": {
+      "frames": [
+        "base_red_0",
+        "base_red_1",
+        "base_red_2",
+        "base_red_3"
+      ],
+      "fps": 4,
+      "loop": true
+    },
+    "fire_loop": {
+      "frames": [
+        "fire_0",
+        "fire_1",
+        "fire_2",
+        "fire_3"
+      ],
+      "fps": 7,
+      "loop": true
+    },
+    "trap_trigger": {
+      "frames": [
+        "trap_trigger_0",
+        "trap_trigger_1",
+        "trap_trigger_2",
+        "trap_trigger_3"
+      ],
+      "fps": 10,
+      "loop": false
+    },
+    "fx_hit": {
+      "frames": [
+        "fx_hit_0",
+        "fx_hit_1",
+        "fx_hit_2",
+        "fx_hit_3"
+      ],
+      "fps": 12,
+      "loop": false
+    },
+    "fx_scan": {
+      "frames": [
+        "fx_scan_0",
+        "fx_scan_1",
+        "fx_scan_2",
+        "fx_scan_3"
+      ],
+      "fps": 10,
+      "loop": false
+    },
+    "fx_dash_blue": {
+      "frames": [
+        "fx_dash_blue_0",
+        "fx_dash_blue_1",
+        "fx_dash_blue_2",
+        "fx_dash_blue_3"
+      ],
+      "fps": 12,
+      "loop": false
+    },
+    "fx_dash_red": {
+      "frames": [
+        "fx_dash_red_0",
+        "fx_dash_red_1",
+        "fx_dash_red_2",
+        "fx_dash_red_3"
+      ],
+      "fps": 12,
+      "loop": false
+    },
+    "fx_dust": {
+      "frames": [
+        "fx_dust_0",
+        "fx_dust_1",
+        "fx_dust_2",
+        "fx_dust_3"
+      ],
+      "fps": 8,
+      "loop": false
+    }
+  },
+  "sprites": {
+    "agent_blue_idle_0": {
+      "id": "agent_blue_idle_0",
+      "x": 0,
+      "y": 0,
+      "w": 64,
+      "h": 64,
+      "row": 0,
+      "col": 0,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "usage": "Blue agent idle animation frame",
+      "tags": [
+        "agent",
+        "blue",
+        "idle"
+      ]
+    },
+    "agent_blue_idle_1": {
+      "id": "agent_blue_idle_1",
+      "x": 64,
+      "y": 0,
+      "w": 64,
+      "h": 64,
+      "row": 0,
+      "col": 1,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "usage": "Blue agent idle animation frame",
+      "tags": [
+        "agent",
+        "blue",
+        "idle"
+      ]
+    },
+    "agent_blue_idle_2": {
+      "id": "agent_blue_idle_2",
+      "x": 128,
+      "y": 0,
+      "w": 64,
+      "h": 64,
+      "row": 0,
+      "col": 2,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "usage": "Blue agent idle animation frame",
+      "tags": [
+        "agent",
+        "blue",
+        "idle"
+      ]
+    },
+    "agent_blue_idle_3": {
+      "id": "agent_blue_idle_3",
+      "x": 192,
+      "y": 0,
+      "w": 64,
+      "h": 64,
+      "row": 0,
+      "col": 3,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "usage": "Blue agent idle animation frame",
+      "tags": [
+        "agent",
+        "blue",
+        "idle"
+      ]
+    },
+    "agent_blue_walk_0": {
+      "id": "agent_blue_walk_0",
+      "x": 256,
+      "y": 0,
+      "w": 64,
+      "h": 64,
+      "row": 0,
+      "col": 4,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "usage": "Blue agent walk animation frame",
+      "tags": [
+        "agent",
+        "blue",
+        "walk"
+      ]
+    },
+    "agent_blue_walk_1": {
+      "id": "agent_blue_walk_1",
+      "x": 320,
+      "y": 0,
+      "w": 64,
+      "h": 64,
+      "row": 0,
+      "col": 5,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "usage": "Blue agent walk animation frame",
+      "tags": [
+        "agent",
+        "blue",
+        "walk"
+      ]
+    },
+    "agent_blue_walk_2": {
+      "id": "agent_blue_walk_2",
+      "x": 384,
+      "y": 0,
+      "w": 64,
+      "h": 64,
+      "row": 0,
+      "col": 6,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "usage": "Blue agent walk animation frame",
+      "tags": [
+        "agent",
+        "blue",
+        "walk"
+      ]
+    },
+    "agent_blue_walk_3": {
+      "id": "agent_blue_walk_3",
+      "x": 448,
+      "y": 0,
+      "w": 64,
+      "h": 64,
+      "row": 0,
+      "col": 7,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "usage": "Blue agent walk animation frame",
+      "tags": [
+        "agent",
+        "blue",
+        "walk"
+      ]
+    },
+    "agent_blue_carry_idle_0": {
+      "id": "agent_blue_carry_idle_0",
+      "x": 512,
+      "y": 0,
+      "w": 64,
+      "h": 64,
+      "row": 0,
+      "col": 8,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "usage": "Blue agent carrying relic idle frame",
+      "tags": [
+        "agent",
+        "blue",
+        "carry",
+        "idle"
+      ]
+    },
+    "agent_blue_carry_idle_1": {
+      "id": "agent_blue_carry_idle_1",
+      "x": 576,
+      "y": 0,
+      "w": 64,
+      "h": 64,
+      "row": 0,
+      "col": 9,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "usage": "Blue agent carrying relic idle frame",
+      "tags": [
+        "agent",
+        "blue",
+        "carry",
+        "idle"
+      ]
+    },
+    "agent_blue_carry_walk_0": {
+      "id": "agent_blue_carry_walk_0",
+      "x": 640,
+      "y": 0,
+      "w": 64,
+      "h": 64,
+      "row": 0,
+      "col": 10,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "usage": "Blue agent carrying relic walk frame",
+      "tags": [
+        "agent",
+        "blue",
+        "carry",
+        "walk"
+      ]
+    },
+    "agent_blue_carry_walk_1": {
+      "id": "agent_blue_carry_walk_1",
+      "x": 704,
+      "y": 0,
+      "w": 64,
+      "h": 64,
+      "row": 0,
+      "col": 11,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "usage": "Blue agent carrying relic walk frame",
+      "tags": [
+        "agent",
+        "blue",
+        "carry",
+        "walk"
+      ]
+    },
+    "agent_blue_carry_walk_2": {
+      "id": "agent_blue_carry_walk_2",
+      "x": 768,
+      "y": 0,
+      "w": 64,
+      "h": 64,
+      "row": 0,
+      "col": 12,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "usage": "Blue agent carrying relic walk frame",
+      "tags": [
+        "agent",
+        "blue",
+        "carry",
+        "walk"
+      ]
+    },
+    "agent_blue_carry_walk_3": {
+      "id": "agent_blue_carry_walk_3",
+      "x": 832,
+      "y": 0,
+      "w": 64,
+      "h": 64,
+      "row": 0,
+      "col": 13,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "usage": "Blue agent carrying relic walk frame",
+      "tags": [
+        "agent",
+        "blue",
+        "carry",
+        "walk"
+      ]
+    },
+    "agent_blue_attack_0": {
+      "id": "agent_blue_attack_0",
+      "x": 896,
+      "y": 0,
+      "w": 64,
+      "h": 64,
+      "row": 0,
+      "col": 14,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "usage": "Blue agent attack pose frame",
+      "tags": [
+        "agent",
+        "blue",
+        "attack"
+      ]
+    },
+    "agent_blue_attack_1": {
+      "id": "agent_blue_attack_1",
+      "x": 960,
+      "y": 0,
+      "w": 64,
+      "h": 64,
+      "row": 0,
+      "col": 15,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "usage": "Blue agent attack pose frame",
+      "tags": [
+        "agent",
+        "blue",
+        "attack"
+      ]
+    },
+    "agent_blue_stunned_0": {
+      "id": "agent_blue_stunned_0",
+      "x": 1024,
+      "y": 0,
+      "w": 64,
+      "h": 64,
+      "row": 0,
+      "col": 16,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "usage": "Blue agent stunned pose",
+      "tags": [
+        "agent",
+        "blue",
+        "stunned"
+      ]
+    },
+    "agent_red_idle_0": {
+      "id": "agent_red_idle_0",
+      "x": 0,
+      "y": 64,
+      "w": 64,
+      "h": 64,
+      "row": 1,
+      "col": 0,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "usage": "Red agent idle animation frame",
+      "tags": [
+        "agent",
+        "red",
+        "idle"
+      ]
+    },
+    "agent_red_idle_1": {
+      "id": "agent_red_idle_1",
+      "x": 64,
+      "y": 64,
+      "w": 64,
+      "h": 64,
+      "row": 1,
+      "col": 1,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "usage": "Red agent idle animation frame",
+      "tags": [
+        "agent",
+        "red",
+        "idle"
+      ]
+    },
+    "agent_red_idle_2": {
+      "id": "agent_red_idle_2",
+      "x": 128,
+      "y": 64,
+      "w": 64,
+      "h": 64,
+      "row": 1,
+      "col": 2,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "usage": "Red agent idle animation frame",
+      "tags": [
+        "agent",
+        "red",
+        "idle"
+      ]
+    },
+    "agent_red_idle_3": {
+      "id": "agent_red_idle_3",
+      "x": 192,
+      "y": 64,
+      "w": 64,
+      "h": 64,
+      "row": 1,
+      "col": 3,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "usage": "Red agent idle animation frame",
+      "tags": [
+        "agent",
+        "red",
+        "idle"
+      ]
+    },
+    "agent_red_walk_0": {
+      "id": "agent_red_walk_0",
+      "x": 256,
+      "y": 64,
+      "w": 64,
+      "h": 64,
+      "row": 1,
+      "col": 4,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "usage": "Red agent walk animation frame",
+      "tags": [
+        "agent",
+        "red",
+        "walk"
+      ]
+    },
+    "agent_red_walk_1": {
+      "id": "agent_red_walk_1",
+      "x": 320,
+      "y": 64,
+      "w": 64,
+      "h": 64,
+      "row": 1,
+      "col": 5,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "usage": "Red agent walk animation frame",
+      "tags": [
+        "agent",
+        "red",
+        "walk"
+      ]
+    },
+    "agent_red_walk_2": {
+      "id": "agent_red_walk_2",
+      "x": 384,
+      "y": 64,
+      "w": 64,
+      "h": 64,
+      "row": 1,
+      "col": 6,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "usage": "Red agent walk animation frame",
+      "tags": [
+        "agent",
+        "red",
+        "walk"
+      ]
+    },
+    "agent_red_walk_3": {
+      "id": "agent_red_walk_3",
+      "x": 448,
+      "y": 64,
+      "w": 64,
+      "h": 64,
+      "row": 1,
+      "col": 7,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "usage": "Red agent walk animation frame",
+      "tags": [
+        "agent",
+        "red",
+        "walk"
+      ]
+    },
+    "agent_red_carry_idle_0": {
+      "id": "agent_red_carry_idle_0",
+      "x": 512,
+      "y": 64,
+      "w": 64,
+      "h": 64,
+      "row": 1,
+      "col": 8,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "usage": "Red agent carrying relic idle frame",
+      "tags": [
+        "agent",
+        "red",
+        "carry",
+        "idle"
+      ]
+    },
+    "agent_red_carry_idle_1": {
+      "id": "agent_red_carry_idle_1",
+      "x": 576,
+      "y": 64,
+      "w": 64,
+      "h": 64,
+      "row": 1,
+      "col": 9,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "usage": "Red agent carrying relic idle frame",
+      "tags": [
+        "agent",
+        "red",
+        "carry",
+        "idle"
+      ]
+    },
+    "agent_red_carry_walk_0": {
+      "id": "agent_red_carry_walk_0",
+      "x": 640,
+      "y": 64,
+      "w": 64,
+      "h": 64,
+      "row": 1,
+      "col": 10,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "usage": "Red agent carrying relic walk frame",
+      "tags": [
+        "agent",
+        "red",
+        "carry",
+        "walk"
+      ]
+    },
+    "agent_red_carry_walk_1": {
+      "id": "agent_red_carry_walk_1",
+      "x": 704,
+      "y": 64,
+      "w": 64,
+      "h": 64,
+      "row": 1,
+      "col": 11,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "usage": "Red agent carrying relic walk frame",
+      "tags": [
+        "agent",
+        "red",
+        "carry",
+        "walk"
+      ]
+    },
+    "agent_red_carry_walk_2": {
+      "id": "agent_red_carry_walk_2",
+      "x": 768,
+      "y": 64,
+      "w": 64,
+      "h": 64,
+      "row": 1,
+      "col": 12,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "usage": "Red agent carrying relic walk frame",
+      "tags": [
+        "agent",
+        "red",
+        "carry",
+        "walk"
+      ]
+    },
+    "agent_red_carry_walk_3": {
+      "id": "agent_red_carry_walk_3",
+      "x": 832,
+      "y": 64,
+      "w": 64,
+      "h": 64,
+      "row": 1,
+      "col": 13,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "usage": "Red agent carrying relic walk frame",
+      "tags": [
+        "agent",
+        "red",
+        "carry",
+        "walk"
+      ]
+    },
+    "agent_red_attack_0": {
+      "id": "agent_red_attack_0",
+      "x": 896,
+      "y": 64,
+      "w": 64,
+      "h": 64,
+      "row": 1,
+      "col": 14,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "usage": "Red agent attack pose frame",
+      "tags": [
+        "agent",
+        "red",
+        "attack"
+      ]
+    },
+    "agent_red_attack_1": {
+      "id": "agent_red_attack_1",
+      "x": 960,
+      "y": 64,
+      "w": 64,
+      "h": 64,
+      "row": 1,
+      "col": 15,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "usage": "Red agent attack pose frame",
+      "tags": [
+        "agent",
+        "red",
+        "attack"
+      ]
+    },
+    "agent_red_stunned_0": {
+      "id": "agent_red_stunned_0",
+      "x": 1024,
+      "y": 64,
+      "w": 64,
+      "h": 64,
+      "row": 1,
+      "col": 16,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "usage": "Red agent stunned pose",
+      "tags": [
+        "agent",
+        "red",
+        "stunned"
+      ]
+    },
+    "relic_0": {
+      "id": "relic_0",
+      "x": 0,
+      "y": 128,
+      "w": 64,
+      "h": 64,
+      "row": 2,
+      "col": 0,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "usage": "Relic shimmer animation frame",
+      "tags": [
+        "objective",
+        "relic",
+        "animated"
+      ]
+    },
+    "relic_1": {
+      "id": "relic_1",
+      "x": 64,
+      "y": 128,
+      "w": 64,
+      "h": 64,
+      "row": 2,
+      "col": 1,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "usage": "Relic shimmer animation frame",
+      "tags": [
+        "objective",
+        "relic",
+        "animated"
+      ]
+    },
+    "relic_2": {
+      "id": "relic_2",
+      "x": 128,
+      "y": 128,
+      "w": 64,
+      "h": 64,
+      "row": 2,
+      "col": 2,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "usage": "Relic shimmer animation frame",
+      "tags": [
+        "objective",
+        "relic",
+        "animated"
+      ]
+    },
+    "relic_3": {
+      "id": "relic_3",
+      "x": 192,
+      "y": 128,
+      "w": 64,
+      "h": 64,
+      "row": 2,
+      "col": 3,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "usage": "Relic shimmer animation frame",
+      "tags": [
+        "objective",
+        "relic",
+        "animated"
+      ]
+    },
+    "base_blue_0": {
+      "id": "base_blue_0",
+      "x": 256,
+      "y": 128,
+      "w": 64,
+      "h": 64,
+      "row": 2,
+      "col": 4,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "usage": "Blue base/flag animation frame",
+      "tags": [
+        "base",
+        "blue",
+        "animated"
+      ]
+    },
+    "base_blue_1": {
+      "id": "base_blue_1",
+      "x": 320,
+      "y": 128,
+      "w": 64,
+      "h": 64,
+      "row": 2,
+      "col": 5,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "usage": "Blue base/flag animation frame",
+      "tags": [
+        "base",
+        "blue",
+        "animated"
+      ]
+    },
+    "base_blue_2": {
+      "id": "base_blue_2",
+      "x": 384,
+      "y": 128,
+      "w": 64,
+      "h": 64,
+      "row": 2,
+      "col": 6,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "usage": "Blue base/flag animation frame",
+      "tags": [
+        "base",
+        "blue",
+        "animated"
+      ]
+    },
+    "base_blue_3": {
+      "id": "base_blue_3",
+      "x": 448,
+      "y": 128,
+      "w": 64,
+      "h": 64,
+      "row": 2,
+      "col": 7,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "usage": "Blue base/flag animation frame",
+      "tags": [
+        "base",
+        "blue",
+        "animated"
+      ]
+    },
+    "base_red_0": {
+      "id": "base_red_0",
+      "x": 512,
+      "y": 128,
+      "w": 64,
+      "h": 64,
+      "row": 2,
+      "col": 8,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "usage": "Red base/flag animation frame",
+      "tags": [
+        "base",
+        "red",
+        "animated"
+      ]
+    },
+    "base_red_1": {
+      "id": "base_red_1",
+      "x": 576,
+      "y": 128,
+      "w": 64,
+      "h": 64,
+      "row": 2,
+      "col": 9,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "usage": "Red base/flag animation frame",
+      "tags": [
+        "base",
+        "red",
+        "animated"
+      ]
+    },
+    "base_red_2": {
+      "id": "base_red_2",
+      "x": 640,
+      "y": 128,
+      "w": 64,
+      "h": 64,
+      "row": 2,
+      "col": 10,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "usage": "Red base/flag animation frame",
+      "tags": [
+        "base",
+        "red",
+        "animated"
+      ]
+    },
+    "base_red_3": {
+      "id": "base_red_3",
+      "x": 704,
+      "y": 128,
+      "w": 64,
+      "h": 64,
+      "row": 2,
+      "col": 11,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "usage": "Red base/flag animation frame",
+      "tags": [
+        "base",
+        "red",
+        "animated"
+      ]
+    },
+    "selection_ring_blue": {
+      "id": "selection_ring_blue",
+      "x": 768,
+      "y": 128,
+      "w": 64,
+      "h": 64,
+      "row": 2,
+      "col": 12,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "usage": "Blue unit selection/highlight ring",
+      "tags": [
+        "highlight",
+        "blue"
+      ]
+    },
+    "selection_ring_red": {
+      "id": "selection_ring_red",
+      "x": 832,
+      "y": 128,
+      "w": 64,
+      "h": 64,
+      "row": 2,
+      "col": 13,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "usage": "Red unit selection/highlight ring",
+      "tags": [
+        "highlight",
+        "red"
+      ]
+    },
+    "legal_move": {
+      "id": "legal_move",
+      "x": 896,
+      "y": 128,
+      "w": 64,
+      "h": 64,
+      "row": 2,
+      "col": 14,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "usage": "legal move overlay",
+      "tags": [
+        "overlay"
+      ]
+    },
+    "target_marker": {
+      "id": "target_marker",
+      "x": 960,
+      "y": 128,
+      "w": 64,
+      "h": 64,
+      "row": 2,
+      "col": 15,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "usage": "target marker overlay",
+      "tags": [
+        "overlay"
+      ]
+    },
+    "danger_marker": {
+      "id": "danger_marker",
+      "x": 1024,
+      "y": 128,
+      "w": 64,
+      "h": 64,
+      "row": 2,
+      "col": 16,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "usage": "danger marker overlay",
+      "tags": [
+        "overlay"
+      ]
+    },
+    "hover_tile": {
+      "id": "hover_tile",
+      "x": 1088,
+      "y": 128,
+      "w": 64,
+      "h": 64,
+      "row": 2,
+      "col": 17,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "usage": "hover tile overlay",
+      "tags": [
+        "overlay"
+      ]
+    },
+    "floor_0": {
+      "id": "floor_0",
+      "x": 0,
+      "y": 192,
+      "w": 64,
+      "h": 64,
+      "row": 3,
+      "col": 0,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "usage": "Opaque board floor tile variation",
+      "tags": [
+        "terrain",
+        "floor"
+      ]
+    },
+    "floor_1": {
+      "id": "floor_1",
+      "x": 64,
+      "y": 192,
+      "w": 64,
+      "h": 64,
+      "row": 3,
+      "col": 1,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "usage": "Opaque board floor tile variation",
+      "tags": [
+        "terrain",
+        "floor"
+      ]
+    },
+    "floor_2": {
+      "id": "floor_2",
+      "x": 128,
+      "y": 192,
+      "w": 64,
+      "h": 64,
+      "row": 3,
+      "col": 2,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "usage": "Opaque board floor tile variation",
+      "tags": [
+        "terrain",
+        "floor"
+      ]
+    },
+    "floor_3": {
+      "id": "floor_3",
+      "x": 192,
+      "y": 192,
+      "w": 64,
+      "h": 64,
+      "row": 3,
+      "col": 3,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "usage": "Opaque board floor tile variation",
+      "tags": [
+        "terrain",
+        "floor"
+      ]
+    },
+    "fire_0": {
+      "id": "fire_0",
+      "x": 256,
+      "y": 192,
+      "w": 64,
+      "h": 64,
+      "row": 3,
+      "col": 4,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "usage": "Persistent fire hazard animation frame",
+      "tags": [
+        "terrain",
+        "fire",
+        "animated"
+      ]
+    },
+    "fire_1": {
+      "id": "fire_1",
+      "x": 320,
+      "y": 192,
+      "w": 64,
+      "h": 64,
+      "row": 3,
+      "col": 5,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "usage": "Persistent fire hazard animation frame",
+      "tags": [
+        "terrain",
+        "fire",
+        "animated"
+      ]
+    },
+    "fire_2": {
+      "id": "fire_2",
+      "x": 384,
+      "y": 192,
+      "w": 64,
+      "h": 64,
+      "row": 3,
+      "col": 6,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "usage": "Persistent fire hazard animation frame",
+      "tags": [
+        "terrain",
+        "fire",
+        "animated"
+      ]
+    },
+    "fire_3": {
+      "id": "fire_3",
+      "x": 448,
+      "y": 192,
+      "w": 64,
+      "h": 64,
+      "row": 3,
+      "col": 7,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "usage": "Persistent fire hazard animation frame",
+      "tags": [
+        "terrain",
+        "fire",
+        "animated"
+      ]
+    },
+    "trap_hidden": {
+      "id": "trap_hidden",
+      "x": 512,
+      "y": 192,
+      "w": 64,
+      "h": 64,
+      "row": 3,
+      "col": 8,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "usage": "Trap hidden/closed overlay",
+      "tags": [
+        "terrain",
+        "trap"
+      ]
+    },
+    "trap_armed": {
+      "id": "trap_armed",
+      "x": 576,
+      "y": 192,
+      "w": 64,
+      "h": 64,
+      "row": 3,
+      "col": 9,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "usage": "Trap armed/open overlay",
+      "tags": [
+        "terrain",
+        "trap"
+      ]
+    },
+    "trap_trigger_0": {
+      "id": "trap_trigger_0",
+      "x": 640,
+      "y": 192,
+      "w": 64,
+      "h": 64,
+      "row": 3,
+      "col": 10,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "usage": "Trap triggered animation frame",
+      "tags": [
+        "terrain",
+        "trap",
+        "animated"
+      ]
+    },
+    "trap_trigger_1": {
+      "id": "trap_trigger_1",
+      "x": 704,
+      "y": 192,
+      "w": 64,
+      "h": 64,
+      "row": 3,
+      "col": 11,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "usage": "Trap triggered animation frame",
+      "tags": [
+        "terrain",
+        "trap",
+        "animated"
+      ]
+    },
+    "trap_trigger_2": {
+      "id": "trap_trigger_2",
+      "x": 768,
+      "y": 192,
+      "w": 64,
+      "h": 64,
+      "row": 3,
+      "col": 12,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "usage": "Trap triggered animation frame",
+      "tags": [
+        "terrain",
+        "trap",
+        "animated"
+      ]
+    },
+    "trap_trigger_3": {
+      "id": "trap_trigger_3",
+      "x": 832,
+      "y": 192,
+      "w": 64,
+      "h": 64,
+      "row": 3,
+      "col": 13,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "usage": "Trap triggered animation frame",
+      "tags": [
+        "terrain",
+        "trap",
+        "animated"
+      ]
+    },
+    "trap_disabled": {
+      "id": "trap_disabled",
+      "x": 896,
+      "y": 192,
+      "w": 64,
+      "h": 64,
+      "row": 3,
+      "col": 14,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "usage": "Trap disabled/used overlay",
+      "tags": [
+        "terrain",
+        "trap"
+      ]
+    },
+    "wall_0": {
+      "id": "wall_0",
+      "x": 0,
+      "y": 256,
+      "w": 64,
+      "h": 64,
+      "row": 4,
+      "col": 0,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "usage": "Wall autotile frame for 4-neighbor mask 0",
+      "tags": [
+        "terrain",
+        "wall",
+        "autotile"
+      ]
+    },
+    "wall_1": {
+      "id": "wall_1",
+      "x": 64,
+      "y": 256,
+      "w": 64,
+      "h": 64,
+      "row": 4,
+      "col": 1,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "usage": "Wall autotile frame for 4-neighbor mask 1",
+      "tags": [
+        "terrain",
+        "wall",
+        "autotile"
+      ]
+    },
+    "wall_2": {
+      "id": "wall_2",
+      "x": 128,
+      "y": 256,
+      "w": 64,
+      "h": 64,
+      "row": 4,
+      "col": 2,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "usage": "Wall autotile frame for 4-neighbor mask 2",
+      "tags": [
+        "terrain",
+        "wall",
+        "autotile"
+      ]
+    },
+    "wall_3": {
+      "id": "wall_3",
+      "x": 192,
+      "y": 256,
+      "w": 64,
+      "h": 64,
+      "row": 4,
+      "col": 3,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "usage": "Wall autotile frame for 4-neighbor mask 3",
+      "tags": [
+        "terrain",
+        "wall",
+        "autotile"
+      ]
+    },
+    "wall_4": {
+      "id": "wall_4",
+      "x": 256,
+      "y": 256,
+      "w": 64,
+      "h": 64,
+      "row": 4,
+      "col": 4,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "usage": "Wall autotile frame for 4-neighbor mask 4",
+      "tags": [
+        "terrain",
+        "wall",
+        "autotile"
+      ]
+    },
+    "wall_5": {
+      "id": "wall_5",
+      "x": 320,
+      "y": 256,
+      "w": 64,
+      "h": 64,
+      "row": 4,
+      "col": 5,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "usage": "Wall autotile frame for 4-neighbor mask 5",
+      "tags": [
+        "terrain",
+        "wall",
+        "autotile"
+      ]
+    },
+    "wall_6": {
+      "id": "wall_6",
+      "x": 384,
+      "y": 256,
+      "w": 64,
+      "h": 64,
+      "row": 4,
+      "col": 6,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "usage": "Wall autotile frame for 4-neighbor mask 6",
+      "tags": [
+        "terrain",
+        "wall",
+        "autotile"
+      ]
+    },
+    "wall_7": {
+      "id": "wall_7",
+      "x": 448,
+      "y": 256,
+      "w": 64,
+      "h": 64,
+      "row": 4,
+      "col": 7,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "usage": "Wall autotile frame for 4-neighbor mask 7",
+      "tags": [
+        "terrain",
+        "wall",
+        "autotile"
+      ]
+    },
+    "wall_8": {
+      "id": "wall_8",
+      "x": 512,
+      "y": 256,
+      "w": 64,
+      "h": 64,
+      "row": 4,
+      "col": 8,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "usage": "Wall autotile frame for 4-neighbor mask 8",
+      "tags": [
+        "terrain",
+        "wall",
+        "autotile"
+      ]
+    },
+    "wall_9": {
+      "id": "wall_9",
+      "x": 576,
+      "y": 256,
+      "w": 64,
+      "h": 64,
+      "row": 4,
+      "col": 9,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "usage": "Wall autotile frame for 4-neighbor mask 9",
+      "tags": [
+        "terrain",
+        "wall",
+        "autotile"
+      ]
+    },
+    "wall_10": {
+      "id": "wall_10",
+      "x": 640,
+      "y": 256,
+      "w": 64,
+      "h": 64,
+      "row": 4,
+      "col": 10,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "usage": "Wall autotile frame for 4-neighbor mask 10",
+      "tags": [
+        "terrain",
+        "wall",
+        "autotile"
+      ]
+    },
+    "wall_11": {
+      "id": "wall_11",
+      "x": 704,
+      "y": 256,
+      "w": 64,
+      "h": 64,
+      "row": 4,
+      "col": 11,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "usage": "Wall autotile frame for 4-neighbor mask 11",
+      "tags": [
+        "terrain",
+        "wall",
+        "autotile"
+      ]
+    },
+    "wall_12": {
+      "id": "wall_12",
+      "x": 768,
+      "y": 256,
+      "w": 64,
+      "h": 64,
+      "row": 4,
+      "col": 12,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "usage": "Wall autotile frame for 4-neighbor mask 12",
+      "tags": [
+        "terrain",
+        "wall",
+        "autotile"
+      ]
+    },
+    "wall_13": {
+      "id": "wall_13",
+      "x": 832,
+      "y": 256,
+      "w": 64,
+      "h": 64,
+      "row": 4,
+      "col": 13,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "usage": "Wall autotile frame for 4-neighbor mask 13",
+      "tags": [
+        "terrain",
+        "wall",
+        "autotile"
+      ]
+    },
+    "wall_14": {
+      "id": "wall_14",
+      "x": 896,
+      "y": 256,
+      "w": 64,
+      "h": 64,
+      "row": 4,
+      "col": 14,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "usage": "Wall autotile frame for 4-neighbor mask 14",
+      "tags": [
+        "terrain",
+        "wall",
+        "autotile"
+      ]
+    },
+    "wall_15": {
+      "id": "wall_15",
+      "x": 960,
+      "y": 256,
+      "w": 64,
+      "h": 64,
+      "row": 4,
+      "col": 15,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "usage": "Wall autotile frame for 4-neighbor mask 15",
+      "tags": [
+        "terrain",
+        "wall",
+        "autotile"
+      ]
+    },
+    "bush_0": {
+      "id": "bush_0",
+      "x": 0,
+      "y": 320,
+      "w": 64,
+      "h": 64,
+      "row": 5,
+      "col": 0,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "usage": "Bush autotile frame for 4-neighbor mask 0",
+      "tags": [
+        "terrain",
+        "bush",
+        "autotile"
+      ]
+    },
+    "bush_1": {
+      "id": "bush_1",
+      "x": 64,
+      "y": 320,
+      "w": 64,
+      "h": 64,
+      "row": 5,
+      "col": 1,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "usage": "Bush autotile frame for 4-neighbor mask 1",
+      "tags": [
+        "terrain",
+        "bush",
+        "autotile"
+      ]
+    },
+    "bush_2": {
+      "id": "bush_2",
+      "x": 128,
+      "y": 320,
+      "w": 64,
+      "h": 64,
+      "row": 5,
+      "col": 2,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "usage": "Bush autotile frame for 4-neighbor mask 2",
+      "tags": [
+        "terrain",
+        "bush",
+        "autotile"
+      ]
+    },
+    "bush_3": {
+      "id": "bush_3",
+      "x": 192,
+      "y": 320,
+      "w": 64,
+      "h": 64,
+      "row": 5,
+      "col": 3,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "usage": "Bush autotile frame for 4-neighbor mask 3",
+      "tags": [
+        "terrain",
+        "bush",
+        "autotile"
+      ]
+    },
+    "bush_4": {
+      "id": "bush_4",
+      "x": 256,
+      "y": 320,
+      "w": 64,
+      "h": 64,
+      "row": 5,
+      "col": 4,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "usage": "Bush autotile frame for 4-neighbor mask 4",
+      "tags": [
+        "terrain",
+        "bush",
+        "autotile"
+      ]
+    },
+    "bush_5": {
+      "id": "bush_5",
+      "x": 320,
+      "y": 320,
+      "w": 64,
+      "h": 64,
+      "row": 5,
+      "col": 5,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "usage": "Bush autotile frame for 4-neighbor mask 5",
+      "tags": [
+        "terrain",
+        "bush",
+        "autotile"
+      ]
+    },
+    "bush_6": {
+      "id": "bush_6",
+      "x": 384,
+      "y": 320,
+      "w": 64,
+      "h": 64,
+      "row": 5,
+      "col": 6,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "usage": "Bush autotile frame for 4-neighbor mask 6",
+      "tags": [
+        "terrain",
+        "bush",
+        "autotile"
+      ]
+    },
+    "bush_7": {
+      "id": "bush_7",
+      "x": 448,
+      "y": 320,
+      "w": 64,
+      "h": 64,
+      "row": 5,
+      "col": 7,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "usage": "Bush autotile frame for 4-neighbor mask 7",
+      "tags": [
+        "terrain",
+        "bush",
+        "autotile"
+      ]
+    },
+    "bush_8": {
+      "id": "bush_8",
+      "x": 512,
+      "y": 320,
+      "w": 64,
+      "h": 64,
+      "row": 5,
+      "col": 8,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "usage": "Bush autotile frame for 4-neighbor mask 8",
+      "tags": [
+        "terrain",
+        "bush",
+        "autotile"
+      ]
+    },
+    "bush_9": {
+      "id": "bush_9",
+      "x": 576,
+      "y": 320,
+      "w": 64,
+      "h": 64,
+      "row": 5,
+      "col": 9,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "usage": "Bush autotile frame for 4-neighbor mask 9",
+      "tags": [
+        "terrain",
+        "bush",
+        "autotile"
+      ]
+    },
+    "bush_10": {
+      "id": "bush_10",
+      "x": 640,
+      "y": 320,
+      "w": 64,
+      "h": 64,
+      "row": 5,
+      "col": 10,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "usage": "Bush autotile frame for 4-neighbor mask 10",
+      "tags": [
+        "terrain",
+        "bush",
+        "autotile"
+      ]
+    },
+    "bush_11": {
+      "id": "bush_11",
+      "x": 704,
+      "y": 320,
+      "w": 64,
+      "h": 64,
+      "row": 5,
+      "col": 11,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "usage": "Bush autotile frame for 4-neighbor mask 11",
+      "tags": [
+        "terrain",
+        "bush",
+        "autotile"
+      ]
+    },
+    "bush_12": {
+      "id": "bush_12",
+      "x": 768,
+      "y": 320,
+      "w": 64,
+      "h": 64,
+      "row": 5,
+      "col": 12,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "usage": "Bush autotile frame for 4-neighbor mask 12",
+      "tags": [
+        "terrain",
+        "bush",
+        "autotile"
+      ]
+    },
+    "bush_13": {
+      "id": "bush_13",
+      "x": 832,
+      "y": 320,
+      "w": 64,
+      "h": 64,
+      "row": 5,
+      "col": 13,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "usage": "Bush autotile frame for 4-neighbor mask 13",
+      "tags": [
+        "terrain",
+        "bush",
+        "autotile"
+      ]
+    },
+    "bush_14": {
+      "id": "bush_14",
+      "x": 896,
+      "y": 320,
+      "w": 64,
+      "h": 64,
+      "row": 5,
+      "col": 14,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "usage": "Bush autotile frame for 4-neighbor mask 14",
+      "tags": [
+        "terrain",
+        "bush",
+        "autotile"
+      ]
+    },
+    "bush_15": {
+      "id": "bush_15",
+      "x": 960,
+      "y": 320,
+      "w": 64,
+      "h": 64,
+      "row": 5,
+      "col": 15,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "usage": "Bush autotile frame for 4-neighbor mask 15",
+      "tags": [
+        "terrain",
+        "bush",
+        "autotile"
+      ]
+    },
+    "hp_blue_full": {
+      "id": "hp_blue_full",
+      "x": 0,
+      "y": 384,
+      "w": 64,
+      "h": 64,
+      "row": 6,
+      "col": 0,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "usage": "blue filled HP heart",
+      "tags": [
+        "ui",
+        "hp",
+        "blue"
+      ]
+    },
+    "hp_blue_empty": {
+      "id": "hp_blue_empty",
+      "x": 64,
+      "y": 384,
+      "w": 64,
+      "h": 64,
+      "row": 6,
+      "col": 1,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "usage": "blue empty HP heart",
+      "tags": [
+        "ui",
+        "hp",
+        "blue"
+      ]
+    },
+    "hp_red_full": {
+      "id": "hp_red_full",
+      "x": 128,
+      "y": 384,
+      "w": 64,
+      "h": 64,
+      "row": 6,
+      "col": 2,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "usage": "red filled HP heart",
+      "tags": [
+        "ui",
+        "hp",
+        "red"
+      ]
+    },
+    "hp_red_empty": {
+      "id": "hp_red_empty",
+      "x": 192,
+      "y": 384,
+      "w": 64,
+      "h": 64,
+      "row": 6,
+      "col": 3,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "usage": "red empty HP heart",
+      "tags": [
+        "ui",
+        "hp",
+        "red"
+      ]
+    },
+    "tool_blue_wall": {
+      "id": "tool_blue_wall",
+      "x": 256,
+      "y": 384,
+      "w": 64,
+      "h": 64,
+      "row": 6,
+      "col": 4,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "usage": "blue wall tool icon",
+      "tags": [
+        "ui",
+        "tool",
+        "blue",
+        "wall"
+      ]
+    },
+    "tool_blue_trap": {
+      "id": "tool_blue_trap",
+      "x": 320,
+      "y": 384,
+      "w": 64,
+      "h": 64,
+      "row": 6,
+      "col": 5,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "usage": "blue trap tool icon",
+      "tags": [
+        "ui",
+        "tool",
+        "blue",
+        "trap"
+      ]
+    },
+    "tool_blue_scan": {
+      "id": "tool_blue_scan",
+      "x": 384,
+      "y": 384,
+      "w": 64,
+      "h": 64,
+      "row": 6,
+      "col": 6,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "usage": "blue scan tool icon",
+      "tags": [
+        "ui",
+        "tool",
+        "blue",
+        "scan"
+      ]
+    },
+    "tool_blue_dash": {
+      "id": "tool_blue_dash",
+      "x": 448,
+      "y": 384,
+      "w": 64,
+      "h": 64,
+      "row": 6,
+      "col": 7,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "usage": "blue dash tool icon",
+      "tags": [
+        "ui",
+        "tool",
+        "blue",
+        "dash"
+      ]
+    },
+    "tool_blue_heal": {
+      "id": "tool_blue_heal",
+      "x": 512,
+      "y": 384,
+      "w": 64,
+      "h": 64,
+      "row": 6,
+      "col": 8,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "usage": "blue heal tool icon",
+      "tags": [
+        "ui",
+        "tool",
+        "blue",
+        "heal"
+      ]
+    },
+    "tool_red_wall": {
+      "id": "tool_red_wall",
+      "x": 576,
+      "y": 384,
+      "w": 64,
+      "h": 64,
+      "row": 6,
+      "col": 9,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "usage": "red wall tool icon",
+      "tags": [
+        "ui",
+        "tool",
+        "red",
+        "wall"
+      ]
+    },
+    "tool_red_trap": {
+      "id": "tool_red_trap",
+      "x": 640,
+      "y": 384,
+      "w": 64,
+      "h": 64,
+      "row": 6,
+      "col": 10,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "usage": "red trap tool icon",
+      "tags": [
+        "ui",
+        "tool",
+        "red",
+        "trap"
+      ]
+    },
+    "tool_red_scan": {
+      "id": "tool_red_scan",
+      "x": 704,
+      "y": 384,
+      "w": 64,
+      "h": 64,
+      "row": 6,
+      "col": 11,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "usage": "red scan tool icon",
+      "tags": [
+        "ui",
+        "tool",
+        "red",
+        "scan"
+      ]
+    },
+    "tool_red_dash": {
+      "id": "tool_red_dash",
+      "x": 768,
+      "y": 384,
+      "w": 64,
+      "h": 64,
+      "row": 6,
+      "col": 12,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "usage": "red dash tool icon",
+      "tags": [
+        "ui",
+        "tool",
+        "red",
+        "dash"
+      ]
+    },
+    "tool_red_heal": {
+      "id": "tool_red_heal",
+      "x": 832,
+      "y": 384,
+      "w": 64,
+      "h": 64,
+      "row": 6,
+      "col": 13,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "usage": "red heal tool icon",
+      "tags": [
+        "ui",
+        "tool",
+        "red",
+        "heal"
+      ]
+    },
+    "icon_relic": {
+      "id": "icon_relic",
+      "x": 896,
+      "y": 384,
+      "w": 64,
+      "h": 64,
+      "row": 6,
+      "col": 14,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "usage": "Neutral legend icon: relic",
+      "tags": [
+        "ui",
+        "legend",
+        "relic"
+      ]
+    },
+    "icon_bush": {
+      "id": "icon_bush",
+      "x": 960,
+      "y": 384,
+      "w": 64,
+      "h": 64,
+      "row": 6,
+      "col": 15,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "usage": "Neutral legend icon: bush",
+      "tags": [
+        "ui",
+        "legend",
+        "bush"
+      ]
+    },
+    "icon_fire": {
+      "id": "icon_fire",
+      "x": 1024,
+      "y": 384,
+      "w": 64,
+      "h": 64,
+      "row": 6,
+      "col": 16,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "usage": "Neutral legend icon: fire",
+      "tags": [
+        "ui",
+        "legend",
+        "fire"
+      ]
+    },
+    "icon_wall": {
+      "id": "icon_wall",
+      "x": 1088,
+      "y": 384,
+      "w": 64,
+      "h": 64,
+      "row": 6,
+      "col": 17,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "usage": "Neutral legend icon: wall",
+      "tags": [
+        "ui",
+        "legend",
+        "wall"
+      ]
+    },
+    "icon_trap": {
+      "id": "icon_trap",
+      "x": 1152,
+      "y": 384,
+      "w": 64,
+      "h": 64,
+      "row": 6,
+      "col": 18,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "usage": "Neutral legend icon: trap",
+      "tags": [
+        "ui",
+        "legend",
+        "trap"
+      ]
+    },
+    "arrow_blue": {
+      "id": "arrow_blue",
+      "x": 0,
+      "y": 448,
+      "w": 64,
+      "h": 64,
+      "row": 7,
+      "col": 0,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "usage": "blue chevron/thinking arrow icon",
+      "tags": [
+        "ui",
+        "arrow",
+        "blue"
+      ]
+    },
+    "arrow_red": {
+      "id": "arrow_red",
+      "x": 64,
+      "y": 448,
+      "w": 64,
+      "h": 64,
+      "row": 7,
+      "col": 1,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "usage": "red chevron/thinking arrow icon",
+      "tags": [
+        "ui",
+        "arrow",
+        "red"
+      ]
+    },
+    "arrow_gold": {
+      "id": "arrow_gold",
+      "x": 128,
+      "y": 448,
+      "w": 64,
+      "h": 64,
+      "row": 7,
+      "col": 2,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "usage": "gold chevron/thinking arrow icon",
+      "tags": [
+        "ui",
+        "arrow",
+        "gold"
+      ]
+    },
+    "fx_spark_gold_0": {
+      "id": "fx_spark_gold_0",
+      "x": 192,
+      "y": 448,
+      "w": 64,
+      "h": 64,
+      "row": 7,
+      "col": 3,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "usage": "gold sparkle FX frame",
+      "tags": [
+        "fx",
+        "spark",
+        "gold"
+      ]
+    },
+    "fx_spark_gold_1": {
+      "id": "fx_spark_gold_1",
+      "x": 256,
+      "y": 448,
+      "w": 64,
+      "h": 64,
+      "row": 7,
+      "col": 4,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "usage": "gold sparkle FX frame",
+      "tags": [
+        "fx",
+        "spark",
+        "gold"
+      ]
+    },
+    "fx_spark_gold_2": {
+      "id": "fx_spark_gold_2",
+      "x": 320,
+      "y": 448,
+      "w": 64,
+      "h": 64,
+      "row": 7,
+      "col": 5,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "usage": "gold sparkle FX frame",
+      "tags": [
+        "fx",
+        "spark",
+        "gold"
+      ]
+    },
+    "fx_spark_gold_3": {
+      "id": "fx_spark_gold_3",
+      "x": 384,
+      "y": 448,
+      "w": 64,
+      "h": 64,
+      "row": 7,
+      "col": 6,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "usage": "gold sparkle FX frame",
+      "tags": [
+        "fx",
+        "spark",
+        "gold"
+      ]
+    },
+    "fx_spark_blue_0": {
+      "id": "fx_spark_blue_0",
+      "x": 448,
+      "y": 448,
+      "w": 64,
+      "h": 64,
+      "row": 7,
+      "col": 7,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "usage": "blue sparkle FX frame",
+      "tags": [
+        "fx",
+        "spark",
+        "blue"
+      ]
+    },
+    "fx_spark_blue_1": {
+      "id": "fx_spark_blue_1",
+      "x": 512,
+      "y": 448,
+      "w": 64,
+      "h": 64,
+      "row": 7,
+      "col": 8,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "usage": "blue sparkle FX frame",
+      "tags": [
+        "fx",
+        "spark",
+        "blue"
+      ]
+    },
+    "fx_spark_blue_2": {
+      "id": "fx_spark_blue_2",
+      "x": 576,
+      "y": 448,
+      "w": 64,
+      "h": 64,
+      "row": 7,
+      "col": 9,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "usage": "blue sparkle FX frame",
+      "tags": [
+        "fx",
+        "spark",
+        "blue"
+      ]
+    },
+    "fx_spark_blue_3": {
+      "id": "fx_spark_blue_3",
+      "x": 640,
+      "y": 448,
+      "w": 64,
+      "h": 64,
+      "row": 7,
+      "col": 10,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "usage": "blue sparkle FX frame",
+      "tags": [
+        "fx",
+        "spark",
+        "blue"
+      ]
+    },
+    "fx_spark_red_0": {
+      "id": "fx_spark_red_0",
+      "x": 704,
+      "y": 448,
+      "w": 64,
+      "h": 64,
+      "row": 7,
+      "col": 11,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "usage": "red sparkle FX frame",
+      "tags": [
+        "fx",
+        "spark",
+        "red"
+      ]
+    },
+    "fx_spark_red_1": {
+      "id": "fx_spark_red_1",
+      "x": 768,
+      "y": 448,
+      "w": 64,
+      "h": 64,
+      "row": 7,
+      "col": 12,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "usage": "red sparkle FX frame",
+      "tags": [
+        "fx",
+        "spark",
+        "red"
+      ]
+    },
+    "fx_spark_red_2": {
+      "id": "fx_spark_red_2",
+      "x": 832,
+      "y": 448,
+      "w": 64,
+      "h": 64,
+      "row": 7,
+      "col": 13,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "usage": "red sparkle FX frame",
+      "tags": [
+        "fx",
+        "spark",
+        "red"
+      ]
+    },
+    "fx_spark_red_3": {
+      "id": "fx_spark_red_3",
+      "x": 896,
+      "y": 448,
+      "w": 64,
+      "h": 64,
+      "row": 7,
+      "col": 14,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "usage": "red sparkle FX frame",
+      "tags": [
+        "fx",
+        "spark",
+        "red"
+      ]
+    },
+    "fx_hit_0": {
+      "id": "fx_hit_0",
+      "x": 0,
+      "y": 512,
+      "w": 64,
+      "h": 64,
+      "row": 8,
+      "col": 0,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "usage": "Hit/burst FX frame",
+      "tags": [
+        "fx",
+        "hit"
+      ]
+    },
+    "fx_hit_1": {
+      "id": "fx_hit_1",
+      "x": 64,
+      "y": 512,
+      "w": 64,
+      "h": 64,
+      "row": 8,
+      "col": 1,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "usage": "Hit/burst FX frame",
+      "tags": [
+        "fx",
+        "hit"
+      ]
+    },
+    "fx_hit_2": {
+      "id": "fx_hit_2",
+      "x": 128,
+      "y": 512,
+      "w": 64,
+      "h": 64,
+      "row": 8,
+      "col": 2,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "usage": "Hit/burst FX frame",
+      "tags": [
+        "fx",
+        "hit"
+      ]
+    },
+    "fx_hit_3": {
+      "id": "fx_hit_3",
+      "x": 192,
+      "y": 512,
+      "w": 64,
+      "h": 64,
+      "row": 8,
+      "col": 3,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "usage": "Hit/burst FX frame",
+      "tags": [
+        "fx",
+        "hit"
+      ]
+    },
+    "fx_scan_0": {
+      "id": "fx_scan_0",
+      "x": 256,
+      "y": 512,
+      "w": 64,
+      "h": 64,
+      "row": 8,
+      "col": 4,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "usage": "Scan pulse FX frame",
+      "tags": [
+        "fx",
+        "scan"
+      ]
+    },
+    "fx_scan_1": {
+      "id": "fx_scan_1",
+      "x": 320,
+      "y": 512,
+      "w": 64,
+      "h": 64,
+      "row": 8,
+      "col": 5,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "usage": "Scan pulse FX frame",
+      "tags": [
+        "fx",
+        "scan"
+      ]
+    },
+    "fx_scan_2": {
+      "id": "fx_scan_2",
+      "x": 384,
+      "y": 512,
+      "w": 64,
+      "h": 64,
+      "row": 8,
+      "col": 6,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "usage": "Scan pulse FX frame",
+      "tags": [
+        "fx",
+        "scan"
+      ]
+    },
+    "fx_scan_3": {
+      "id": "fx_scan_3",
+      "x": 448,
+      "y": 512,
+      "w": 64,
+      "h": 64,
+      "row": 8,
+      "col": 7,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "usage": "Scan pulse FX frame",
+      "tags": [
+        "fx",
+        "scan"
+      ]
+    },
+    "fx_dash_blue_0": {
+      "id": "fx_dash_blue_0",
+      "x": 512,
+      "y": 512,
+      "w": 64,
+      "h": 64,
+      "row": 8,
+      "col": 8,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "usage": "Blue dash streak FX frame",
+      "tags": [
+        "fx",
+        "dash",
+        "blue"
+      ]
+    },
+    "fx_dash_blue_1": {
+      "id": "fx_dash_blue_1",
+      "x": 576,
+      "y": 512,
+      "w": 64,
+      "h": 64,
+      "row": 8,
+      "col": 9,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "usage": "Blue dash streak FX frame",
+      "tags": [
+        "fx",
+        "dash",
+        "blue"
+      ]
+    },
+    "fx_dash_blue_2": {
+      "id": "fx_dash_blue_2",
+      "x": 640,
+      "y": 512,
+      "w": 64,
+      "h": 64,
+      "row": 8,
+      "col": 10,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "usage": "Blue dash streak FX frame",
+      "tags": [
+        "fx",
+        "dash",
+        "blue"
+      ]
+    },
+    "fx_dash_blue_3": {
+      "id": "fx_dash_blue_3",
+      "x": 704,
+      "y": 512,
+      "w": 64,
+      "h": 64,
+      "row": 8,
+      "col": 11,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "usage": "Blue dash streak FX frame",
+      "tags": [
+        "fx",
+        "dash",
+        "blue"
+      ]
+    },
+    "fx_dash_red_0": {
+      "id": "fx_dash_red_0",
+      "x": 768,
+      "y": 512,
+      "w": 64,
+      "h": 64,
+      "row": 8,
+      "col": 12,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "usage": "Red dash streak FX frame",
+      "tags": [
+        "fx",
+        "dash",
+        "red"
+      ]
+    },
+    "fx_dash_red_1": {
+      "id": "fx_dash_red_1",
+      "x": 832,
+      "y": 512,
+      "w": 64,
+      "h": 64,
+      "row": 8,
+      "col": 13,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "usage": "Red dash streak FX frame",
+      "tags": [
+        "fx",
+        "dash",
+        "red"
+      ]
+    },
+    "fx_dash_red_2": {
+      "id": "fx_dash_red_2",
+      "x": 896,
+      "y": 512,
+      "w": 64,
+      "h": 64,
+      "row": 8,
+      "col": 14,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "usage": "Red dash streak FX frame",
+      "tags": [
+        "fx",
+        "dash",
+        "red"
+      ]
+    },
+    "fx_dash_red_3": {
+      "id": "fx_dash_red_3",
+      "x": 960,
+      "y": 512,
+      "w": 64,
+      "h": 64,
+      "row": 8,
+      "col": 15,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "usage": "Red dash streak FX frame",
+      "tags": [
+        "fx",
+        "dash",
+        "red"
+      ]
+    },
+    "fx_dust_0": {
+      "id": "fx_dust_0",
+      "x": 1024,
+      "y": 512,
+      "w": 64,
+      "h": 64,
+      "row": 8,
+      "col": 16,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "usage": "Dust/footstep FX frame",
+      "tags": [
+        "fx",
+        "dust"
+      ]
+    },
+    "fx_dust_1": {
+      "id": "fx_dust_1",
+      "x": 1088,
+      "y": 512,
+      "w": 64,
+      "h": 64,
+      "row": 8,
+      "col": 17,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "usage": "Dust/footstep FX frame",
+      "tags": [
+        "fx",
+        "dust"
+      ]
+    },
+    "fx_dust_2": {
+      "id": "fx_dust_2",
+      "x": 1152,
+      "y": 512,
+      "w": 64,
+      "h": 64,
+      "row": 8,
+      "col": 18,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "usage": "Dust/footstep FX frame",
+      "tags": [
+        "fx",
+        "dust"
+      ]
+    },
+    "fx_dust_3": {
+      "id": "fx_dust_3",
+      "x": 1216,
+      "y": 512,
+      "w": 64,
+      "h": 64,
+      "row": 8,
+      "col": 19,
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "usage": "Dust/footstep FX frame",
+      "tags": [
+        "fx",
+        "dust"
+      ]
+    }
+  }
+}

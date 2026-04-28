@@ -1,0 +1,1749 @@
+{
+  "map_id": "braided-home-gates-v1",
+  "timestamp": "2026-04-28T03:57:14.859Z",
+  "config": {
+    "mctsLowIters": 100,
+    "mctsMidIters": 250,
+    "mctsHighIters": 500,
+    "mctsRolloutDepth": 18,
+    "ladderGamesPerPair": 20,
+    "fairnessGames": 20,
+    "divergenceSamples": 24,
+    "seed": 1,
+    "turnCap": 100,
+    "workerPoolSize": 8
+  },
+  "score": 62.99147513307998,
+  "score_components": {
+    "score": 62.99147513307998,
+    "ladder_separation": 0.6299147513307998,
+    "weighted_elo_gap": 198.80437961472762,
+    "horizon": 1,
+    "side_fairness": 1,
+    "turn_cap_penalty": 1,
+    "length_penalty": 1
+  },
+  "ladder": {
+    "rungs": [
+      "greedy",
+      "mcts-low",
+      "mcts-mid",
+      "mcts-high"
+    ],
+    "gamesPerPair": 20,
+    "elo": {
+      "greedy": 0,
+      "mcts-low": 23.59210671842741,
+      "mcts-mid": 275.0741787204137,
+      "mcts-high": 497.164187709069
+    },
+    "gaps": {
+      "greedyToLow": 23.59210671842741,
+      "lowToMid": 251.48207200198632,
+      "midToHigh": 222.09000898865526
+    },
+    "pairwise": {
+      "greedy__vs__mcts-low": {
+        "a": "greedy",
+        "b": "mcts-low",
+        "gamesPlayed": 20,
+        "aWins": 10,
+        "bWins": 10,
+        "draws": 0
+      },
+      "greedy__vs__mcts-mid": {
+        "a": "greedy",
+        "b": "mcts-mid",
+        "gamesPlayed": 20,
+        "aWins": 3,
+        "bWins": 17,
+        "draws": 0
+      },
+      "greedy__vs__mcts-high": {
+        "a": "greedy",
+        "b": "mcts-high",
+        "gamesPlayed": 20,
+        "aWins": 0,
+        "bWins": 20,
+        "draws": 0
+      },
+      "mcts-low__vs__mcts-mid": {
+        "a": "mcts-low",
+        "b": "mcts-mid",
+        "gamesPlayed": 20,
+        "aWins": 4,
+        "bWins": 16,
+        "draws": 0
+      },
+      "mcts-low__vs__mcts-high": {
+        "a": "mcts-low",
+        "b": "mcts-high",
+        "gamesPlayed": 20,
+        "aWins": 1,
+        "bWins": 19,
+        "draws": 0
+      },
+      "mcts-mid__vs__mcts-high": {
+        "a": "mcts-mid",
+        "b": "mcts-high",
+        "gamesPlayed": 20,
+        "aWins": 4,
+        "bWins": 15,
+        "draws": 1
+      }
+    },
+    "games": [
+      {
+        "seed": 1001,
+        "a": "greedy",
+        "b": "mcts-low",
+        "aIsBlue": true,
+        "winner": "blue",
+        "winnerSpec": "greedy",
+        "turns": 14,
+        "replayRequired": false
+      },
+      {
+        "seed": 1002,
+        "a": "greedy",
+        "b": "mcts-low",
+        "aIsBlue": false,
+        "winner": "blue",
+        "winnerSpec": "mcts-low",
+        "turns": 13,
+        "replayRequired": false
+      },
+      {
+        "seed": 1003,
+        "a": "greedy",
+        "b": "mcts-low",
+        "aIsBlue": true,
+        "winner": "blue",
+        "winnerSpec": "greedy",
+        "turns": 14,
+        "replayRequired": false
+      },
+      {
+        "seed": 1004,
+        "a": "greedy",
+        "b": "mcts-low",
+        "aIsBlue": false,
+        "winner": "red",
+        "winnerSpec": "greedy",
+        "turns": 14,
+        "replayRequired": false
+      },
+      {
+        "seed": 1005,
+        "a": "greedy",
+        "b": "mcts-low",
+        "aIsBlue": true,
+        "winner": "red",
+        "winnerSpec": "mcts-low",
+        "turns": 12,
+        "replayRequired": false
+      },
+      {
+        "seed": 1006,
+        "a": "greedy",
+        "b": "mcts-low",
+        "aIsBlue": false,
+        "winner": "blue",
+        "winnerSpec": "mcts-low",
+        "turns": 27,
+        "replayRequired": false
+      },
+      {
+        "seed": 1007,
+        "a": "greedy",
+        "b": "mcts-low",
+        "aIsBlue": true,
+        "winner": "red",
+        "winnerSpec": "mcts-low",
+        "turns": 10,
+        "replayRequired": false
+      },
+      {
+        "seed": 1008,
+        "a": "greedy",
+        "b": "mcts-low",
+        "aIsBlue": false,
+        "winner": "blue",
+        "winnerSpec": "mcts-low",
+        "turns": 25,
+        "replayRequired": false
+      },
+      {
+        "seed": 1009,
+        "a": "greedy",
+        "b": "mcts-low",
+        "aIsBlue": true,
+        "winner": "blue",
+        "winnerSpec": "greedy",
+        "turns": 14,
+        "replayRequired": false
+      },
+      {
+        "seed": 1010,
+        "a": "greedy",
+        "b": "mcts-low",
+        "aIsBlue": false,
+        "winner": "blue",
+        "winnerSpec": "mcts-low",
+        "turns": 18,
+        "replayRequired": false
+      },
+      {
+        "seed": 1011,
+        "a": "greedy",
+        "b": "mcts-low",
+        "aIsBlue": true,
+        "winner": "blue",
+        "winnerSpec": "greedy",
+        "turns": 14,
+        "replayRequired": false
+      },
+      {
+        "seed": 1012,
+        "a": "greedy",
+        "b": "mcts-low",
+        "aIsBlue": false,
+        "winner": "red",
+        "winnerSpec": "greedy",
+        "turns": 14,
+        "replayRequired": false
+      },
+      {
+        "seed": 1013,
+        "a": "greedy",
+        "b": "mcts-low",
+        "aIsBlue": true,
+        "winner": "blue",
+        "winnerSpec": "greedy",
+        "turns": 14,
+        "replayRequired": false
+      },
+      {
+        "seed": 1014,
+        "a": "greedy",
+        "b": "mcts-low",
+        "aIsBlue": false,
+        "winner": "blue",
+        "winnerSpec": "mcts-low",
+        "turns": 21,
+        "replayRequired": false
+      },
+      {
+        "seed": 1015,
+        "a": "greedy",
+        "b": "mcts-low",
+        "aIsBlue": true,
+        "winner": "red",
+        "winnerSpec": "mcts-low",
+        "turns": 13,
+        "replayRequired": false
+      },
+      {
+        "seed": 1016,
+        "a": "greedy",
+        "b": "mcts-low",
+        "aIsBlue": false,
+        "winner": "red",
+        "winnerSpec": "greedy",
+        "turns": 14,
+        "replayRequired": false
+      },
+      {
+        "seed": 1017,
+        "a": "greedy",
+        "b": "mcts-low",
+        "aIsBlue": true,
+        "winner": "red",
+        "winnerSpec": "mcts-low",
+        "turns": 10,
+        "replayRequired": false
+      },
+      {
+        "seed": 1018,
+        "a": "greedy",
+        "b": "mcts-low",
+        "aIsBlue": false,
+        "winner": "red",
+        "winnerSpec": "greedy",
+        "turns": 14,
+        "replayRequired": false
+      },
+      {
+        "seed": 1019,
+        "a": "greedy",
+        "b": "mcts-low",
+        "aIsBlue": true,
+        "winner": "blue",
+        "winnerSpec": "greedy",
+        "turns": 14,
+        "replayRequired": false
+      },
+      {
+        "seed": 1020,
+        "a": "greedy",
+        "b": "mcts-low",
+        "aIsBlue": false,
+        "winner": "blue",
+        "winnerSpec": "mcts-low",
+        "turns": 10,
+        "replayRequired": false
+      },
+      {
+        "seed": 2001,
+        "a": "greedy",
+        "b": "mcts-mid",
+        "aIsBlue": true,
+        "winner": "red",
+        "winnerSpec": "mcts-mid",
+        "turns": 13,
+        "replayRequired": false
+      },
+      {
+        "seed": 2002,
+        "a": "greedy",
+        "b": "mcts-mid",
+        "aIsBlue": false,
+        "winner": "blue",
+        "winnerSpec": "mcts-mid",
+        "turns": 10,
+        "replayRequired": false
+      },
+      {
+        "seed": 2003,
+        "a": "greedy",
+        "b": "mcts-mid",
+        "aIsBlue": true,
+        "winner": "red",
+        "winnerSpec": "mcts-mid",
+        "turns": 19,
+        "replayRequired": false
+      },
+      {
+        "seed": 2004,
+        "a": "greedy",
+        "b": "mcts-mid",
+        "aIsBlue": false,
+        "winner": "blue",
+        "winnerSpec": "mcts-mid",
+        "turns": 11,
+        "replayRequired": false
+      },
+      {
+        "seed": 2005,
+        "a": "greedy",
+        "b": "mcts-mid",
+        "aIsBlue": true,
+        "winner": "blue",
+        "winnerSpec": "greedy",
+        "turns": 14,
+        "replayRequired": false
+      },
+      {
+        "seed": 2006,
+        "a": "greedy",
+        "b": "mcts-mid",
+        "aIsBlue": false,
+        "winner": "blue",
+        "winnerSpec": "mcts-mid",
+        "turns": 10,
+        "replayRequired": false
+      },
+      {
+        "seed": 2007,
+        "a": "greedy",
+        "b": "mcts-mid",
+        "aIsBlue": true,
+        "winner": "red",
+        "winnerSpec": "mcts-mid",
+        "turns": 10,
+        "replayRequired": false
+      },
+      {
+        "seed": 2008,
+        "a": "greedy",
+        "b": "mcts-mid",
+        "aIsBlue": false,
+        "winner": "blue",
+        "winnerSpec": "mcts-mid",
+        "turns": 20,
+        "replayRequired": false
+      },
+      {
+        "seed": 2009,
+        "a": "greedy",
+        "b": "mcts-mid",
+        "aIsBlue": true,
+        "winner": "blue",
+        "winnerSpec": "greedy",
+        "turns": 18,
+        "replayRequired": false
+      },
+      {
+        "seed": 2010,
+        "a": "greedy",
+        "b": "mcts-mid",
+        "aIsBlue": false,
+        "winner": "blue",
+        "winnerSpec": "mcts-mid",
+        "turns": 13,
+        "replayRequired": false
+      },
+      {
+        "seed": 2011,
+        "a": "greedy",
+        "b": "mcts-mid",
+        "aIsBlue": true,
+        "winner": "red",
+        "winnerSpec": "mcts-mid",
+        "turns": 10,
+        "replayRequired": false
+      },
+      {
+        "seed": 2012,
+        "a": "greedy",
+        "b": "mcts-mid",
+        "aIsBlue": false,
+        "winner": "blue",
+        "winnerSpec": "mcts-mid",
+        "turns": 12,
+        "replayRequired": false
+      },
+      {
+        "seed": 2013,
+        "a": "greedy",
+        "b": "mcts-mid",
+        "aIsBlue": true,
+        "winner": "blue",
+        "winnerSpec": "greedy",
+        "turns": 14,
+        "replayRequired": false
+      },
+      {
+        "seed": 2014,
+        "a": "greedy",
+        "b": "mcts-mid",
+        "aIsBlue": false,
+        "winner": "blue",
+        "winnerSpec": "mcts-mid",
+        "turns": 10,
+        "replayRequired": false
+      },
+      {
+        "seed": 2015,
+        "a": "greedy",
+        "b": "mcts-mid",
+        "aIsBlue": true,
+        "winner": "red",
+        "winnerSpec": "mcts-mid",
+        "turns": 12,
+        "replayRequired": false
+      },
+      {
+        "seed": 2016,
+        "a": "greedy",
+        "b": "mcts-mid",
+        "aIsBlue": false,
+        "winner": "blue",
+        "winnerSpec": "mcts-mid",
+        "turns": 12,
+        "replayRequired": false
+      },
+      {
+        "seed": 2017,
+        "a": "greedy",
+        "b": "mcts-mid",
+        "aIsBlue": true,
+        "winner": "red",
+        "winnerSpec": "mcts-mid",
+        "turns": 20,
+        "replayRequired": false
+      },
+      {
+        "seed": 2018,
+        "a": "greedy",
+        "b": "mcts-mid",
+        "aIsBlue": false,
+        "winner": "blue",
+        "winnerSpec": "mcts-mid",
+        "turns": 12,
+        "replayRequired": false
+      },
+      {
+        "seed": 2019,
+        "a": "greedy",
+        "b": "mcts-mid",
+        "aIsBlue": true,
+        "winner": "red",
+        "winnerSpec": "mcts-mid",
+        "turns": 10,
+        "replayRequired": false
+      },
+      {
+        "seed": 2020,
+        "a": "greedy",
+        "b": "mcts-mid",
+        "aIsBlue": false,
+        "winner": "blue",
+        "winnerSpec": "mcts-mid",
+        "turns": 11,
+        "replayRequired": false
+      },
+      {
+        "seed": 3001,
+        "a": "greedy",
+        "b": "mcts-high",
+        "aIsBlue": true,
+        "winner": "red",
+        "winnerSpec": "mcts-high",
+        "turns": 10,
+        "replayRequired": false
+      },
+      {
+        "seed": 3002,
+        "a": "greedy",
+        "b": "mcts-high",
+        "aIsBlue": false,
+        "winner": "blue",
+        "winnerSpec": "mcts-high",
+        "turns": 12,
+        "replayRequired": false
+      },
+      {
+        "seed": 3003,
+        "a": "greedy",
+        "b": "mcts-high",
+        "aIsBlue": true,
+        "winner": "red",
+        "winnerSpec": "mcts-high",
+        "turns": 23,
+        "replayRequired": false
+      },
+      {
+        "seed": 3004,
+        "a": "greedy",
+        "b": "mcts-high",
+        "aIsBlue": false,
+        "winner": "blue",
+        "winnerSpec": "mcts-high",
+        "turns": 12,
+        "replayRequired": false
+      },
+      {
+        "seed": 3005,
+        "a": "greedy",
+        "b": "mcts-high",
+        "aIsBlue": true,
+        "winner": "red",
+        "winnerSpec": "mcts-high",
+        "turns": 12,
+        "replayRequired": false
+      },
+      {
+        "seed": 3006,
+        "a": "greedy",
+        "b": "mcts-high",
+        "aIsBlue": false,
+        "winner": "blue",
+        "winnerSpec": "mcts-high",
+        "turns": 10,
+        "replayRequired": false
+      },
+      {
+        "seed": 3007,
+        "a": "greedy",
+        "b": "mcts-high",
+        "aIsBlue": true,
+        "winner": "red",
+        "winnerSpec": "mcts-high",
+        "turns": 10,
+        "replayRequired": false
+      },
+      {
+        "seed": 3008,
+        "a": "greedy",
+        "b": "mcts-high",
+        "aIsBlue": false,
+        "winner": "blue",
+        "winnerSpec": "mcts-high",
+        "turns": 10,
+        "replayRequired": false
+      },
+      {
+        "seed": 3009,
+        "a": "greedy",
+        "b": "mcts-high",
+        "aIsBlue": true,
+        "winner": "red",
+        "winnerSpec": "mcts-high",
+        "turns": 12,
+        "replayRequired": false
+      },
+      {
+        "seed": 3010,
+        "a": "greedy",
+        "b": "mcts-high",
+        "aIsBlue": false,
+        "winner": "blue",
+        "winnerSpec": "mcts-high",
+        "turns": 10,
+        "replayRequired": false
+      },
+      {
+        "seed": 3011,
+        "a": "greedy",
+        "b": "mcts-high",
+        "aIsBlue": true,
+        "winner": "red",
+        "winnerSpec": "mcts-high",
+        "turns": 12,
+        "replayRequired": false
+      },
+      {
+        "seed": 3012,
+        "a": "greedy",
+        "b": "mcts-high",
+        "aIsBlue": false,
+        "winner": "blue",
+        "winnerSpec": "mcts-high",
+        "turns": 10,
+        "replayRequired": false
+      },
+      {
+        "seed": 3013,
+        "a": "greedy",
+        "b": "mcts-high",
+        "aIsBlue": true,
+        "winner": "red",
+        "winnerSpec": "mcts-high",
+        "turns": 10,
+        "replayRequired": false
+      },
+      {
+        "seed": 3014,
+        "a": "greedy",
+        "b": "mcts-high",
+        "aIsBlue": false,
+        "winner": "blue",
+        "winnerSpec": "mcts-high",
+        "turns": 10,
+        "replayRequired": false
+      },
+      {
+        "seed": 3015,
+        "a": "greedy",
+        "b": "mcts-high",
+        "aIsBlue": true,
+        "winner": "red",
+        "winnerSpec": "mcts-high",
+        "turns": 12,
+        "replayRequired": false
+      },
+      {
+        "seed": 3016,
+        "a": "greedy",
+        "b": "mcts-high",
+        "aIsBlue": false,
+        "winner": "blue",
+        "winnerSpec": "mcts-high",
+        "turns": 10,
+        "replayRequired": false
+      },
+      {
+        "seed": 3017,
+        "a": "greedy",
+        "b": "mcts-high",
+        "aIsBlue": true,
+        "winner": "red",
+        "winnerSpec": "mcts-high",
+        "turns": 10,
+        "replayRequired": false
+      },
+      {
+        "seed": 3018,
+        "a": "greedy",
+        "b": "mcts-high",
+        "aIsBlue": false,
+        "winner": "blue",
+        "winnerSpec": "mcts-high",
+        "turns": 12,
+        "replayRequired": false
+      },
+      {
+        "seed": 3019,
+        "a": "greedy",
+        "b": "mcts-high",
+        "aIsBlue": true,
+        "winner": "red",
+        "winnerSpec": "mcts-high",
+        "turns": 12,
+        "replayRequired": false
+      },
+      {
+        "seed": 3020,
+        "a": "greedy",
+        "b": "mcts-high",
+        "aIsBlue": false,
+        "winner": "blue",
+        "winnerSpec": "mcts-high",
+        "turns": 12,
+        "replayRequired": false
+      },
+      {
+        "seed": 4001,
+        "a": "mcts-low",
+        "b": "mcts-mid",
+        "aIsBlue": true,
+        "winner": "red",
+        "winnerSpec": "mcts-mid",
+        "turns": 12,
+        "replayRequired": false
+      },
+      {
+        "seed": 4002,
+        "a": "mcts-low",
+        "b": "mcts-mid",
+        "aIsBlue": false,
+        "winner": "blue",
+        "winnerSpec": "mcts-mid",
+        "turns": 14,
+        "replayRequired": false
+      },
+      {
+        "seed": 4003,
+        "a": "mcts-low",
+        "b": "mcts-mid",
+        "aIsBlue": true,
+        "winner": "red",
+        "winnerSpec": "mcts-mid",
+        "turns": 10,
+        "replayRequired": false
+      },
+      {
+        "seed": 4004,
+        "a": "mcts-low",
+        "b": "mcts-mid",
+        "aIsBlue": false,
+        "winner": "blue",
+        "winnerSpec": "mcts-mid",
+        "turns": 10,
+        "replayRequired": false
+      },
+      {
+        "seed": 4005,
+        "a": "mcts-low",
+        "b": "mcts-mid",
+        "aIsBlue": true,
+        "winner": "red",
+        "winnerSpec": "mcts-mid",
+        "turns": 12,
+        "replayRequired": false
+      },
+      {
+        "seed": 4006,
+        "a": "mcts-low",
+        "b": "mcts-mid",
+        "aIsBlue": false,
+        "winner": "red",
+        "winnerSpec": "mcts-low",
+        "turns": 13,
+        "replayRequired": false
+      },
+      {
+        "seed": 4007,
+        "a": "mcts-low",
+        "b": "mcts-mid",
+        "aIsBlue": true,
+        "winner": "red",
+        "winnerSpec": "mcts-mid",
+        "turns": 12,
+        "replayRequired": false
+      },
+      {
+        "seed": 4008,
+        "a": "mcts-low",
+        "b": "mcts-mid",
+        "aIsBlue": false,
+        "winner": "blue",
+        "winnerSpec": "mcts-mid",
+        "turns": 12,
+        "replayRequired": false
+      },
+      {
+        "seed": 4009,
+        "a": "mcts-low",
+        "b": "mcts-mid",
+        "aIsBlue": true,
+        "winner": "red",
+        "winnerSpec": "mcts-mid",
+        "turns": 17,
+        "replayRequired": false
+      },
+      {
+        "seed": 4010,
+        "a": "mcts-low",
+        "b": "mcts-mid",
+        "aIsBlue": false,
+        "winner": "blue",
+        "winnerSpec": "mcts-mid",
+        "turns": 12,
+        "replayRequired": false
+      },
+      {
+        "seed": 4011,
+        "a": "mcts-low",
+        "b": "mcts-mid",
+        "aIsBlue": true,
+        "winner": "red",
+        "winnerSpec": "mcts-mid",
+        "turns": 14,
+        "replayRequired": false
+      },
+      {
+        "seed": 4012,
+        "a": "mcts-low",
+        "b": "mcts-mid",
+        "aIsBlue": false,
+        "winner": "red",
+        "winnerSpec": "mcts-low",
+        "turns": 14,
+        "replayRequired": false
+      },
+      {
+        "seed": 4013,
+        "a": "mcts-low",
+        "b": "mcts-mid",
+        "aIsBlue": true,
+        "winner": "red",
+        "winnerSpec": "mcts-mid",
+        "turns": 12,
+        "replayRequired": false
+      },
+      {
+        "seed": 4014,
+        "a": "mcts-low",
+        "b": "mcts-mid",
+        "aIsBlue": false,
+        "winner": "blue",
+        "winnerSpec": "mcts-mid",
+        "turns": 12,
+        "replayRequired": false
+      },
+      {
+        "seed": 4015,
+        "a": "mcts-low",
+        "b": "mcts-mid",
+        "aIsBlue": true,
+        "winner": "red",
+        "winnerSpec": "mcts-mid",
+        "turns": 12,
+        "replayRequired": false
+      },
+      {
+        "seed": 4016,
+        "a": "mcts-low",
+        "b": "mcts-mid",
+        "aIsBlue": false,
+        "winner": "red",
+        "winnerSpec": "mcts-low",
+        "turns": 14,
+        "replayRequired": false
+      },
+      {
+        "seed": 4017,
+        "a": "mcts-low",
+        "b": "mcts-mid",
+        "aIsBlue": true,
+        "winner": "blue",
+        "winnerSpec": "mcts-low",
+        "turns": 14,
+        "replayRequired": false
+      },
+      {
+        "seed": 4018,
+        "a": "mcts-low",
+        "b": "mcts-mid",
+        "aIsBlue": false,
+        "winner": "blue",
+        "winnerSpec": "mcts-mid",
+        "turns": 12,
+        "replayRequired": false
+      },
+      {
+        "seed": 4019,
+        "a": "mcts-low",
+        "b": "mcts-mid",
+        "aIsBlue": true,
+        "winner": "red",
+        "winnerSpec": "mcts-mid",
+        "turns": 12,
+        "replayRequired": false
+      },
+      {
+        "seed": 4020,
+        "a": "mcts-low",
+        "b": "mcts-mid",
+        "aIsBlue": false,
+        "winner": "blue",
+        "winnerSpec": "mcts-mid",
+        "turns": 10,
+        "replayRequired": false
+      },
+      {
+        "seed": 5001,
+        "a": "mcts-low",
+        "b": "mcts-high",
+        "aIsBlue": true,
+        "winner": "red",
+        "winnerSpec": "mcts-high",
+        "turns": 12,
+        "replayRequired": false
+      },
+      {
+        "seed": 5002,
+        "a": "mcts-low",
+        "b": "mcts-high",
+        "aIsBlue": false,
+        "winner": "blue",
+        "winnerSpec": "mcts-high",
+        "turns": 12,
+        "replayRequired": false
+      },
+      {
+        "seed": 5003,
+        "a": "mcts-low",
+        "b": "mcts-high",
+        "aIsBlue": true,
+        "winner": "red",
+        "winnerSpec": "mcts-high",
+        "turns": 12,
+        "replayRequired": false
+      },
+      {
+        "seed": 5004,
+        "a": "mcts-low",
+        "b": "mcts-high",
+        "aIsBlue": false,
+        "winner": "blue",
+        "winnerSpec": "mcts-high",
+        "turns": 12,
+        "replayRequired": false
+      },
+      {
+        "seed": 5005,
+        "a": "mcts-low",
+        "b": "mcts-high",
+        "aIsBlue": true,
+        "winner": "red",
+        "winnerSpec": "mcts-high",
+        "turns": 12,
+        "replayRequired": false
+      },
+      {
+        "seed": 5006,
+        "a": "mcts-low",
+        "b": "mcts-high",
+        "aIsBlue": false,
+        "winner": "blue",
+        "winnerSpec": "mcts-high",
+        "turns": 12,
+        "replayRequired": false
+      },
+      {
+        "seed": 5007,
+        "a": "mcts-low",
+        "b": "mcts-high",
+        "aIsBlue": true,
+        "winner": "red",
+        "winnerSpec": "mcts-high",
+        "turns": 12,
+        "replayRequired": false
+      },
+      {
+        "seed": 5008,
+        "a": "mcts-low",
+        "b": "mcts-high",
+        "aIsBlue": false,
+        "winner": "blue",
+        "winnerSpec": "mcts-high",
+        "turns": 12,
+        "replayRequired": false
+      },
+      {
+        "seed": 5009,
+        "a": "mcts-low",
+        "b": "mcts-high",
+        "aIsBlue": true,
+        "winner": "red",
+        "winnerSpec": "mcts-high",
+        "turns": 12,
+        "replayRequired": false
+      },
+      {
+        "seed": 5010,
+        "a": "mcts-low",
+        "b": "mcts-high",
+        "aIsBlue": false,
+        "winner": "blue",
+        "winnerSpec": "mcts-high",
+        "turns": 12,
+        "replayRequired": false
+      },
+      {
+        "seed": 5011,
+        "a": "mcts-low",
+        "b": "mcts-high",
+        "aIsBlue": true,
+        "winner": "red",
+        "winnerSpec": "mcts-high",
+        "turns": 12,
+        "replayRequired": false
+      },
+      {
+        "seed": 5012,
+        "a": "mcts-low",
+        "b": "mcts-high",
+        "aIsBlue": false,
+        "winner": "blue",
+        "winnerSpec": "mcts-high",
+        "turns": 10,
+        "replayRequired": false
+      },
+      {
+        "seed": 5013,
+        "a": "mcts-low",
+        "b": "mcts-high",
+        "aIsBlue": true,
+        "winner": "red",
+        "winnerSpec": "mcts-high",
+        "turns": 12,
+        "replayRequired": false
+      },
+      {
+        "seed": 5014,
+        "a": "mcts-low",
+        "b": "mcts-high",
+        "aIsBlue": false,
+        "winner": "blue",
+        "winnerSpec": "mcts-high",
+        "turns": 10,
+        "replayRequired": false
+      },
+      {
+        "seed": 5015,
+        "a": "mcts-low",
+        "b": "mcts-high",
+        "aIsBlue": true,
+        "winner": "red",
+        "winnerSpec": "mcts-high",
+        "turns": 12,
+        "replayRequired": false
+      },
+      {
+        "seed": 5016,
+        "a": "mcts-low",
+        "b": "mcts-high",
+        "aIsBlue": false,
+        "winner": "red",
+        "winnerSpec": "mcts-low",
+        "turns": 32,
+        "replayRequired": false
+      },
+      {
+        "seed": 5017,
+        "a": "mcts-low",
+        "b": "mcts-high",
+        "aIsBlue": true,
+        "winner": "red",
+        "winnerSpec": "mcts-high",
+        "turns": 12,
+        "replayRequired": false
+      },
+      {
+        "seed": 5018,
+        "a": "mcts-low",
+        "b": "mcts-high",
+        "aIsBlue": false,
+        "winner": "blue",
+        "winnerSpec": "mcts-high",
+        "turns": 12,
+        "replayRequired": false
+      },
+      {
+        "seed": 5019,
+        "a": "mcts-low",
+        "b": "mcts-high",
+        "aIsBlue": true,
+        "winner": "red",
+        "winnerSpec": "mcts-high",
+        "turns": 12,
+        "replayRequired": false
+      },
+      {
+        "seed": 5020,
+        "a": "mcts-low",
+        "b": "mcts-high",
+        "aIsBlue": false,
+        "winner": "blue",
+        "winnerSpec": "mcts-high",
+        "turns": 12,
+        "replayRequired": false
+      },
+      {
+        "seed": 6001,
+        "a": "mcts-mid",
+        "b": "mcts-high",
+        "aIsBlue": true,
+        "winner": "red",
+        "winnerSpec": "mcts-high",
+        "turns": 12,
+        "replayRequired": false
+      },
+      {
+        "seed": 6002,
+        "a": "mcts-mid",
+        "b": "mcts-high",
+        "aIsBlue": false,
+        "winner": "blue",
+        "winnerSpec": "mcts-high",
+        "turns": 10,
+        "replayRequired": false
+      },
+      {
+        "seed": 6003,
+        "a": "mcts-mid",
+        "b": "mcts-high",
+        "aIsBlue": true,
+        "winner": "red",
+        "winnerSpec": "mcts-high",
+        "turns": 12,
+        "replayRequired": false
+      },
+      {
+        "seed": 6004,
+        "a": "mcts-mid",
+        "b": "mcts-high",
+        "aIsBlue": false,
+        "winner": "blue",
+        "winnerSpec": "mcts-high",
+        "turns": 12,
+        "replayRequired": false
+      },
+      {
+        "seed": 6005,
+        "a": "mcts-mid",
+        "b": "mcts-high",
+        "aIsBlue": true,
+        "winner": null,
+        "winnerSpec": null,
+        "turns": 100,
+        "replayRequired": true
+      },
+      {
+        "seed": 6006,
+        "a": "mcts-mid",
+        "b": "mcts-high",
+        "aIsBlue": false,
+        "winner": "blue",
+        "winnerSpec": "mcts-high",
+        "turns": 12,
+        "replayRequired": false
+      },
+      {
+        "seed": 6007,
+        "a": "mcts-mid",
+        "b": "mcts-high",
+        "aIsBlue": true,
+        "winner": "red",
+        "winnerSpec": "mcts-high",
+        "turns": 14,
+        "replayRequired": false
+      },
+      {
+        "seed": 6008,
+        "a": "mcts-mid",
+        "b": "mcts-high",
+        "aIsBlue": false,
+        "winner": "blue",
+        "winnerSpec": "mcts-high",
+        "turns": 13,
+        "replayRequired": false
+      },
+      {
+        "seed": 6009,
+        "a": "mcts-mid",
+        "b": "mcts-high",
+        "aIsBlue": true,
+        "winner": "red",
+        "winnerSpec": "mcts-high",
+        "turns": 12,
+        "replayRequired": false
+      },
+      {
+        "seed": 6010,
+        "a": "mcts-mid",
+        "b": "mcts-high",
+        "aIsBlue": false,
+        "winner": "red",
+        "winnerSpec": "mcts-mid",
+        "turns": 19,
+        "replayRequired": false
+      },
+      {
+        "seed": 6011,
+        "a": "mcts-mid",
+        "b": "mcts-high",
+        "aIsBlue": true,
+        "winner": "red",
+        "winnerSpec": "mcts-high",
+        "turns": 10,
+        "replayRequired": false
+      },
+      {
+        "seed": 6012,
+        "a": "mcts-mid",
+        "b": "mcts-high",
+        "aIsBlue": false,
+        "winner": "red",
+        "winnerSpec": "mcts-mid",
+        "turns": 13,
+        "replayRequired": false
+      },
+      {
+        "seed": 6013,
+        "a": "mcts-mid",
+        "b": "mcts-high",
+        "aIsBlue": true,
+        "winner": "red",
+        "winnerSpec": "mcts-high",
+        "turns": 12,
+        "replayRequired": false
+      },
+      {
+        "seed": 6014,
+        "a": "mcts-mid",
+        "b": "mcts-high",
+        "aIsBlue": false,
+        "winner": "blue",
+        "winnerSpec": "mcts-high",
+        "turns": 12,
+        "replayRequired": false
+      },
+      {
+        "seed": 6015,
+        "a": "mcts-mid",
+        "b": "mcts-high",
+        "aIsBlue": true,
+        "winner": "red",
+        "winnerSpec": "mcts-high",
+        "turns": 28,
+        "replayRequired": false
+      },
+      {
+        "seed": 6016,
+        "a": "mcts-mid",
+        "b": "mcts-high",
+        "aIsBlue": false,
+        "winner": "blue",
+        "winnerSpec": "mcts-high",
+        "turns": 12,
+        "replayRequired": false
+      },
+      {
+        "seed": 6017,
+        "a": "mcts-mid",
+        "b": "mcts-high",
+        "aIsBlue": true,
+        "winner": "blue",
+        "winnerSpec": "mcts-mid",
+        "turns": 12,
+        "replayRequired": false
+      },
+      {
+        "seed": 6018,
+        "a": "mcts-mid",
+        "b": "mcts-high",
+        "aIsBlue": false,
+        "winner": "blue",
+        "winnerSpec": "mcts-high",
+        "turns": 12,
+        "replayRequired": false
+      },
+      {
+        "seed": 6019,
+        "a": "mcts-mid",
+        "b": "mcts-high",
+        "aIsBlue": true,
+        "winner": "red",
+        "winnerSpec": "mcts-high",
+        "turns": 12,
+        "replayRequired": false
+      },
+      {
+        "seed": 6020,
+        "a": "mcts-mid",
+        "b": "mcts-high",
+        "aIsBlue": false,
+        "winner": "red",
+        "winnerSpec": "mcts-mid",
+        "turns": 12,
+        "replayRequired": false
+      }
+    ]
+  },
+  "fairness": {
+    "blueWinrate": 0.525,
+    "decisiveGames": 19,
+    "games": [
+      {
+        "seed": 501,
+        "winner": "blue",
+        "turns": 11,
+        "replayRequired": false
+      },
+      {
+        "seed": 502,
+        "winner": "red",
+        "turns": 12,
+        "replayRequired": false
+      },
+      {
+        "seed": 503,
+        "winner": "blue",
+        "turns": 12,
+        "replayRequired": false
+      },
+      {
+        "seed": 504,
+        "winner": "red",
+        "turns": 13,
+        "replayRequired": false
+      },
+      {
+        "seed": 505,
+        "winner": "red",
+        "turns": 13,
+        "replayRequired": false
+      },
+      {
+        "seed": 506,
+        "winner": "blue",
+        "turns": 13,
+        "replayRequired": false
+      },
+      {
+        "seed": 507,
+        "winner": "red",
+        "turns": 12,
+        "replayRequired": false
+      },
+      {
+        "seed": 508,
+        "winner": "red",
+        "turns": 13,
+        "replayRequired": false
+      },
+      {
+        "seed": 509,
+        "winner": "blue",
+        "turns": 16,
+        "replayRequired": false
+      },
+      {
+        "seed": 510,
+        "winner": "blue",
+        "turns": 13,
+        "replayRequired": false
+      },
+      {
+        "seed": 511,
+        "winner": "blue",
+        "turns": 12,
+        "replayRequired": false
+      },
+      {
+        "seed": 512,
+        "winner": "blue",
+        "turns": 14,
+        "replayRequired": false
+      },
+      {
+        "seed": 513,
+        "winner": "blue",
+        "turns": 11,
+        "replayRequired": false
+      },
+      {
+        "seed": 514,
+        "winner": "blue",
+        "turns": 17,
+        "replayRequired": false
+      },
+      {
+        "seed": 515,
+        "winner": "blue",
+        "turns": 10,
+        "replayRequired": false
+      },
+      {
+        "seed": 516,
+        "winner": "red",
+        "turns": 15,
+        "replayRequired": false
+      },
+      {
+        "seed": 517,
+        "winner": "red",
+        "turns": 12,
+        "replayRequired": false
+      },
+      {
+        "seed": 518,
+        "winner": null,
+        "turns": 100,
+        "replayRequired": true
+      },
+      {
+        "seed": 519,
+        "winner": "red",
+        "turns": 12,
+        "replayRequired": false
+      },
+      {
+        "seed": 520,
+        "winner": "red",
+        "turns": 17,
+        "replayRequired": false
+      }
+    ]
+  },
+  "horizon": {
+    "meanT15": 0.4375,
+    "meanT8": 0.10416666666666667,
+    "meanT3": 0,
+    "samples": [
+      {
+        "T": 3,
+        "perturbSide": "blue",
+        "deltaT3": 0,
+        "deltaT8": 0,
+        "deltaT15": 0
+      },
+      {
+        "T": 4,
+        "perturbSide": "blue",
+        "deltaT3": 0,
+        "deltaT8": 0,
+        "deltaT15": 0.5
+      },
+      {
+        "T": 5,
+        "perturbSide": "blue",
+        "deltaT3": 0,
+        "deltaT8": 0,
+        "deltaT15": 0.5
+      },
+      {
+        "T": 6,
+        "perturbSide": "blue",
+        "deltaT3": 0,
+        "deltaT8": 0,
+        "deltaT15": 0.5
+      },
+      {
+        "T": 7,
+        "perturbSide": "blue",
+        "deltaT3": 0,
+        "deltaT8": 0,
+        "deltaT15": 0.5
+      },
+      {
+        "T": 8,
+        "perturbSide": "blue",
+        "deltaT3": 0,
+        "deltaT8": 0,
+        "deltaT15": 0.5
+      },
+      {
+        "T": 9,
+        "perturbSide": "blue",
+        "deltaT3": 0,
+        "deltaT8": 0.5,
+        "deltaT15": 0.5
+      },
+      {
+        "T": 10,
+        "perturbSide": "blue",
+        "deltaT3": 0,
+        "deltaT8": 0.5,
+        "deltaT15": 0.5
+      },
+      {
+        "T": 11,
+        "perturbSide": "blue",
+        "deltaT3": 0,
+        "deltaT8": 0,
+        "deltaT15": 0.5
+      },
+      {
+        "T": 12,
+        "perturbSide": "blue",
+        "deltaT3": 0,
+        "deltaT8": 0.5,
+        "deltaT15": 0.5
+      },
+      {
+        "T": 13,
+        "perturbSide": "blue",
+        "deltaT3": 0,
+        "deltaT8": 0,
+        "deltaT15": 0.5
+      },
+      {
+        "T": 14,
+        "perturbSide": "blue",
+        "deltaT3": 0,
+        "deltaT8": 0,
+        "deltaT15": 0.5
+      },
+      {
+        "T": 15,
+        "perturbSide": "blue",
+        "deltaT3": 0,
+        "deltaT8": 0.5,
+        "deltaT15": 0.5
+      },
+      {
+        "T": 16,
+        "perturbSide": "blue",
+        "deltaT3": 0,
+        "deltaT8": 0.5,
+        "deltaT15": 0.5
+      },
+      {
+        "T": 17,
+        "perturbSide": "blue",
+        "deltaT3": 0,
+        "deltaT8": 0,
+        "deltaT15": 0.5
+      },
+      {
+        "T": 18,
+        "perturbSide": "blue",
+        "deltaT3": 0,
+        "deltaT8": 0,
+        "deltaT15": 0
+      },
+      {
+        "T": 19,
+        "perturbSide": "blue",
+        "deltaT3": 0,
+        "deltaT8": 0,
+        "deltaT15": 0.5
+      },
+      {
+        "T": 20,
+        "perturbSide": "blue",
+        "deltaT3": 0,
+        "deltaT8": 0,
+        "deltaT15": 0.5
+      },
+      {
+        "T": 21,
+        "perturbSide": "blue",
+        "deltaT3": 0,
+        "deltaT8": 0,
+        "deltaT15": 0.5
+      },
+      {
+        "T": 22,
+        "perturbSide": "blue",
+        "deltaT3": 0,
+        "deltaT8": 0,
+        "deltaT15": 0.5
+      },
+      {
+        "T": 3,
+        "perturbSide": "blue",
+        "deltaT3": 0,
+        "deltaT8": 0,
+        "deltaT15": 0
+      },
+      {
+        "T": 4,
+        "perturbSide": "blue",
+        "deltaT3": 0,
+        "deltaT8": 0,
+        "deltaT15": 0.5
+      },
+      {
+        "T": 5,
+        "perturbSide": "blue",
+        "deltaT3": 0,
+        "deltaT8": 0,
+        "deltaT15": 0.5
+      },
+      {
+        "T": 6,
+        "perturbSide": "blue",
+        "deltaT3": 0,
+        "deltaT8": 0,
+        "deltaT15": 0.5
+      }
+    ],
+    "sampleCount": 24
+  },
+  "guardrails": {
+    "turnCapRate": 0.014285714285714285,
+    "medianGameLength": 12,
+    "totalGames": 140,
+    "turnCappedGames": 2,
+    "gameLengths": [
+      10,
+      10,
+      10,
+      10,
+      10,
+      10,
+      10,
+      10,
+      10,
+      10,
+      10,
+      10,
+      10,
+      10,
+      10,
+      10,
+      10,
+      10,
+      10,
+      10,
+      10,
+      10,
+      10,
+      10,
+      10,
+      10,
+      10,
+      11,
+      11,
+      11,
+      11,
+      12,
+      12,
+      12,
+      12,
+      12,
+      12,
+      12,
+      12,
+      12,
+      12,
+      12,
+      12,
+      12,
+      12,
+      12,
+      12,
+      12,
+      12,
+      12,
+      12,
+      12,
+      12,
+      12,
+      12,
+      12,
+      12,
+      12,
+      12,
+      12,
+      12,
+      12,
+      12,
+      12,
+      12,
+      12,
+      12,
+      12,
+      12,
+      12,
+      12,
+      12,
+      12,
+      12,
+      12,
+      12,
+      12,
+      12,
+      12,
+      12,
+      12,
+      12,
+      12,
+      12,
+      12,
+      12,
+      12,
+      12,
+      12,
+      12,
+      13,
+      13,
+      13,
+      13,
+      13,
+      13,
+      13,
+      13,
+      13,
+      13,
+      13,
+      13,
+      14,
+      14,
+      14,
+      14,
+      14,
+      14,
+      14,
+      14,
+      14,
+      14,
+      14,
+      14,
+      14,
+      14,
+      14,
+      14,
+      14,
+      14,
+      14,
+      15,
+      16,
+      17,
+      17,
+      17,
+      18,
+      18,
+      19,
+      19,
+      20,
+      20,
+      21,
+      23,
+      25,
+      27,
+      28,
+      32,
+      100,
+      100
+    ]
+  },
+  "runtime_ms": 232387
+}
