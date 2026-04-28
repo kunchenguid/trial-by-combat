@@ -137,6 +137,7 @@ export function createAppServer({ turnSeconds = 60 } = {}) {
     close() {
       clearInterval(heartbeat);
       stopTurnTimer(state);
+      cancelNextRound(state);
       state.emitter.emit('change');
       for (const ws of state.clients) ws.close();
       return new Promise((resolve, reject) => {
@@ -313,10 +314,10 @@ function handlePostReady(state, slotName, req, res) {
     const cleaned = trash.replace(/\s+/g, ' ').trim().slice(0, TRASH_TALK_MAX);
     state.trashTalk[slotName] = cleaned || null;
   }
-  if (state.slots.player_1.ready && state.slots.player_2.ready && state.phase !== 'match') {
+  if (state.slots.player_1.ready && state.slots.player_2.ready) {
     if (state.phase === 'game_end') {
       scheduleNextRound(state);
-    } else {
+    } else if (state.phase === 'pre_lobby' || state.phase === 'lobby') {
       beginNextMatch(state);
     }
   }
@@ -347,6 +348,8 @@ function cancelNextRound(state) {
 }
 
 function beginNextMatch(state) {
+  const previousPhase = state.phase;
+  const replayRequired = state.series.currentGame.replayRequired;
   cancelNextRound(state);
   state.trashTalk = { player_1: null, player_2: null };
   state.phase = 'match';
@@ -356,7 +359,11 @@ function beginNextMatch(state) {
     player_1: state.slots.player_1.name,
     player_2: state.slots.player_2.name,
   };
-  state.series.restartCurrentGame();
+  if (previousPhase === 'game_end' && !replayRequired) {
+    state.series.startNextGame();
+  } else {
+    state.series.restartCurrentGame();
+  }
   state.pendingActions.clear();
   state.lastActionThoughts = { blue: null, red: null };
   startTurnTimer(state);
@@ -381,7 +388,7 @@ function handlePostAction(state, slotName, req, res) {
   }
 
   const body = req.body ?? {};
-  const intent = String(body.intent ?? '').trim();
+  const intent = capWords(String(body.intent ?? '').trim(), 20);
   if (!intent) {
     res.status(400).type('text/plain').send('intent is required. Provide {"action":"...","intent":"why"}.');
     return;
@@ -488,6 +495,10 @@ function translateAction(game, side, body, intent) {
     return { action_type: `${action}_${dir}`, intent_summary };
   }
   throw new Error(`unknown action "${body.action}"`);
+}
+
+function capWords(value, maxWords) {
+  return value.replace(/\s+/g, ' ').split(' ').filter(Boolean).slice(0, maxWords).join(' ');
 }
 
 function upperCoord(value) {
@@ -781,10 +792,10 @@ function renderBriefing() {
   }
   lines.push('');
   lines.push('Submitting actions:');
-  lines.push('  - Plain action: {"action":"WAIT","intent":"why"} (also: GUARD, HEAL, SCAN, DROP_RELIC)');
+  lines.push('  - Plain action: {"action":"WAIT","intent":"why"} (also: ATTACK, GUARD, HEAL, SCAN, DROP_RELIC)');
   lines.push('  - Targeted: {"action":"MOVE","target":"D6","intent":"..."}');
   lines.push('    (MOVE moves 1 cardinal tile to target; DASH moves 2 in one direction;');
-  lines.push('     ATTACK target an adjacent tile; PLACE_WALL/PLACE_TRAP target an adjacent empty tile.)');
+  lines.push('     PLACE_WALL/PLACE_TRAP target an adjacent empty tile.)');
   lines.push('  - intent is required and capped at 20 words.');
   lines.push('');
   lines.push('Tiles:');

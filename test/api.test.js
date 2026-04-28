@@ -203,6 +203,93 @@ test('POST /playerN/ready accepts optional trash_talk and lobby transition is im
   });
 });
 
+test('readying after a scored game advances to the next game', async () => {
+  const originalSetTimeout = globalThis.setTimeout;
+  globalThis.setTimeout = (fn, delay, ...args) => originalSetTimeout(fn, delay === 10000 ? 0 : delay, ...args);
+  try {
+    await withServer(60, async (base, app) => {
+      app.state.bestOf = 3;
+      await bothReady(base);
+      app.state.series.recordGame('player_1');
+      app.state.phase = 'game_end';
+      app.state.series.currentGame.phase = 'game_end';
+      app.state.series.currentGame.winner = 'blue';
+      app.state.slots.player_1.ready = false;
+      app.state.slots.player_2.ready = false;
+
+      await postJson(`${base}/player1/ready`);
+      await postJson(`${base}/player2/ready`);
+      await new Promise((resolve) => originalSetTimeout(resolve, 20));
+
+      assert.equal(app.state.phase, 'match');
+      assert.equal(app.state.series.gameNumber, 2);
+      assert.deepEqual(app.state.series.currentGame.slotSides, { player_1: 'red', player_2: 'blue' });
+    });
+  } finally {
+    globalThis.setTimeout = originalSetTimeout;
+  }
+});
+
+test('readying at series_end does not restart a decided series', async () => {
+  await withServer(60, async (base, app) => {
+    await bothReady(base);
+    app.state.series.recordGame('player_1');
+    app.state.phase = 'series_end';
+    app.state.series.currentGame.phase = 'series_end';
+
+    const ready = await postJson(`${base}/player1/ready`);
+
+    assert.equal(ready.status, 200);
+    assert.equal(app.state.phase, 'series_end');
+    assert.equal(app.state.series.decided, true);
+    assert.equal(app.state.series.gameNumber, 1);
+  });
+});
+
+test('closing during next-round countdown clears the pending timer', async () => {
+  const app = createAppServer({ turnSeconds: 60 });
+  await app.listen(0);
+  const base = `http://127.0.0.1:${app.port}`;
+  await bothReady(base);
+  app.state.bestOf = 3;
+  app.state.series.bestOf = 3;
+  app.state.series.recordGame('player_1');
+  app.state.phase = 'game_end';
+  app.state.slots.player_1.ready = false;
+  app.state.slots.player_2.ready = false;
+
+  await postJson(`${base}/player1/ready`);
+  await postJson(`${base}/player2/ready`);
+  assert.notEqual(app.state.nextRoundTimer, null);
+
+  await app.close();
+
+  assert.equal(app.state.nextRoundTimer, null);
+});
+
+test('stored action intent is capped at 20 words', async () => {
+  await withServer(60, async (base, app) => {
+    await bothReady(base);
+    const intent = Array.from({ length: 25 }, (_, i) => `word${i + 1}`).join(' ');
+
+    const res = await postJson(`${base}/player1/action`, { action: 'WAIT', intent });
+
+    assert.equal(res.status, 200);
+    const side = app.state.series.currentGame.slotSides.player_1;
+    assert.equal(app.state.pendingActions.get(side).intent_summary.split(/\s+/).length, 20);
+  });
+});
+
+test('briefing describes ATTACK as an untargeted action', async () => {
+  await withServer(60, async (base) => {
+    const res = await getText(`${base}/player1?nowait=true`);
+
+    assert.equal(res.status, 200);
+    assert.match(res.body, /Plain action: \{"action":"WAIT","intent":"why"\} \(also: ATTACK, GUARD, HEAL, SCAN, DROP_RELIC\)/);
+    assert.doesNotMatch(res.body, /ATTACK target an adjacent tile/);
+  });
+});
+
 test('GET /?player=1 returns 404 (browser player UI is gone)', async () => {
   await withServer(60, async (base) => {
     const res = await fetch(`${base}/?player=1`);
