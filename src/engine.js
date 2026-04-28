@@ -557,6 +557,8 @@ export function resolveTurn(inputGame, actionsBySide) {
     turn: preTurn.turn,
     actions: Object.fromEntries(SIDES.map((side) => [side, normalized[side]])),
   });
+  let nextSeq = game.eventLog.length;
+  for (const event of events) event.seq = nextSeq++;
   game.eventLog.push(...events);
   game.metrics = computeMapMetrics(game);
 
@@ -612,7 +614,9 @@ function resolveMovementStep(game, actions, intents, step, damage, damagedForRel
     const intent = intents[side];
     const from = game.players[side].position;
     game.players[side].position = intent.target;
-    events.push(publicEvent(game, 'move', side, `${label(side)} moved from ${from} to ${intent.target}.`));
+    const moveEvent = publicEvent(game, 'move', side, `${label(side)} moved from ${from} to ${intent.target}.`);
+    moveEvent.meta = { from, to: intent.target, dashed: actions[side].action_type.startsWith('DASH_'), step };
+    events.push(moveEvent);
     if (game.map.fire.has(intent.target)) {
       damage[side] += 2;
       events.push(publicEvent(game, 'fire_damage', side, `${label(side)} crossed fire at ${intent.target}.`));
@@ -866,7 +870,7 @@ export function getSpectatorView(
     full_board_state: serializeBoard(game, { xray, actionStatuses, actionThoughts }),
     blue_private_state: xray ? privateState(game, 'blue') : null,
     red_private_state: xray ? privateState(game, 'red') : null,
-    public_events: game.eventLog.filter((event) => event.visibility === 'public').slice(-8),
+    public_events: game.eventLog.filter((event) => event.visibility === 'public').slice(-32),
     advantage_breakdown: computeAdvantage(game),
     timer_seconds_remaining: timerSecondsRemaining,
     winner: game.winner,

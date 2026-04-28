@@ -210,11 +210,13 @@ bush_3   bush_9
 | `agent_blue_carry_idle` | 3 | yes | `agent_blue_carry_idle_0`, `agent_blue_carry_idle_1` |
 | `agent_blue_carry_walk` | 8 | yes | `agent_blue_carry_walk_0`, `agent_blue_carry_walk_1`, `agent_blue_carry_walk_2`, `agent_blue_carry_walk_3` |
 | `agent_blue_attack` | 8 | no | `agent_blue_attack_0`, `agent_blue_attack_1` |
+| `agent_blue_stunned` | 1 | yes | `agent_blue_stunned_0` |
 | `agent_red_idle` | 4 | yes | `agent_red_idle_0`, `agent_red_idle_1`, `agent_red_idle_2`, `agent_red_idle_3` |
 | `agent_red_walk` | 8 | yes | `agent_red_walk_0`, `agent_red_walk_1`, `agent_red_walk_2`, `agent_red_walk_3` |
 | `agent_red_carry_idle` | 3 | yes | `agent_red_carry_idle_0`, `agent_red_carry_idle_1` |
 | `agent_red_carry_walk` | 8 | yes | `agent_red_carry_walk_0`, `agent_red_carry_walk_1`, `agent_red_carry_walk_2`, `agent_red_carry_walk_3` |
 | `agent_red_attack` | 8 | no | `agent_red_attack_0`, `agent_red_attack_1` |
+| `agent_red_stunned` | 1 | yes | `agent_red_stunned_0` |
 | `relic_shimmer` | 5 | yes | `relic_0`, `relic_1`, `relic_2`, `relic_3` |
 | `base_blue_flag` | 4 | yes | `base_blue_0`, `base_blue_1`, `base_blue_2`, `base_blue_3` |
 | `base_red_flag` | 4 | yes | `base_red_0`, `base_red_1`, `base_red_2`, `base_red_3` |
@@ -225,6 +227,9 @@ bush_3   bush_9
 | `fx_dash_blue` | 12 | no | `fx_dash_blue_0`, `fx_dash_blue_1`, `fx_dash_blue_2`, `fx_dash_blue_3` |
 | `fx_dash_red` | 12 | no | `fx_dash_red_0`, `fx_dash_red_1`, `fx_dash_red_2`, `fx_dash_red_3` |
 | `fx_dust` | 8 | no | `fx_dust_0`, `fx_dust_1`, `fx_dust_2`, `fx_dust_3` |
+| `fx_spark_gold` | 6 | yes | `fx_spark_gold_0`, `fx_spark_gold_1`, `fx_spark_gold_2`, `fx_spark_gold_3` |
+| `fx_spark_blue` | 10 | no | `fx_spark_blue_0`, `fx_spark_blue_1`, `fx_spark_blue_2`, `fx_spark_blue_3` |
+| `fx_spark_red` | 10 | no | `fx_spark_red_0`, `fx_spark_red_1`, `fx_spark_red_2`, `fx_spark_red_3` |
 
 ## Blue agent frames
 

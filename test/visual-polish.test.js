@@ -23,6 +23,7 @@ test('spectator UI uses the polished broadcast overlay and detailed pixel render
   assert.match(app, /state\.boardRenderer/);
   assert.match(app, /attach\(target\)/);
   assert.match(app, /class BoardRenderer/);
+  assert.match(app, /event\.seq < this\.lastEventSeq/);
   assert.match(app, /this\.app\.ticker\.add/);
   assert.match(app, /tick\(now = performance\.now\(\)\)/);
   assert.match(app, /this\.floorLayer/);
@@ -62,9 +63,9 @@ test('spectator UI uses the polished broadcast overlay and detailed pixel render
   assert.match(app, /relic_shimmer/);
   assert.match(app, /fire_loop/);
   assert.match(app, /storyBannerText/);
-  assert.match(app, /Codex Blue Has The Relic - \$\{distance\} Tiles From Home/);
+  assert.match(app, /Has The Relic - \$\{distance\} Tiles From Home/);
   assert.match(app, /formatGameCount\(view\.match\)/);
-  assert.match(app, /SERIES SCORE/);
+  assert.match(app, /class="series-score"/);
   assert.match(app, /THOUGHT/);
   assert.match(app, /What Just Happened/);
   assert.match(app, /showHeader: false/);
@@ -122,12 +123,9 @@ test('spectator UI uses the polished broadcast overlay and detailed pixel render
   assert.match(app, /fitSpectatorViewport/);
   assert.match(app, /1792/);
   assert.match(app, /1000/);
-  assert.match(app, /appClass: 'player-app arcade-app'/);
   assert.match(app, /appClass: 'admin-app arcade-app'/);
-  assert.match(app, /class="layout arcade-layout player-layout"/);
   assert.match(app, /class="admin-layout arcade-layout"/);
   assert.match(app, /class="panel pixel-panel/);
-  assert.match(app, /class="panel pixel-panel board-panel"/);
   assert.doesNotMatch(app, /class="panel pixel-panel state-panel"/);
   assert.match(app, /class="topbar pixel-panel"/);
   assert.match(styles, /\.arcade-app/);
@@ -164,31 +162,13 @@ test('spectator UI uses the polished broadcast overlay and detailed pixel render
   assert.match(atlas, /animations: deepFreeze/);
 });
 
-test('player action UI keeps legal actions and submission together with a live turn state', async () => {
-  const [app, styles] = await Promise.all([
-    readFile(new URL('../public/app.js', import.meta.url), 'utf8'),
-    readFile(new URL('../public/styles.css', import.meta.url), 'utf8'),
-  ]);
-
-  assert.match(app, /class="turn-state-banner/);
-  assert.match(app, /turnStateText\(view\)/);
-  assert.match(app, /YOUR TURN/);
-  assert.match(app, /WAITING FOR OPPONENT/);
-  assert.match(app, /class="panel pixel-panel action-panel"/);
-  assert.match(app, /<h2 class="panel-title">Legal Actions<\/h2>/);
-  assert.match(app, /<h2 class="panel-title">Submit Action<\/h2>/);
-  assert.match(app, /id="intent"[\s\S]*placeholder="Required thought"/);
-  assert.match(app, /updateSubmitState\(\)/);
-  assert.match(app, /startPlayerCountdown\(view\.turn_timer_seconds_remaining\)/);
-  assert.match(app, /initialSeconds == null \? NaN : Number\(initialSeconds\)/);
-  assert.match(app, /data-countdown/);
-  assert.doesNotMatch(app, /Short spectator thinking, optional/);
-  assert.doesNotMatch(app, /playerStateText\(view\)/);
-
-  assert.match(styles, /grid-template-areas:[\s\S]*"left board right"/);
-  assert.match(styles, /\.turn-state-banner/);
-  assert.match(styles, /\.action-panel/);
-  assert.match(styles, /\.submit-panel/);
+test('public app.js does not contain player UI (slots are API-only)', async () => {
+  const app = await readFile(new URL('../public/app.js', import.meta.url), 'utf8');
+  assert.doesNotMatch(app, /renderPlayer\b/);
+  assert.doesNotMatch(app, /renderBriefing\b/);
+  assert.doesNotMatch(app, /turnStateText\b/);
+  assert.doesNotMatch(app, /startPlayerCountdown\b/);
+  assert.doesNotMatch(app, /class="action-panel"/);
 });
 
 test('spectator UI exposes stealth visibility, thinking status, and zero scores', async () => {
@@ -208,9 +188,9 @@ test('spectator UI exposes stealth visibility, thinking status, and zero scores'
   assert.match(app, /THINKING/);
   assert.match(app, /scoreForSide\(view\.match, board, 'blue'\)/);
   assert.match(app, /scoreForSide\(view\.match, board, 'red'\)/);
-  assert.match(app, /class="broadcast-score">Score/);
+  assert.match(app, /class="series-score-url"/);
   assert.match(styles, /\.player-status-tag/);
-  assert.match(styles, /\.broadcast-score/);
+  assert.match(styles, /\.series-score-url/);
 });
 
 test('spectator player panels give spare vertical space to thinking text', async () => {
@@ -221,4 +201,13 @@ test('spectator player panels give spare vertical space to thinking text', async
   assert.match(styles, /\.agent-nameplate \{[\s\S]*grid-template-columns: 74px 1fr/);
   assert.match(styles, /\.agent-nameplate \{[\s\S]*padding-bottom: 14px/);
   assert.match(styles, /\.thinking-box \{[\s\S]*min-height: 200px/);
+});
+
+test('attack events update the currently drawn hero actor pose', async () => {
+  const app = await readFile(new URL('../public/app.js', import.meta.url), 'utf8');
+
+  assert.match(app, /applyHeroPose\(sideOf, `agent_\$\{sideOf\}_attack`, 500\)/);
+  assert.match(app, /actor\.heroSide === side/);
+  assert.match(app, /actor\.animationName = animationName/);
+  assert.match(app, /actor\.poseExpiresAt = pose\.expiresAt/);
 });

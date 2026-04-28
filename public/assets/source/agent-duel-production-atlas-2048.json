@@ -106,6 +106,13 @@
       "fps": 8,
       "loop": false
     },
+    "agent_blue_stunned": {
+      "frames": [
+        "agent_blue_stunned_0"
+      ],
+      "fps": 1,
+      "loop": true
+    },
     "agent_red_idle": {
       "frames": [
         "agent_red_idle_0",
@@ -151,6 +158,13 @@
       ],
       "fps": 8,
       "loop": false
+    },
+    "agent_red_stunned": {
+      "frames": [
+        "agent_red_stunned_0"
+      ],
+      "fps": 1,
+      "loop": true
     },
     "relic_shimmer": {
       "frames": [
@@ -250,6 +264,36 @@
         "fx_dust_3"
       ],
       "fps": 8,
+      "loop": false
+    },
+    "fx_spark_gold": {
+      "frames": [
+        "fx_spark_gold_0",
+        "fx_spark_gold_1",
+        "fx_spark_gold_2",
+        "fx_spark_gold_3"
+      ],
+      "fps": 6,
+      "loop": true
+    },
+    "fx_spark_blue": {
+      "frames": [
+        "fx_spark_blue_0",
+        "fx_spark_blue_1",
+        "fx_spark_blue_2",
+        "fx_spark_blue_3"
+      ],
+      "fps": 10,
+      "loop": false
+    },
+    "fx_spark_red": {
+      "frames": [
+        "fx_spark_red_0",
+        "fx_spark_red_1",
+        "fx_spark_red_2",
+        "fx_spark_red_3"
+      ],
+      "fps": 10,
       "loop": false
     }
   },

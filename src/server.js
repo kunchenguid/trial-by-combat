@@ -1,3 +1,4 @@
+import { EventEmitter } from 'node:events';
 import http from 'node:http';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -5,11 +6,25 @@ import { fileURLToPath } from 'node:url';
 import express from 'express';
 import { WebSocketServer } from 'ws';
 
-import { ACTIONS, createSeries, getPlayerView, getSpectatorView, resolveTurn, validateAction } from './engine.js';
+import { RULES } from '../public/rules.js';
+import {
+  ACTIONS,
+  BOARD_SIZE,
+  createSeries,
+  getLegalActions,
+  getPlayerView,
+  getSpectatorView,
+  resolveTurn,
+  validateAction,
+} from './engine.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const publicDir = path.join(__dirname, '..', 'public');
-const VALID_PLAYERS = new Set(['1', '2', 'spectate', 'admin']);
+const HEARTBEAT_INTERVAL_MS = 15000;
+const DEFAULT_WAIT_MS = 30000;
+const MAX_WAIT_MS = 30000;
+const SPECTATE_ROLE = 'spectate';
+const ADMIN_ROLE = 'admin';
 
 export function createAppServer({ turnSeconds = 60 } = {}) {
   const expressApp = express();
@@ -17,19 +32,47 @@ export function createAppServer({ turnSeconds = 60 } = {}) {
   const wss = new WebSocketServer({ noServer: true });
   const state = createRuntimeState(turnSeconds);
 
-  expressApp.use('/assets', express.static(path.join(publicDir, 'assets')));
-  expressApp.use('/client', express.static(publicDir));
-  expressApp.get('/', (req, res) => {
-    const role = normalizeHttpRole(req.query.player);
-    if (!role) {
-      res.status(400).type('html').send(errorPage('Unknown player route.'));
+  expressApp.use(express.json({ limit: '8kb' }));
+  expressApp.use((err, _req, res, next) => {
+    if (err instanceof SyntaxError && 'body' in err) {
+      res.status(400).type('text/plain').send('Malformed JSON request body.');
       return;
     }
-    if ((role === 'player_1' || role === 'player_2') && !String(req.query.name ?? '').trim()) {
-      res.status(400).type('html').send(errorPage('A name is required for player routes.'));
+    next(err);
+  });
+  expressApp.use('/assets', express.static(path.join(publicDir, 'assets')));
+  expressApp.use('/client', express.static(publicDir));
+
+  expressApp.get('/', (req, res) => {
+    const role = normalizeBrowserRole(req.query.player);
+    if (!role) {
+      res.status(404).type('text/plain').send('Not found.');
       return;
     }
     res.sendFile(path.join(publicDir, 'index.html'));
+  });
+
+  expressApp.get('/:slot', async (req, res) => {
+    const slotName = parseSlotPath(req.params.slot);
+    if (!slotName) {
+      res.status(404).type('text/plain').send('Not found.');
+      return;
+    }
+    await handleGetPlayer(state, slotName, req, res);
+  });
+
+  expressApp.post('/:slot/:action', (req, res) => {
+    const slotName = parseSlotPath(req.params.slot);
+    if (!slotName) {
+      res.status(404).type('text/plain').send('Not found.');
+      return;
+    }
+    const action = req.params.action;
+    if (action === 'join') return handlePostJoin(state, slotName, req, res);
+    if (action === 'ready') return handlePostReady(state, slotName, req, res);
+    if (action === 'action') return handlePostAction(state, slotName, req, res);
+    if (action === 'leave') return handlePostLeave(state, slotName, req, res);
+    res.status(404).type('text/plain').send('Not found.');
   });
 
   server.on('upgrade', (req, socket, head) => {
@@ -38,28 +81,53 @@ export function createAppServer({ turnSeconds = 60 } = {}) {
       socket.destroy();
       return;
     }
-    const role = normalizeHttpRole(url.searchParams.get('player'));
-    const name = String(url.searchParams.get('name') ?? '').trim();
-    if (!role || ((role === 'player_1' || role === 'player_2') && !name)) {
+    const role = normalizeBrowserRole(url.searchParams.get('player'));
+    if (!role) {
       socket.destroy();
       return;
     }
     wss.handleUpgrade(req, socket, head, (ws) => {
-      wss.emit('connection', ws, { role, name });
+      wss.emit('connection', ws, { role });
     });
   });
 
   wss.on('connection', (ws, client) => {
-    registerClient(state, ws, client);
+    ws.isAlive = true;
+    ws.on('pong', () => {
+      ws.isAlive = true;
+    });
+    ws.clientRole = client.role;
+    if (client.role === SPECTATE_ROLE) state.spectators.add(ws);
+    else if (client.role === ADMIN_ROLE) state.admins.add(ws);
+    state.clients.add(ws);
     ws.on('message', (raw) => {
       try {
-        handleMessage(state, ws, JSON.parse(raw.toString()));
+        handleWsMessage(state, ws, JSON.parse(raw.toString()));
       } catch (error) {
         send(ws, { type: 'error', error: error.message });
       }
     });
-    ws.on('close', () => unregisterClient(state, ws));
+    ws.on('close', () => {
+      state.spectators.delete(ws);
+      state.admins.delete(ws);
+      state.clients.delete(ws);
+    });
+    setTimeout(() => pushStateTo(ws, state), 10);
   });
+
+  const heartbeat = setInterval(() => {
+    for (const ws of wss.clients) {
+      if (ws.isAlive === false) {
+        ws.terminate();
+        continue;
+      }
+      ws.isAlive = false;
+      try {
+        ws.ping();
+        send(ws, { type: 'heartbeat', t: Date.now() });
+      } catch {}
+    }
+  }, HEARTBEAT_INTERVAL_MS);
 
   return {
     app: expressApp,
@@ -74,8 +142,11 @@ export function createAppServer({ turnSeconds = 60 } = {}) {
       });
     },
     close() {
+      clearInterval(heartbeat);
       stopTurnTimer(state);
-      for (const client of state.clients) client.ws.close();
+      cancelNextRound(state);
+      state.emitter.emit('change');
+      for (const ws of state.clients) ws.close();
       return new Promise((resolve, reject) => {
         server.close((error) => (error ? reject(error) : resolve()));
       });
@@ -91,163 +162,674 @@ function createRuntimeState(turnSeconds) {
     bestOf: 1,
     series,
     slots: {
-      player_1: { ws: null, name: null, ready: false, connected: false },
-      player_2: { ws: null, name: null, ready: false, connected: false },
+      player_1: { name: null, ready: false, briefingShown: false },
+      player_2: { name: null, ready: false, briefingShown: false },
     },
     spectators: new Set(),
     admins: new Set(),
     clients: new Set(),
     pendingActions: new Map(),
+    lastActionThoughts: { blue: null, red: null },
     invalidAttemptsThisTurn: { blue: 0, red: 0 },
     paused: false,
     turnStartedAt: null,
     pausedAt: null,
     remainingWhenPaused: turnSeconds,
     timer: null,
+    trashTalk: { player_1: null, player_2: null },
+    nextRoundAt: null,
+    nextRoundTimer: null,
+    emitter: new EventEmitter(),
   };
 }
 
-function registerClient(state, ws, { role, name }) {
-  const client = { ws, role, name };
-  ws.clientRole = role;
-  state.clients.add(client);
-  if (role === 'player_1' || role === 'player_2') {
-    const slot = state.slots[role];
-    if (slot.ws && slot.ws.readyState === slot.ws.OPEN) {
-      slot.ws.close(4001, 'Slot replaced by a new connection.');
-    }
-    slot.ws = ws;
-    slot.name = name;
-    slot.connected = true;
-    if (state.phase === 'pre_lobby') state.phase = 'lobby';
-    state.series.playerNames[role] = name;
-    state.series.currentGame.playerNames[role] = name;
-  } else if (role === 'spectate') {
-    state.spectators.add(ws);
-  } else if (role === 'admin') {
-    state.admins.add(ws);
-  }
-  setTimeout(() => broadcastState(state), 10);
+const NEXT_ROUND_DELAY_MS = 10000;
+const TRASH_TALK_MAX = 200;
+
+const SLOT_PATH_TO_NAME = { player1: 'player_1', player2: 'player_2' };
+
+function parseSlotPath(slot) {
+  return SLOT_PATH_TO_NAME[slot] ?? null;
 }
 
-function unregisterClient(state, ws) {
-  for (const client of state.clients) {
-    if (client.ws === ws) state.clients.delete(client);
-  }
-  for (const slotName of ['player_1', 'player_2']) {
-    const slot = state.slots[slotName];
-    if (slot.ws === ws) {
-      slot.ws = null;
-      slot.connected = false;
-    }
-  }
-  state.spectators.delete(ws);
-  state.admins.delete(ws);
-  broadcastState(state);
+function slotPath(slotName) {
+  return slotName === 'player_1' ? 'player1' : 'player2';
 }
 
-function handleMessage(state, ws, message) {
-  if (!message || typeof message.type !== 'string') throw new Error('Message type is required.');
-  if (message.type === 'ready') {
-    handleReady(state, ws);
-  } else if (message.type === 'submit_action') {
-    handleSubmitAction(state, ws, message.action ?? {});
-  } else if (message.type === 'admin') {
-    handleAdmin(state, ws, message.action, message);
-  } else if (message.type === 'set_xray') {
-    ws.xray = Boolean(message.xray);
-    pushStateTo(ws, state);
-  } else {
-    throw new Error(`Unknown message type ${message.type}`);
+function sideFor(state, slotName) {
+  return state.series.currentGame.slotSides[slotName];
+}
+
+function notifyChange(state) {
+  state.emitter.emit('change');
+  for (const ws of state.clients) {
+    if (ws.readyState === ws.OPEN) pushStateTo(ws, state);
   }
 }
 
-function handleReady(state, ws) {
-  const slotName = playerSlotForWs(state, ws);
-  if (!slotName) throw new Error('Only players can ready.');
-  state.slots[slotName].ready = true;
-  if (state.slots.player_1.ready && state.slots.player_2.ready && state.phase !== 'match') {
-    state.phase = 'match';
-    state.series.bestOf = state.bestOf;
-    state.series.format = `BO${state.bestOf}`;
-    state.series.playerNames = {
-      player_1: state.slots.player_1.name ?? 'Player 1',
-      player_2: state.slots.player_2.name ?? 'Player 2',
+function waitForChange(state, timeoutMs) {
+  return new Promise((resolve) => {
+    let done = false;
+    const onChange = () => {
+      if (done) return;
+      done = true;
+      clearTimeout(timer);
+      state.emitter.off('change', onChange);
+      resolve();
     };
-    state.series.restartCurrentGame();
-    state.pendingActions.clear();
-    startTurnTimer(state);
-  }
-  broadcastState(state);
+    const timer = setTimeout(() => {
+      if (done) return;
+      done = true;
+      state.emitter.off('change', onChange);
+      resolve();
+    }, timeoutMs);
+    state.emitter.on('change', onChange);
+  });
 }
 
-function handleSubmitAction(state, ws, action) {
-  if (state.paused) throw new Error('Game is paused.');
-  if (state.phase !== 'match') throw new Error('Match is not running.');
-  const slotName = playerSlotForWs(state, ws);
-  if (!slotName) throw new Error('Only players can submit actions.');
-  if (!String(action?.intent_summary ?? '').trim()) {
-    send(ws, { type: 'validation_error', error: 'Thinking is required before submitting an action.', retry: true });
-    return;
-  }
-  const side = state.series.currentGame.slotSides[slotName];
-  const game = state.series.currentGame;
-  const validation = validateAction(game, side, action, { playerVisible: true });
-  if (!validation.valid) {
-    state.invalidAttemptsThisTurn[side] += 1;
-    if (state.invalidAttemptsThisTurn[side] >= 2) {
-      state.pendingActions.set(side, { action_type: ACTIONS.WAIT });
-      send(ws, { type: 'action_locked', action: { action_type: ACTIONS.WAIT }, reason: validation.error });
-      maybeResolveTurn(state);
-    } else {
-      send(ws, { type: 'validation_error', error: validation.error, retry: true });
-    }
-    return;
-  }
-  state.pendingActions.set(side, sanitizeAction(action));
-  send(ws, { type: 'action_locked', action: sanitizeAction(action) });
-  maybeResolveTurn(state);
-  broadcastState(state);
+function parseWaitMs(value) {
+  if (value == null) return DEFAULT_WAIT_MS;
+  const m = String(value)
+    .trim()
+    .match(/^(\d+)\s*(ms|s)?$/i);
+  if (!m) return DEFAULT_WAIT_MS;
+  const n = Number(m[1]);
+  const unit = (m[2] ?? 's').toLowerCase();
+  const ms = unit === 'ms' ? n : n * 1000;
+  return Math.max(0, Math.min(MAX_WAIT_MS, ms));
 }
 
-function handleAdmin(state, ws, action, message) {
-  if (!state.admins.has(ws)) throw new Error('Only admin clients can use admin controls.');
-  if (action === 'set_series_length') {
-    const bestOf = Number(message.bestOf);
-    if (![1, 3, 5, 7].includes(bestOf)) throw new Error('Series length must be 1, 3, 5, or 7.');
-    if (state.slots.player_1.ready && state.slots.player_2.ready) throw new Error('Series length is locked.');
-    state.bestOf = bestOf;
-    state.series = createSeries({
-      bestOf,
-      playerNames: {
-        player_1: state.slots.player_1.name ?? 'Player 1',
-        player_2: state.slots.player_2.name ?? 'Player 2',
-      },
-    });
-  } else if (action === 'pause') {
-    pause(state);
-  } else if (action === 'resume') {
-    resume(state);
-  } else if (action === 'restart_game') {
-    state.series.restartCurrentGame();
-    state.pendingActions.clear();
-    startTurnTimer(state);
-  } else if (action === 'restart_series') {
-    restartSeries(state);
-  } else if (action === 'next_game') {
-    if (!state.series.decided) {
-      state.series.startNextGame();
-      state.slots.player_1.ready = false;
-      state.slots.player_2.ready = false;
-      state.phase = 'lobby';
-      stopTurnTimer(state);
-      state.pendingActions.clear();
+function shouldBlockGet(state, slotName) {
+  const slot = state.slots[slotName];
+  if (!slot.name) return false;
+  if (state.phase === 'pre_lobby' || state.phase === 'lobby') {
+    if (!slot.ready) return false;
+    return true;
+  }
+  if (state.phase === 'match') {
+    if (state.paused) return true;
+    const side = sideFor(state, slotName);
+    if (state.pendingActions.has(side)) return true;
+    return false;
+  }
+  return false;
+}
+
+async function handleGetPlayer(state, slotName, req, res) {
+  const nowait = String(req.query.nowait ?? '').toLowerCase() === 'true';
+  const totalWait = nowait ? 0 : parseWaitMs(req.query.wait);
+  const start = Date.now();
+  while (true) {
+    if (!shouldBlockGet(state, slotName)) break;
+    const elapsed = Date.now() - start;
+    if (elapsed >= totalWait) break;
+    await waitForChange(state, totalWait - elapsed);
+  }
+  const text = renderForSlot(state, slotName, baseUrlFromReq(req));
+  res.status(200).type('text/plain').send(text);
+}
+
+function baseUrlFromReq(req) {
+  const proto = req.protocol || 'http';
+  const host = req.headers.host || `localhost:${process.env.PORT || 4178}`;
+  return `${proto}://${host}`;
+}
+
+function handlePostJoin(state, slotName, req, res) {
+  const name = String(req.body?.name ?? '').trim();
+  if (!name) {
+    res.status(400).type('text/plain').send('A name is required to join. Provide {"name":"..."}.');
+    return;
+  }
+  const slot = state.slots[slotName];
+  if (slot.name && slot.name !== name) {
+    res
+      .status(409)
+      .type('text/plain')
+      .send(
+        `Slot ${slotPath(slotName)} is already held by "${slot.name}". Try the other slot or POST /${slotPath(slotName)}/leave first.`,
+      );
+    return;
+  }
+  if (!slot.name) {
+    slot.name = name;
+    slot.ready = false;
+    slot.briefingShown = false;
+    state.series.playerNames[slotName] = name;
+    state.series.currentGame.playerNames[slotName] = name;
+    if (state.phase === 'pre_lobby') state.phase = 'lobby';
+    notifyChange(state);
+  }
+  res
+    .status(200)
+    .type('text/plain')
+    .send(`Joined ${slotPath(slotName)} as "${name}". GET /${slotPath(slotName)} for state.`);
+}
+
+function handlePostReady(state, slotName, req, res) {
+  const slot = state.slots[slotName];
+  if (!slot.name) {
+    res
+      .status(409)
+      .type('text/plain')
+      .send(`You haven't joined ${slotPath(slotName)} yet. POST /${slotPath(slotName)}/join first.`);
+    return;
+  }
+  slot.ready = true;
+  const trash = req.body?.trash_talk;
+  if (typeof trash === 'string') {
+    const cleaned = trash.replace(/\s+/g, ' ').trim().slice(0, TRASH_TALK_MAX);
+    state.trashTalk[slotName] = cleaned || null;
+  }
+  if (state.slots.player_1.ready && state.slots.player_2.ready) {
+    if (state.phase === 'game_end') {
+      scheduleNextRound(state);
+    } else if (state.phase === 'pre_lobby' || state.phase === 'lobby') {
+      beginNextMatch(state);
     }
+  }
+  notifyChange(state);
+  res
+    .status(200)
+    .type('text/plain')
+    .send(`Ready. GET /${slotPath(slotName)} to wait for the match to start.`);
+}
+
+function scheduleNextRound(state) {
+  if (state.nextRoundTimer) clearTimeout(state.nextRoundTimer);
+  state.nextRoundAt = Date.now() + NEXT_ROUND_DELAY_MS;
+  state.nextRoundTimer = setTimeout(() => {
+    state.nextRoundTimer = null;
+    state.nextRoundAt = null;
+    if (state.phase === 'game_end' && state.slots.player_1.ready && state.slots.player_2.ready) {
+      beginNextMatch(state);
+      notifyChange(state);
+    }
+  }, NEXT_ROUND_DELAY_MS);
+}
+
+function cancelNextRound(state) {
+  if (state.nextRoundTimer) clearTimeout(state.nextRoundTimer);
+  state.nextRoundTimer = null;
+  state.nextRoundAt = null;
+}
+
+function beginNextMatch(state) {
+  const previousPhase = state.phase;
+  const replayRequired = state.series.currentGame.replayRequired;
+  cancelNextRound(state);
+  state.trashTalk = { player_1: null, player_2: null };
+  state.phase = 'match';
+  state.series.bestOf = state.bestOf;
+  state.series.format = `BO${state.bestOf}`;
+  state.series.playerNames = {
+    player_1: state.slots.player_1.name,
+    player_2: state.slots.player_2.name,
+  };
+  if (previousPhase === 'game_end' && !replayRequired) {
+    state.series.startNextGame();
   } else {
-    throw new Error(`Unknown admin action ${action}`);
+    state.series.restartCurrentGame();
   }
-  broadcastState(state);
+  state.pendingActions.clear();
+  state.lastActionThoughts = { blue: null, red: null };
+  startTurnTimer(state);
 }
+
+function handlePostAction(state, slotName, req, res) {
+  const slot = state.slots[slotName];
+  if (!slot.name) {
+    res
+      .status(409)
+      .type('text/plain')
+      .send(`You haven't joined ${slotPath(slotName)} yet.`);
+    return;
+  }
+  if (state.paused) {
+    res.status(423).type('text/plain').send('Match is paused.');
+    return;
+  }
+  if (state.phase !== 'match') {
+    res.status(409).type('text/plain').send(`Match is not running (phase=${state.phase}).`);
+    return;
+  }
+
+  const body = req.body ?? {};
+  const intent = capWords(String(body.intent ?? '').trim(), 20);
+  if (!intent) {
+    res.status(400).type('text/plain').send('intent is required. Provide {"action":"...","intent":"why"}.');
+    return;
+  }
+
+  const side = sideFor(state, slotName);
+  const game = state.series.currentGame;
+  const existing = state.pendingActions.get(side);
+  let translated;
+  try {
+    translated = translateAction(game, side, body, intent);
+  } catch (error) {
+    if (existing) {
+      res
+        .status(409)
+        .type('text/plain')
+        .send(`A different action is already pending this turn: ${describeAction(existing)}. Wait for the next turn.`);
+      return;
+    }
+    handleInvalidAction(state, side, { action_type: ACTIONS.WAIT, intent_summary: intent }, error.message, res);
+    return;
+  }
+
+  if (existing) {
+    if (sameAction(existing, translated)) {
+      res
+        .status(200)
+        .type('text/plain')
+        .send(`Action already submitted: ${describeAction(existing)}.`);
+      return;
+    }
+    res
+      .status(409)
+      .type('text/plain')
+      .send(`A different action is already pending this turn: ${describeAction(existing)}. Wait for the next turn.`);
+    return;
+  }
+
+  const validation = validateAction(game, side, translated, { playerVisible: true });
+  if (!validation.valid) {
+    handleInvalidAction(state, side, translated, validation.error, res);
+    return;
+  }
+
+  state.pendingActions.set(side, translated);
+  if (translated.intent_summary) state.lastActionThoughts[side] = translated.intent_summary;
+  maybeResolveTurn(state);
+  notifyChange(state);
+  res
+    .status(200)
+    .type('text/plain')
+    .send(`Action accepted: ${describeAction(translated)}.`);
+}
+
+function handleInvalidAction(state, side, action, error, res) {
+  state.invalidAttemptsThisTurn[side] += 1;
+  if (state.invalidAttemptsThisTurn[side] >= 2) {
+    const wait = { action_type: ACTIONS.WAIT, intent_summary: action.intent_summary };
+    state.pendingActions.set(side, wait);
+    maybeResolveTurn(state);
+    notifyChange(state);
+    res
+      .status(200)
+      .type('text/plain')
+      .send(`Second invalid action this turn (${error}). You are locked as WAIT for the turn.`);
+    return;
+  }
+  res
+    .status(400)
+    .type('text/plain')
+    .send(`Invalid action: ${error}. You may retry once more this turn before being locked as WAIT.`);
+}
+
+function handlePostLeave(state, slotName, _req, res) {
+  const slot = state.slots[slotName];
+  if (!slot.name) {
+    res.status(200).type('text/plain').send('Slot is already empty.');
+    return;
+  }
+  slot.name = null;
+  slot.ready = false;
+  slot.briefingShown = false;
+  if (state.phase === 'match') pause(state);
+  cancelNextRound(state);
+  state.series.playerNames[slotName] = `Player ${slotName === 'player_1' ? '1' : '2'}`;
+  state.series.currentGame.playerNames[slotName] = state.series.playerNames[slotName];
+  notifyChange(state);
+  res
+    .status(200)
+    .type('text/plain')
+    .send(`Slot ${slotPath(slotName)} released.`);
+}
+
+// ---- action translation ------------------------------------------------------
+
+function translateAction(game, side, body, intent) {
+  const action = String(body.action ?? '').toUpperCase();
+  if (!action) throw new Error('action is required');
+  const intent_summary = intent;
+  if (action === 'WAIT') return { action_type: ACTIONS.WAIT, intent_summary };
+  if (action === 'GUARD') return { action_type: ACTIONS.GUARD, intent_summary };
+  if (action === 'HEAL') return { action_type: ACTIONS.HEAL, intent_summary };
+  if (action === 'SCAN') return { action_type: ACTIONS.SCAN, intent_summary };
+  if (action === 'DROP_RELIC') return { action_type: ACTIONS.DROP_RELIC, intent_summary };
+  if (action === 'ATTACK') {
+    return { action_type: ACTIONS.ATTACK, intent_summary };
+  }
+  if (action === 'PLACE_WALL' || action === 'PLACE_TRAP') {
+    const target = upperCoord(body.target);
+    return { action_type: action, target, intent_summary };
+  }
+  if (action === 'MOVE' || action === 'DASH') {
+    const target = upperCoord(body.target);
+    const player = game.players[side];
+    const dir = directionBetween(player.position, target, action === 'DASH' ? 2 : 1);
+    return { action_type: `${action}_${dir}`, intent_summary };
+  }
+  throw new Error(`unknown action "${body.action}"`);
+}
+
+function capWords(value, maxWords) {
+  return value.replace(/\s+/g, ' ').split(' ').filter(Boolean).slice(0, maxWords).join(' ');
+}
+
+function upperCoord(value) {
+  if (value == null) throw new Error('target coordinate is required');
+  const s = String(value).trim().toUpperCase();
+  if (!/^[A-I][1-9]$/.test(s)) throw new Error(`bad coordinate "${value}"`);
+  return s;
+}
+
+function directionBetween(from, to, steps) {
+  const fc = from.charCodeAt(0);
+  const fr = Number(from[1]);
+  const tc = to.charCodeAt(0);
+  const tr = Number(to[1]);
+  const dc = tc - fc;
+  const dr = tr - fr;
+  if (dc !== 0 && dr !== 0) throw new Error(`target ${to} is not in a cardinal direction from ${from}`);
+  if (dc === 0 && dr === 0) throw new Error(`target ${to} is the same tile as ${from}`);
+  if (dc === 0) {
+    if (Math.abs(dr) !== steps) throw new Error(`target ${to} is not ${steps} tile(s) away from ${from}`);
+    return dr < 0 ? 'NORTH' : 'SOUTH';
+  }
+  if (Math.abs(dc) !== steps) throw new Error(`target ${to} is not ${steps} tile(s) away from ${from}`);
+  return dc < 0 ? 'WEST' : 'EAST';
+}
+
+function sameAction(a, b) {
+  return a.action_type === b.action_type && (a.target ?? null) === (b.target ?? null);
+}
+
+function describeAction(a) {
+  if (a.target) return `${a.action_type} ${a.target}`;
+  return a.action_type;
+}
+
+// ---- text rendering ----------------------------------------------------------
+
+function renderForSlot(state, slotName, baseUrl = `http://localhost:${process.env.PORT || 4178}`) {
+  const slot = state.slots[slotName];
+  const opponentSlot = slotName === 'player_1' ? 'player_2' : 'player_1';
+  const sideUpper = (
+    state.series.currentGame.slotSides[slotName] ?? (slotName === 'player_1' ? 'blue' : 'red')
+  ).toUpperCase();
+  const lines = [];
+  lines.push(`=== AGENT DUEL - ${slotPath(slotName)} (${sideUpper}) ===`);
+
+  if (!slot.name) {
+    lines.push('Phase: pre_lobby');
+    lines.push('');
+    lines.push(renderBriefing());
+    lines.push('');
+    lines.push('DO NEXT:');
+    lines.push(`  curl -X POST ${baseUrl}/${slotPath(slotName)}/join \\`);
+    lines.push(`       -H 'Content-Type: application/json' \\`);
+    lines.push(`       -d '{"name":"YOUR NAME"}'`);
+    return lines.join('\n');
+  }
+
+  if (state.phase === 'pre_lobby' || state.phase === 'lobby') {
+    const oppSlot = state.slots[opponentSlot];
+    lines.push(
+      `Phase: lobby - opponent ${oppSlot.name ? `joined as "${oppSlot.name}"` : 'not joined'}, ready=${oppSlot.ready}`,
+    );
+    lines.push('');
+    lines.push('DO NEXT:');
+    if (!slot.ready) {
+      lines.push(`  curl -X POST ${baseUrl}/${slotPath(slotName)}/ready`);
+    } else {
+      lines.push(`  curl ${baseUrl}/${slotPath(slotName)}`);
+      lines.push('  (re-poll; returns when the match starts)');
+    }
+    return lines.join('\n');
+  }
+
+  if (state.phase === 'series_end') {
+    lines.push(
+      `Phase: series_end - BO${state.bestOf} final ${state.series.score.player_1}-${state.series.score.player_2}`,
+    );
+    const winnerSlot = state.series.seriesWinner;
+    lines.push(
+      `Series winner: ${winnerSlot ? `${slotPath(winnerSlot)} ("${state.series.playerNames[winnerSlot]}")` : 'tie/undecided'}.`,
+    );
+    lines.push('');
+    lines.push('DO NEXT:');
+    lines.push('  (series is over; ask the operator to restart from the admin console, then re-join.)');
+    return lines.join('\n');
+  }
+
+  if (state.phase === 'game_end') {
+    const game = state.series.currentGame;
+    lines.push(`Phase: game_end - Game ${state.series.gameNumber} of BO${state.bestOf}`);
+    if (game.winner) {
+      lines.push(`Result: ${game.winner.toUpperCase()} wins.`);
+    } else if (game.replayRequired) {
+      lines.push('Result: turn cap reached - game replays without counting toward the series.');
+    }
+    lines.push(`Series: ${state.series.score.player_1}-${state.series.score.player_2}`);
+    lines.push('');
+    lines.push('DO NEXT:');
+    lines.push(`  curl -X POST ${baseUrl}/${slotPath(slotName)}/ready \\`);
+    lines.push(`       -H 'Content-Type: application/json' \\`);
+    lines.push(`       -d '{"trash_talk":"OPTIONAL one-line jab shown to spectators"}'`);
+    lines.push('  (ready up for the next game; trash_talk is optional, max 200 chars)');
+    return lines.join('\n');
+  }
+
+  // Match phase
+  const side = sideFor(state, slotName);
+  const game = state.series.currentGame;
+  const view = getPlayerView(game, side, getTimerSecondsRemaining(state));
+  const timerStr = view.turn_timer_seconds_remaining != null ? `${view.turn_timer_seconds_remaining}s` : '-';
+  lines.push(
+    `Phase: match - Game ${state.series.gameNumber} of BO${state.bestOf} - Turn ${view.turn} - Timer ${timerStr}`,
+  );
+
+  if (state.paused) {
+    lines.push('Status: PAUSED by operator.');
+    lines.push('');
+    lines.push('DO NEXT:');
+    lines.push(`  curl ${baseUrl}/${slotPath(slotName)}`);
+    lines.push('  (re-poll; returns when the match resumes)');
+    return lines.join('\n');
+  }
+
+  // YOU
+  const inv = view.you.inventory;
+  lines.push(
+    `YOU (${side.toUpperCase()}):    ${view.you.position}  HP ${view.you.health}/${view.you.max_health}  carrying_relic=${view.you.carrying_relic ? 'yes' : 'no'}  stunned=${view.you.stunned ? 'yes' : 'no'}`,
+  );
+  lines.push(
+    `                inv: walls=${inv.wall} traps=${inv.trap} scans=${inv.scan} dashes=${inv.dash} heals=${inv.heal}`,
+  );
+  // OPPONENT
+  if (view.opponent.visible) {
+    lines.push(
+      `OPPONENT (${oppSide(side).toUpperCase()}): ${view.opponent.position}  HP ${view.opponent.health ?? '?'}/10  carrying_relic=${view.opponent.carrying_relic ? 'yes' : 'no'}`,
+    );
+  } else {
+    lines.push(`OPPONENT (${oppSide(side).toUpperCase()}): hidden`);
+  }
+  lines.push(`RELIC: ${describeRelic(view.relic)}`);
+  lines.push(`SERIES: ${state.series.score.player_1}-${state.series.score.player_2}`);
+  lines.push('');
+
+  // BOARD
+  lines.push('BOARD:');
+  lines.push(...drawGrid(game, side, view).map((l) => `  ${l}`));
+  lines.push('Legend: . floor  X wall  # bush  ^ fire  * relic-on-ground');
+  lines.push('        B blue  R red  b blue base  r red base');
+  lines.push('        T your trap  t scanned enemy trap');
+  lines.push(`Bases: blue=${game.map.bases.blue.join(',')}  red=${game.map.bases.red.join(',')}`);
+  lines.push('');
+
+  // RECENT EVENTS
+  const events = view.last_events_visible_to_you ?? [];
+  if (events.length) {
+    lines.push(`RECENT EVENTS (last ${events.length}):`);
+    for (const event of events) lines.push(`  ${event}`);
+    lines.push('');
+  }
+
+  if (state.pendingActions.has(side)) {
+    const submitted = state.pendingActions.get(side);
+    lines.push(`Status: waiting for ${oppSide(side).toUpperCase()}.`);
+    lines.push(`You submitted ${describeAction(submitted)} ("${submitted.intent_summary ?? ''}") at T${view.turn}.`);
+    lines.push('');
+    lines.push('DO NEXT:');
+    lines.push(`  curl ${baseUrl}/${slotPath(slotName)}`);
+    lines.push('  (re-poll; returns when it is your turn again or the game ends)');
+    return lines.join('\n');
+  }
+
+  // LEGAL ACTIONS
+  lines.push('LEGAL ACTIONS:');
+  lines.push(...legalActionLines(game, side));
+  lines.push('');
+
+  lines.push('DO NEXT:');
+  lines.push(`  curl -X POST ${baseUrl}/${slotPath(slotName)}/action \\`);
+  lines.push(`       -H 'Content-Type: application/json' \\`);
+  lines.push(`       -d '{"action":"WAIT","intent":"why you chose this"}'`);
+  return lines.join('\n');
+}
+
+function oppSide(side) {
+  return side === 'blue' ? 'red' : 'blue';
+}
+
+function describeRelic(relic) {
+  if (relic.status === 'carried_by_you') return 'carried by you';
+  if (relic.status === 'carried_by_opponent') return 'carried by opponent';
+  if (relic.status === 'free') return `at ${relic.position}`;
+  if (relic.status === 'unknown') {
+    return relic.last_known_position ? `unknown (last seen at ${relic.last_known_position})` : 'unknown';
+  }
+  return relic.status;
+}
+
+function drawGrid(game, side, view) {
+  const lines = [];
+  lines.push('     A B C D E F G H I');
+  lines.push('   +-------------------+');
+  for (let row = 1; row <= BOARD_SIZE; row += 1) {
+    const cells = [];
+    for (let col = 0; col < BOARD_SIZE; col += 1) {
+      const coord = `${String.fromCharCode(65 + col)}${row}`;
+      cells.push(cellSymbol(coord, game, side, view));
+    }
+    lines.push(` ${row} | ${cells.join(' ')} |`);
+  }
+  lines.push('   +-------------------+');
+  return lines;
+}
+
+function cellSymbol(coord, game, side, view) {
+  const oppSideName = oppSide(side);
+  if (view.you.position === coord) return side === 'blue' ? 'B' : 'R';
+  if (view.opponent.visible && view.opponent.position === coord) return oppSideName === 'blue' ? 'B' : 'R';
+  if (view.relic.status === 'free' && view.relic.position === coord) return '*';
+  if (view.known_tiles.own_traps.includes(coord)) return 'T';
+  if (view.known_tiles.known_enemy_traps.includes(coord)) return 't';
+  if (view.known_tiles.walls.includes(coord)) return 'X';
+  if (view.known_tiles.bushes.includes(coord)) return '#';
+  if (view.known_tiles.fire.includes(coord)) return '^';
+  if (game.map.bases.blue.includes(coord)) return 'b';
+  if (game.map.bases.red.includes(coord)) return 'r';
+  return '.';
+}
+
+function legalActionLines(game, side) {
+  const legal = getLegalActions(game, side, { playerVisible: true });
+  const groups = { simple: [], moves: [], dashes: [], attacks: [], placeWall: [], placeTrap: [] };
+  for (const action of legal) {
+    const t = action.action_type;
+    if (
+      t === ACTIONS.WAIT ||
+      t === ACTIONS.GUARD ||
+      t === ACTIONS.HEAL ||
+      t === ACTIONS.SCAN ||
+      t === ACTIONS.DROP_RELIC
+    ) {
+      groups.simple.push(t);
+    } else if (t.startsWith('MOVE_')) {
+      groups.moves.push(moveTarget(game.players[side].position, t, 1));
+    } else if (t.startsWith('DASH_')) {
+      groups.dashes.push(moveTarget(game.players[side].position, t, 2));
+    } else if (t === ACTIONS.ATTACK) {
+      groups.attacks.push('ATTACK');
+    } else if (t === ACTIONS.PLACE_WALL) {
+      groups.placeWall.push(action.target);
+    } else if (t === ACTIONS.PLACE_TRAP) {
+      groups.placeTrap.push(action.target);
+    }
+  }
+  const out = [];
+  if (groups.simple.length) out.push(`  ${groups.simple.join('  ')}`);
+  if (groups.moves.length) out.push(`  ${groups.moves.map((c) => `MOVE ${c}`).join(' | ')}`);
+  if (groups.dashes.length) out.push(`  ${groups.dashes.map((c) => `DASH ${c}`).join(' | ')}`);
+  if (groups.attacks.length) out.push(`  ${groups.attacks.join(' | ')}`);
+  if (groups.placeWall.length) out.push(`  ${groups.placeWall.map((c) => `PLACE_WALL ${c}`).join(' | ')}`);
+  if (groups.placeTrap.length) out.push(`  ${groups.placeTrap.map((c) => `PLACE_TRAP ${c}`).join(' | ')}`);
+  return out;
+}
+
+function moveTarget(from, actionType, steps) {
+  const dir = actionType.split('_')[1];
+  const fc = from.charCodeAt(0);
+  const fr = Number(from[1]);
+  const dc = dir === 'EAST' ? steps : dir === 'WEST' ? -steps : 0;
+  const dr = dir === 'SOUTH' ? steps : dir === 'NORTH' ? -steps : 0;
+  return `${String.fromCharCode(fc + dc)}${fr + dr}`;
+}
+
+function renderBriefing() {
+  const lines = [];
+  lines.push('GAME RULES');
+  lines.push('');
+  lines.push(`Goal: ${RULES.goal}`);
+  lines.push('');
+  lines.push('Each turn resolves in this order:');
+  for (const [i, step] of RULES.resolutionOrder.entries()) {
+    lines.push(`  ${i + 1}. ${step.label}: ${step.detail}`);
+  }
+  lines.push('');
+  lines.push('Actions:');
+  for (const group of RULES.actionGroups) {
+    lines.push(`  ${group.title}:`);
+    for (const item of group.items) {
+      lines.push(`    ${item.name.toUpperCase().replace(/\s+/g, '_')}: ${item.effect}`);
+    }
+  }
+  lines.push('');
+  lines.push('Submitting actions:');
+  lines.push('  - Plain action: {"action":"WAIT","intent":"why"} (also: ATTACK, GUARD, HEAL, SCAN, DROP_RELIC)');
+  lines.push('  - Targeted: {"action":"MOVE","target":"D6","intent":"..."}');
+  lines.push('    (MOVE moves 1 cardinal tile to target; DASH moves 2 in one direction;');
+  lines.push('     PLACE_WALL/PLACE_TRAP target an adjacent empty tile.)');
+  lines.push('  - intent is required and capped at 20 words.');
+  lines.push('');
+  lines.push('Tiles:');
+  for (const tile of RULES.tiles) lines.push(`  ${tile.name}: ${tile.effect}`);
+  lines.push('');
+  const inv = RULES.startingInventory.map((i) => `${i.count}x ${i.kind}`).join(', ');
+  lines.push(`Starting inventory: ${inv}.`);
+  lines.push(RULES.health.summary);
+  lines.push('');
+  lines.push('Common mistakes:');
+  for (const g of RULES.gotchas) lines.push(`  - ${g}`);
+  return lines.join('\n');
+}
+
+// ---- match lifecycle ---------------------------------------------------------
 
 function maybeResolveTurn(state) {
   if (!state.pendingActions.has('blue') || !state.pendingActions.has('red')) return;
@@ -259,12 +841,15 @@ function maybeResolveTurn(state) {
   state.series.currentGame = game;
   state.pendingActions.clear();
   state.invalidAttemptsThisTurn = { blue: 0, red: 0 };
-  if (game.winningSlot) {
-    state.series.recordGame(game.winningSlot);
-  }
+  if (game.winningSlot) state.series.recordGame(game.winningSlot);
   if (game.winner || game.replayRequired || state.series.decided) {
     state.phase = state.series.decided ? 'series_end' : 'game_end';
     game.phase = state.phase;
+    if (state.phase === 'game_end') {
+      state.slots.player_1.ready = false;
+      state.slots.player_2.ready = false;
+      state.trashTalk = { player_1: null, player_2: null };
+    }
   } else {
     startTurnTimer(state);
   }
@@ -280,7 +865,7 @@ function startTurnTimer(state) {
       if (!state.pendingActions.has(side)) state.pendingActions.set(side, { action_type: ACTIONS.WAIT });
     }
     maybeResolveTurn(state);
-    broadcastState(state);
+    notifyChange(state);
   }, state.turnSeconds * 1000);
 }
 
@@ -307,12 +892,14 @@ function resume(state) {
       if (!state.pendingActions.has(side)) state.pendingActions.set(side, { action_type: ACTIONS.WAIT });
     }
     maybeResolveTurn(state);
-    broadcastState(state);
+    notifyChange(state);
   }, state.remainingWhenPaused * 1000);
 }
 
 function restartSeries(state) {
   stopTurnTimer(state);
+  cancelNextRound(state);
+  state.trashTalk = { player_1: null, player_2: null };
   state.phase = 'pre_lobby';
   state.series = createSeries({
     bestOf: state.bestOf,
@@ -324,28 +911,73 @@ function restartSeries(state) {
   state.slots.player_1.ready = false;
   state.slots.player_2.ready = false;
   state.pendingActions.clear();
+  state.lastActionThoughts = { blue: null, red: null };
   state.paused = false;
+}
+
+// ---- WS for spectator/admin --------------------------------------------------
+
+function handleWsMessage(state, ws, message) {
+  if (!message || typeof message.type !== 'string') throw new Error('Message type is required.');
+  if (message.type === 'admin') {
+    handleAdmin(state, ws, message.action, message);
+  } else if (message.type === 'set_xray') {
+    ws.xray = Boolean(message.xray);
+    pushStateTo(ws, state);
+  } else {
+    throw new Error(`Unknown message type ${message.type}`);
+  }
+}
+
+function handleAdmin(state, ws, action, message) {
+  if (!state.admins.has(ws)) throw new Error('Only admin clients can use admin controls.');
+  if (action === 'set_series_length') {
+    const bestOf = Number(message.bestOf);
+    if (![1, 3, 5, 7].includes(bestOf)) throw new Error('Series length must be 1, 3, 5, or 7.');
+    if (state.slots.player_1.ready && state.slots.player_2.ready) throw new Error('Series length is locked.');
+    state.bestOf = bestOf;
+    state.series = createSeries({
+      bestOf,
+      playerNames: {
+        player_1: state.slots.player_1.name ?? 'Player 1',
+        player_2: state.slots.player_2.name ?? 'Player 2',
+      },
+    });
+  } else if (action === 'pause') {
+    pause(state);
+  } else if (action === 'resume') {
+    resume(state);
+  } else if (action === 'restart_game') {
+    cancelNextRound(state);
+    state.trashTalk = { player_1: null, player_2: null };
+    state.series.restartCurrentGame();
+    state.pendingActions.clear();
+    state.lastActionThoughts = { blue: null, red: null };
+    startTurnTimer(state);
+  } else if (action === 'restart_series') {
+    restartSeries(state);
+  } else if (action === 'next_game') {
+    if (!state.series.decided) {
+      cancelNextRound(state);
+      state.trashTalk = { player_1: null, player_2: null };
+      state.series.startNextGame();
+      state.slots.player_1.ready = false;
+      state.slots.player_2.ready = false;
+      state.phase = 'lobby';
+      stopTurnTimer(state);
+      state.pendingActions.clear();
+      state.lastActionThoughts = { blue: null, red: null };
+    }
+  } else {
+    throw new Error(`Unknown admin action ${action}`);
+  }
+  notifyChange(state);
 }
 
 function pushStateTo(ws, state) {
   const role = ws.clientRole;
   const payload = baseRuntimePayload(state);
-  if (role === 'player_1' || role === 'player_2') {
-    const side = state.series.currentGame.slotSides[role];
-    send(ws, {
-      type: 'state',
-      role,
-      side,
-      state: {
-        ...getPlayerView(state.series.currentGame, side, getTimerSecondsRemaining(state)),
-        phase: state.phase === 'match' ? state.series.currentGame.phase : state.phase,
-        paused: state.paused,
-        match: payload.match,
-        lobby: payload.lobby,
-        action_locked: state.pendingActions.has(side),
-      },
-    });
-  } else if (role === 'spectate') {
+  if (role === SPECTATE_ROLE) {
     send(ws, {
       type: 'state',
       role,
@@ -360,9 +992,11 @@ function pushStateTo(ws, state) {
         paused: state.paused,
         match: payload.match,
         lobby: payload.lobby,
+        trash_talk: { ...state.trashTalk },
+        next_round_at: state.nextRoundAt,
       },
     });
-  } else if (role === 'admin') {
+  } else if (role === ADMIN_ROLE) {
     send(ws, {
       type: 'state',
       role,
@@ -378,12 +1012,6 @@ function pushStateTo(ws, state) {
         }),
       },
     });
-  }
-}
-
-function broadcastState(state) {
-  for (const { ws } of state.clients) {
-    if (ws.readyState === ws.OPEN) pushStateTo(ws, state);
   }
 }
 
@@ -408,8 +1036,6 @@ function baseRuntimePayload(state) {
       pending_actions: [...state.pendingActions.keys()],
       invalid_attempts: { ...state.invalidAttemptsThisTurn },
       connections: {
-        player_1: state.slots.player_1.connected,
-        player_2: state.slots.player_2.connected,
         spectators: state.spectators.size,
         admins: state.admins.size,
       },
@@ -421,14 +1047,8 @@ function publicSlot(slot) {
   return {
     name: slot.name,
     ready: slot.ready,
-    connected: slot.connected,
+    connected: Boolean(slot.name),
   };
-}
-
-function playerSlotForWs(state, ws) {
-  if (state.slots.player_1.ws === ws) return 'player_1';
-  if (state.slots.player_2.ws === ws) return 'player_2';
-  return null;
 }
 
 function getTimerSecondsRemaining(state) {
@@ -447,47 +1067,19 @@ function playerActionStatuses(state) {
 
 function playerActionThoughts(state) {
   return {
-    blue: state.pendingActions.get('blue')?.intent_summary ?? null,
-    red: state.pendingActions.get('red')?.intent_summary ?? null,
+    blue: state.pendingActions.get('blue')?.intent_summary ?? state.lastActionThoughts.blue ?? null,
+    red: state.pendingActions.get('red')?.intent_summary ?? state.lastActionThoughts.red ?? null,
   };
 }
 
-function sanitizeAction(action) {
-  return {
-    action_type: action.action_type,
-    ...(action.target ? { target: String(action.target).toUpperCase() } : {}),
-    ...(action.intent_summary
-      ? { intent_summary: String(action.intent_summary).split(/\s+/).slice(0, 20).join(' ') }
-      : {}),
-  };
-}
-
-function normalizeHttpRole(player) {
-  const raw = String(player ?? 'spectate');
-  if (!VALID_PLAYERS.has(raw)) return null;
-  if (raw === '1') return 'player_1';
-  if (raw === '2') return 'player_2';
-  return raw;
+function normalizeBrowserRole(player) {
+  const raw = String(player ?? SPECTATE_ROLE);
+  if (raw === SPECTATE_ROLE || raw === ADMIN_ROLE) return raw;
+  return null;
 }
 
 function send(ws, message) {
   if (ws.readyState === ws.OPEN) ws.send(JSON.stringify(message));
-}
-
-function errorPage(message) {
-  return `<!doctype html>
-<html lang="en">
-  <head><meta charset="utf-8"><title>Agent Duel</title></head>
-  <body><h1>Agent Duel</h1><p>${escapeHtml(message)}</p></body>
-</html>`;
-}
-
-function escapeHtml(value) {
-  return String(value)
-    .replaceAll('&', '&amp;')
-    .replaceAll('<', '&lt;')
-    .replaceAll('>', '&gt;')
-    .replaceAll('"', '&quot;');
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
