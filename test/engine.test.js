@@ -108,12 +108,30 @@ test('dash moves up to two tiles, consumes dash, stops on trap, and cannot be us
   });
 
   assert.equal(result.game.players.blue.position, 'D5');
-  assert.equal(result.game.players.blue.health, 7);
+  assert.equal(result.game.players.blue.health, 5);
   assert.equal(result.game.players.blue.inventory.dash, 0);
-  assert.equal(result.game.traps.has('D5'), false);
+  assert.equal(result.game.traps.has('D5'), true);
 
   result.game.players.blue.carryingRelic = true;
   assert.equal(validateAction(result.game, 'blue', { action_type: ACTIONS.DASH_WEST }).valid, false);
+});
+
+test('dash whose first step is blocked by a same-target collision does not advance on step 2', () => {
+  const game = gameWith();
+  game.players.blue.position = 'D5';
+  game.players.red.position = 'F5';
+
+  const result = resolveTurn(game, {
+    blue: { action_type: ACTIONS.DASH_EAST },
+    red: { action_type: ACTIONS.MOVE_WEST },
+  });
+
+  assert.equal(result.game.players.blue.position, 'D5');
+  assert.equal(result.game.players.red.position, 'F5');
+  assert.equal(
+    result.events.filter((e) => e.event_type === 'move' && e.actor === 'blue').length,
+    0,
+  );
 });
 
 test('events carry monotonically increasing seq across turns and dash move events report meta', () => {
@@ -178,6 +196,15 @@ test('wall placement requires adjacency, empty non-base target, and preserves al
   assert.equal(validateAction(game, 'blue', { action_type: ACTIONS.PLACE_WALL, target: 'E5' }).valid, false);
 });
 
+test('walls and traps may be placed on bush tiles', () => {
+  const game = gameWith();
+  game.players.blue.position = 'B5';
+  setCell(game, 'C5', 'bush');
+
+  assert.equal(validateAction(game, 'blue', { action_type: ACTIONS.PLACE_WALL, target: 'C5' }).valid, true);
+  assert.equal(validateAction(game, 'blue', { action_type: ACTIONS.PLACE_TRAP, target: 'C5' }).valid, true);
+});
+
 test('traps are hidden, arm after placement, trigger on opponent movement, and scan reveals them', () => {
   let game = gameWith();
   game.players.blue.position = 'B5';
@@ -208,8 +235,82 @@ test('traps are hidden, arm after placement, trigger on opponent movement, and s
     red: { action_type: ACTIONS.MOVE_WEST },
   }).game;
   assert.equal(triggeredSecondStep.players.red.position, 'C5');
-  assert.equal(triggeredSecondStep.players.red.health, 7);
-  assert.equal(triggeredSecondStep.traps.has('C5'), false);
+  assert.equal(triggeredSecondStep.players.red.health, 5);
+  assert.equal(triggeredSecondStep.traps.has('C5'), true);
+});
+
+test('trap placed in same turn opponent steps in triggers (placement runs before movement)', () => {
+  let game = gameWith();
+  game.players.blue.position = 'A1';
+  game.players.red.position = 'A3';
+  const blueTrapsBefore = game.players.blue.inventory.trap;
+
+  const result = resolveTurn(game, {
+    blue: { action_type: ACTIONS.PLACE_TRAP, target: 'A2' },
+    red: { action_type: ACTIONS.MOVE_NORTH },
+  });
+  game = result.game;
+
+  const eventTypes = result.events.map((e) => e.event_type);
+  assert.ok(eventTypes.includes('trap_placed'), `expected trap_placed, got: ${eventTypes.join(',')}`);
+  assert.ok(eventTypes.includes('trap_triggered'), `expected trap_triggered, got: ${eventTypes.join(',')}`);
+  assert.equal(game.players.red.position, 'A2');
+  assert.equal(game.players.red.health, 5);
+  assert.equal(game.traps.size, 1);
+  assert.equal(game.traps.has('A2'), true);
+  assert.equal(game.players.blue.inventory.trap, blueTrapsBefore - 1);
+});
+
+test('triggering a trap stuns the victim for their next turn (forced WAIT, no respawn)', () => {
+  let game = gameWith();
+  game.players.blue.position = 'A1';
+  game.players.red.position = 'A3';
+
+  const triggered = resolveTurn(game, {
+    blue: { action_type: ACTIONS.PLACE_TRAP, target: 'A2' },
+    red: { action_type: ACTIONS.MOVE_NORTH },
+  }).game;
+  assert.equal(triggered.players.red.position, 'A2');
+  assert.equal(triggered.players.red.health, 5);
+  assert.equal(triggered.players.red.skipNextTurn, true);
+  assert.equal(triggered.players.red.stunned, false);
+
+  const startPosBlue = triggered.players.blue.position;
+  const next = resolveTurn(triggered, {
+    blue: { action_type: ACTIONS.WAIT },
+    red: { action_type: ACTIONS.MOVE_NORTH },
+  });
+  assert.equal(next.game.players.red.position, 'A2', 'red is stunned and should not move');
+  assert.equal(next.game.players.red.skipNextTurn, false, 'stun clears after one turn');
+  assert.equal(next.game.players.blue.position, startPosBlue);
+  assert.ok(
+    next.events.some((e) => e.event_type === 'trap_stun'),
+    `expected trap_stun event, got: ${next.events.map((e) => e.event_type).join(',')}`,
+  );
+
+  const after = resolveTurn(next.game, {
+    blue: { action_type: ACTIONS.WAIT },
+    red: { action_type: ACTIONS.MOVE_SOUTH },
+  }).game;
+  assert.equal(after.players.red.position, 'A3', 'red can move again after stun clears');
+});
+
+test('walls are still placed AFTER movement so they cannot retroactively block in-flight moves', () => {
+  let game = gameWith();
+  game.players.blue.position = 'A1';
+  game.players.red.position = 'A3';
+
+  const result = resolveTurn(game, {
+    blue: { action_type: ACTIONS.PLACE_WALL, target: 'A2' },
+    red: { action_type: ACTIONS.MOVE_NORTH },
+  });
+  game = result.game;
+
+  // Red moved into A2 first; wall placement then fails because A2 is occupied.
+  assert.equal(game.players.red.position, 'A2');
+  assert.equal(game.map.walls.has('A2'), false);
+  const eventTypes = result.events.map((e) => e.event_type);
+  assert.ok(eventTypes.includes('placement_failed'));
 });
 
 test('bush stealth hides non-carriers outside radius two and scan records hidden opponent visibility', () => {
@@ -240,12 +341,12 @@ test('combat applies bush and carrier bonuses, guard reduction, heal cap, damage
     blue: { action_type: ACTIONS.ATTACK },
     red: wait,
   }).game;
-  assert.equal(game.players.red.health, 6);
+  assert.equal(game.players.red.health, 4);
   assert.equal(game.players.red.carryingRelic, false);
   assert.equal(game.relic.position, 'D5');
   assert.equal(game.relic.pickupBlockedTurn, 0);
 
-  game.players.red.health = 2;
+  game.players.red.health = 4;
   game.players.red.carryingRelic = true;
   game.relic.carriedBy = 'red';
   game.relic.position = null;
@@ -262,7 +363,7 @@ test('combat applies bush and carrier bonuses, guard reduction, heal cap, damage
     blue: { action_type: ACTIONS.ATTACK },
     red: { action_type: ACTIONS.GUARD },
   }).game;
-  assert.equal(guardedResult.players.red.health, 9);
+  assert.equal(guardedResult.players.red.health, 7);
 
   game = resolveTurn(game, {
     blue: { action_type: ACTIONS.ATTACK },
@@ -339,7 +440,7 @@ test('player-visible legal actions do not leak unrevealed adjacent enemy traps',
   );
 });
 
-test('series swaps sides, ignores turn-cap replays, and decides odd-N formats', () => {
+test('series keeps sides stable, ignores turn-cap replays, and decides odd-N formats', () => {
   const series = createSeries({ bestOf: 3, playerNames: { player_1: 'Ada', player_2: 'Turing' } });
 
   assert.equal(series.currentGame.slotSides.player_1, 'blue');
@@ -352,8 +453,8 @@ test('series swaps sides, ignores turn-cap replays, and decides odd-N formats', 
   series.recordGame('player_1');
   series.startNextGame();
   assert.equal(series.score.player_1, 1);
-  assert.equal(series.currentGame.slotSides.player_1, 'red');
-  assert.equal(series.currentGame.slotSides.player_2, 'blue');
+  assert.equal(series.currentGame.slotSides.player_1, 'blue');
+  assert.equal(series.currentGame.slotSides.player_2, 'red');
 
   series.recordGame('player_1');
   assert.equal(series.decided, true);

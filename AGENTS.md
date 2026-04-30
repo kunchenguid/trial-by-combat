@@ -43,9 +43,9 @@ Two-process boundary: a pure synchronous **game engine** and a thin **HTTP + Web
 
 - Exports: `createGame`, `createSeries`, `resolveTurn`, `validateAction`, `getLegalActions`, `getPlayerView`, `getSpectatorView`, plus `ACTIONS`, `SIDES`, `BOARD_SIZE`, `RULESET_VERSION`.
 - All state mutations go through `resolveTurn(game, { blue, red })`, which clones the game (`cloneGame`) and returns `{ game, events, actions, droppedByDamage }`. Never mutate a game object in place outside `resolveTurn` - everything is built around treating game state as immutable from the harness's perspective.
-- Resolution order in `resolveTurn` matters and is tested: invalid-action coercion to WAIT → respawn stunned → HEAL → SCAN → dash inventory decrement → 2-step movement (with collision detection between sides) → ATTACK → damage application (GUARD reduces by 2) → forced relic drops on >=3 damage → voluntary DROP_RELIC → knockouts → placement (PLACE_WALL/PLACE_TRAP) → auto pickup → win check → turn cap.
+- Resolution order in `resolveTurn` matters and is tested: invalid-action coercion to WAIT → respawn stunned → HEAL → SCAN → dash inventory decrement → PLACE_TRAP (early so opponents stepping into the target this turn trigger it) → 2-step movement (with collision detection between sides) → ATTACK → damage application (GUARD reduces by 2) → forced relic drops on >=3 damage → voluntary DROP_RELIC → knockouts → PLACE_WALL (late so walls can't retroactively block in-flight moves) → auto pickup → win check → turn cap.
 - Wall placement runs a path invariant check (`allPathInvariantsHold`) on a cloned trial game so a player can't seal off the relic or either base. BFS via `shortestPath`.
-- Series sides swap each game (`slotSidesForGame`): odd game = `player_1: blue`, even = `player_1: red`. Slots (`player_1`/`player_2`) are stable; sides (`blue`/`red`) flip.
+- Sides are fixed for the series: `slotSidesForGame` always returns `{ player_1: 'blue', player_2: 'red' }` regardless of game number. The function exists as a hook in case we re-enable swapping, but today neither slots nor sides flip between games.
 - Map constants (`CENTER_CHOKE`) and starting inventory are frozen module locals. To add a new map, parameterize `createGame` rather than mutating these.
 
 ### `src/server.js` - HTTP + WebSocket harness
@@ -76,7 +76,7 @@ Two-process boundary: a pure synchronous **game engine** and a thin **HTTP + Web
 - `public/assets/trial-by-combat-sprite-sheet.meta.json` (runtime metadata)
 - `public/assets/sprite-atlas.js` (runtime ESM module)
 
-Re-run `npm run build:atlas` after editing any source asset. The atlas version (`production-atlas-2048-v1`) is hard-coded in the script and must match the `?v=` cache-buster used by `app.js`.
+Re-run `npm run build:atlas` after editing any source asset. The atlas version (`production-atlas-2048-v2`) is hard-coded in the script and must match the `?v=` cache-buster used by `app.js`.
 
 ## Conventions to keep
 

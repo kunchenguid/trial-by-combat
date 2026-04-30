@@ -65,5 +65,13 @@ console.log(
 console.log(
   `  length_penalty:     ${result.score_components.length_penalty.toFixed(3)}  (median length ${result.guardrails.medianGameLength})`,
 );
+console.log(
+  `  lever_variety:      ${result.score_components.lever_variety.toFixed(3)}  (used ${result.lever_usage.typesUsedCount}/${result.lever_usage.typesAvailable}: ${result.lever_usage.typesUsed.join(', ') || 'none'})`,
+);
+if (result.lever_usage.corpus) {
+  console.log(
+    `  corpus_lever_usage: used ${result.lever_usage.corpus.typesUsedCount}/${result.lever_usage.corpus.typesAvailable}: ${result.lever_usage.corpus.typesUsed.join(', ') || 'none'}`,
+  );
+}
 console.log(`  ran ${result.ladder.games.length + result.fairness.games.length} games in ${elapsed}s`);
 console.log(`  wrote runs/evals/${id}.json`);

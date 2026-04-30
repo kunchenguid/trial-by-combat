@@ -1,6 +1,6 @@
 {
-  "map_id": "braided-home-gates-v1",
-  "timestamp": "2026-04-28T03:57:14.859Z",
+  "map_id": "tight-x-buff-chamber-v1",
+  "timestamp": "2026-04-30T02:00:35.937Z",
   "config": {
     "mctsLowIters": 100,
     "mctsMidIters": 250,
@@ -13,15 +13,16 @@
     "turnCap": 100,
     "workerPoolSize": 8
   },
-  "score": 62.99147513307998,
+  "score": 66.25438932595729,
   "score_components": {
-    "score": 62.99147513307998,
-    "ladder_separation": 0.6299147513307998,
-    "weighted_elo_gap": 198.80437961472762,
+    "score": 66.25438932595729,
+    "ladder_separation": 0.7361598813995255,
+    "weighted_elo_gap": 266.48239413085867,
     "horizon": 1,
     "side_fairness": 1,
     "turn_cap_penalty": 1,
-    "length_penalty": 1
+    "length_penalty": 1,
+    "lever_variety": 0.9
   },
   "ladder": {
     "rungs": [
@@ -33,22 +34,22 @@
     "gamesPerPair": 20,
     "elo": {
       "greedy": 0,
-      "mcts-low": 23.59210671842741,
-      "mcts-mid": 275.0741787204137,
-      "mcts-high": 497.164187709069
+      "mcts-low": -102.22002911145007,
+      "mcts-mid": 244.4812166911821,
+      "mcts-high": 546.311841084478
     },
     "gaps": {
-      "greedyToLow": 23.59210671842741,
-      "lowToMid": 251.48207200198632,
-      "midToHigh": 222.09000898865526
+      "greedyToLow": -102.22002911145007,
+      "lowToMid": 346.7012458026322,
+      "midToHigh": 301.8306243932959
     },
     "pairwise": {
       "greedy__vs__mcts-low": {
         "a": "greedy",
         "b": "mcts-low",
         "gamesPlayed": 20,
-        "aWins": 10,
-        "bWins": 10,
+        "aWins": 14,
+        "bWins": 6,
         "draws": 0
       },
       "greedy__vs__mcts-mid": {
@@ -71,25 +72,25 @@
         "a": "mcts-low",
         "b": "mcts-mid",
         "gamesPlayed": 20,
-        "aWins": 4,
-        "bWins": 16,
+        "aWins": 3,
+        "bWins": 17,
         "draws": 0
       },
       "mcts-low__vs__mcts-high": {
         "a": "mcts-low",
         "b": "mcts-high",
         "gamesPlayed": 20,
-        "aWins": 1,
-        "bWins": 19,
+        "aWins": 0,
+        "bWins": 20,
         "draws": 0
       },
       "mcts-mid__vs__mcts-high": {
         "a": "mcts-mid",
         "b": "mcts-high",
         "gamesPlayed": 20,
-        "aWins": 4,
-        "bWins": 15,
-        "draws": 1
+        "aWins": 3,
+        "bWins": 17,
+        "draws": 0
       }
     },
     "games": [
@@ -100,7 +101,7 @@
         "aIsBlue": true,
         "winner": "blue",
         "winnerSpec": "greedy",
-        "turns": 14,
+        "turns": 10,
         "replayRequired": false
       },
       {
@@ -110,7 +111,7 @@
         "aIsBlue": false,
         "winner": "blue",
         "winnerSpec": "mcts-low",
-        "turns": 13,
+        "turns": 28,
         "replayRequired": false
       },
       {
@@ -120,7 +121,7 @@
         "aIsBlue": true,
         "winner": "blue",
         "winnerSpec": "greedy",
-        "turns": 14,
+        "turns": 10,
         "replayRequired": false
       },
       {
@@ -130,7 +131,7 @@
         "aIsBlue": false,
         "winner": "red",
         "winnerSpec": "greedy",
-        "turns": 14,
+        "turns": 10,
         "replayRequired": false
       },
       {
@@ -138,9 +139,9 @@
         "a": "greedy",
         "b": "mcts-low",
         "aIsBlue": true,
-        "winner": "red",
-        "winnerSpec": "mcts-low",
-        "turns": 12,
+        "winner": "blue",
+        "winnerSpec": "greedy",
+        "turns": 10,
         "replayRequired": false
       },
       {
@@ -148,9 +149,9 @@
         "a": "greedy",
         "b": "mcts-low",
         "aIsBlue": false,
-        "winner": "blue",
-        "winnerSpec": "mcts-low",
-        "turns": 27,
+        "winner": "red",
+        "winnerSpec": "greedy",
+        "turns": 10,
         "replayRequired": false
       },
       {
@@ -158,9 +159,9 @@
         "a": "greedy",
         "b": "mcts-low",
         "aIsBlue": true,
-        "winner": "red",
-        "winnerSpec": "mcts-low",
-        "turns": 10,
+        "winner": "blue",
+        "winnerSpec": "greedy",
+        "turns": 20,
         "replayRequired": false
       },
       {
@@ -168,9 +169,9 @@
         "a": "greedy",
         "b": "mcts-low",
         "aIsBlue": false,
-        "winner": "blue",
-        "winnerSpec": "mcts-low",
-        "turns": 25,
+        "winner": "red",
+        "winnerSpec": "greedy",
+        "turns": 10,
         "replayRequired": false
       },
       {
@@ -178,9 +179,9 @@
         "a": "greedy",
         "b": "mcts-low",
         "aIsBlue": true,
-        "winner": "blue",
-        "winnerSpec": "greedy",
-        "turns": 14,
+        "winner": "red",
+        "winnerSpec": "mcts-low",
+        "turns": 20,
         "replayRequired": false
       },
       {
@@ -188,9 +189,9 @@
         "a": "greedy",
         "b": "mcts-low",
         "aIsBlue": false,
-        "winner": "blue",
-        "winnerSpec": "mcts-low",
-        "turns": 18,
+        "winner": "red",
+        "winnerSpec": "greedy",
+        "turns": 10,
         "replayRequired": false
       },
       {
@@ -200,7 +201,7 @@
         "aIsBlue": true,
         "winner": "blue",
         "winnerSpec": "greedy",
-        "turns": 14,
+        "turns": 10,
         "replayRequired": false
       },
       {
@@ -210,7 +211,7 @@
         "aIsBlue": false,
         "winner": "red",
         "winnerSpec": "greedy",
-        "turns": 14,
+        "turns": 10,
         "replayRequired": false
       },
       {
@@ -218,9 +219,9 @@
         "a": "greedy",
         "b": "mcts-low",
         "aIsBlue": true,
-        "winner": "blue",
-        "winnerSpec": "greedy",
-        "turns": 14,
+        "winner": "red",
+        "winnerSpec": "mcts-low",
+        "turns": 28,
         "replayRequired": false
       },
       {
@@ -230,7 +231,7 @@
         "aIsBlue": false,
         "winner": "blue",
         "winnerSpec": "mcts-low",
-        "turns": 21,
+        "turns": 18,
         "replayRequired": false
       },
       {
@@ -238,9 +239,9 @@
         "a": "greedy",
         "b": "mcts-low",
         "aIsBlue": true,
-        "winner": "red",
-        "winnerSpec": "mcts-low",
-        "turns": 13,
+        "winner": "blue",
+        "winnerSpec": "greedy",
+        "turns": 10,
         "replayRequired": false
       },
       {
@@ -248,9 +249,9 @@
         "a": "greedy",
         "b": "mcts-low",
         "aIsBlue": false,
-        "winner": "red",
-        "winnerSpec": "greedy",
-        "turns": 14,
+        "winner": "blue",
+        "winnerSpec": "mcts-low",
+        "turns": 25,
         "replayRequired": false
       },
       {
@@ -258,8 +259,8 @@
         "a": "greedy",
         "b": "mcts-low",
         "aIsBlue": true,
-        "winner": "red",
-        "winnerSpec": "mcts-low",
+        "winner": "blue",
+        "winnerSpec": "greedy",
         "turns": 10,
         "replayRequired": false
       },
@@ -270,7 +271,7 @@
         "aIsBlue": false,
         "winner": "red",
         "winnerSpec": "greedy",
-        "turns": 14,
+        "turns": 10,
         "replayRequired": false
       },
       {
@@ -278,9 +279,9 @@
         "a": "greedy",
         "b": "mcts-low",
         "aIsBlue": true,
-        "winner": "blue",
-        "winnerSpec": "greedy",
-        "turns": 14,
+        "winner": "red",
+        "winnerSpec": "mcts-low",
+        "turns": 26,
         "replayRequired": false
       },
       {
@@ -288,8 +289,8 @@
         "a": "greedy",
         "b": "mcts-low",
         "aIsBlue": false,
-        "winner": "blue",
-        "winnerSpec": "mcts-low",
+        "winner": "red",
+        "winnerSpec": "greedy",
         "turns": 10,
         "replayRequired": false
       },
@@ -300,7 +301,7 @@
         "aIsBlue": true,
         "winner": "red",
         "winnerSpec": "mcts-mid",
-        "turns": 13,
+        "turns": 28,
         "replayRequired": false
       },
       {
@@ -310,7 +311,7 @@
         "aIsBlue": false,
         "winner": "blue",
         "winnerSpec": "mcts-mid",
-        "turns": 10,
+        "turns": 25,
         "replayRequired": false
       },
       {
@@ -320,7 +321,7 @@
         "aIsBlue": true,
         "winner": "red",
         "winnerSpec": "mcts-mid",
-        "turns": 19,
+        "turns": 16,
         "replayRequired": false
       },
       {
@@ -330,7 +331,7 @@
         "aIsBlue": false,
         "winner": "blue",
         "winnerSpec": "mcts-mid",
-        "turns": 11,
+        "turns": 20,
         "replayRequired": false
       },
       {
@@ -338,9 +339,9 @@
         "a": "greedy",
         "b": "mcts-mid",
         "aIsBlue": true,
-        "winner": "blue",
-        "winnerSpec": "greedy",
-        "turns": 14,
+        "winner": "red",
+        "winnerSpec": "mcts-mid",
+        "turns": 15,
         "replayRequired": false
       },
       {
@@ -350,7 +351,7 @@
         "aIsBlue": false,
         "winner": "blue",
         "winnerSpec": "mcts-mid",
-        "turns": 10,
+        "turns": 17,
         "replayRequired": false
       },
       {
@@ -358,8 +359,8 @@
         "a": "greedy",
         "b": "mcts-mid",
         "aIsBlue": true,
-        "winner": "red",
-        "winnerSpec": "mcts-mid",
+        "winner": "blue",
+        "winnerSpec": "greedy",
         "turns": 10,
         "replayRequired": false
       },
@@ -370,7 +371,7 @@
         "aIsBlue": false,
         "winner": "blue",
         "winnerSpec": "mcts-mid",
-        "turns": 20,
+        "turns": 16,
         "replayRequired": false
       },
       {
@@ -380,7 +381,7 @@
         "aIsBlue": true,
         "winner": "blue",
         "winnerSpec": "greedy",
-        "turns": 18,
+        "turns": 10,
         "replayRequired": false
       },
       {
@@ -388,9 +389,9 @@
         "a": "greedy",
         "b": "mcts-mid",
         "aIsBlue": false,
-        "winner": "blue",
-        "winnerSpec": "mcts-mid",
-        "turns": 13,
+        "winner": "red",
+        "winnerSpec": "greedy",
+        "turns": 10,
         "replayRequired": false
       },
       {
@@ -400,7 +401,7 @@
         "aIsBlue": true,
         "winner": "red",
         "winnerSpec": "mcts-mid",
-        "turns": 10,
+        "turns": 25,
         "replayRequired": false
       },
       {
@@ -410,7 +411,7 @@
         "aIsBlue": false,
         "winner": "blue",
         "winnerSpec": "mcts-mid",
-        "turns": 12,
+        "turns": 16,
         "replayRequired": false
       },
       {
@@ -418,9 +419,9 @@
         "a": "greedy",
         "b": "mcts-mid",
         "aIsBlue": true,
-        "winner": "blue",
-        "winnerSpec": "greedy",
-        "turns": 14,
+        "winner": "red",
+        "winnerSpec": "mcts-mid",
+        "turns": 15,
         "replayRequired": false
       },
       {
@@ -430,7 +431,7 @@
         "aIsBlue": false,
         "winner": "blue",
         "winnerSpec": "mcts-mid",
-        "turns": 10,
+        "turns": 26,
         "replayRequired": false
       },
       {
@@ -440,7 +441,7 @@
         "aIsBlue": true,
         "winner": "red",
         "winnerSpec": "mcts-mid",
-        "turns": 12,
+        "turns": 15,
         "replayRequired": false
       },
       {
@@ -450,7 +451,7 @@
         "aIsBlue": false,
         "winner": "blue",
         "winnerSpec": "mcts-mid",
-        "turns": 12,
+        "turns": 18,
         "replayRequired": false
       },
       {
@@ -460,7 +461,7 @@
         "aIsBlue": true,
         "winner": "red",
         "winnerSpec": "mcts-mid",
-        "turns": 20,
+        "turns": 23,
         "replayRequired": false
       },
       {
@@ -470,7 +471,7 @@
         "aIsBlue": false,
         "winner": "blue",
         "winnerSpec": "mcts-mid",
-        "turns": 12,
+        "turns": 16,
         "replayRequired": false
       },
       {
@@ -480,7 +481,7 @@
         "aIsBlue": true,
         "winner": "red",
         "winnerSpec": "mcts-mid",
-        "turns": 10,
+        "turns": 16,
         "replayRequired": false
       },
       {
@@ -490,7 +491,7 @@
         "aIsBlue": false,
         "winner": "blue",
         "winnerSpec": "mcts-mid",
-        "turns": 11,
+        "turns": 16,
         "replayRequired": false
       },
       {
@@ -500,7 +501,7 @@
         "aIsBlue": true,
         "winner": "red",
         "winnerSpec": "mcts-high",
-        "turns": 10,
+        "turns": 17,
         "replayRequired": false
       },
       {
@@ -510,7 +511,7 @@
         "aIsBlue": false,
         "winner": "blue",
         "winnerSpec": "mcts-high",
-        "turns": 12,
+        "turns": 16,
         "replayRequired": false
       },
       {
@@ -520,7 +521,7 @@
         "aIsBlue": true,
         "winner": "red",
         "winnerSpec": "mcts-high",
-        "turns": 23,
+        "turns": 16,
         "replayRequired": false
       },
       {
@@ -530,7 +531,7 @@
         "aIsBlue": false,
         "winner": "blue",
         "winnerSpec": "mcts-high",
-        "turns": 12,
+        "turns": 14,
         "replayRequired": false
       },
       {
@@ -540,7 +541,7 @@
         "aIsBlue": true,
         "winner": "red",
         "winnerSpec": "mcts-high",
-        "turns": 12,
+        "turns": 15,
         "replayRequired": false
       },
       {
@@ -550,7 +551,7 @@
         "aIsBlue": false,
         "winner": "blue",
         "winnerSpec": "mcts-high",
-        "turns": 10,
+        "turns": 19,
         "replayRequired": false
       },
       {
@@ -560,7 +561,7 @@
         "aIsBlue": true,
         "winner": "red",
         "winnerSpec": "mcts-high",
-        "turns": 10,
+        "turns": 16,
         "replayRequired": false
       },
       {
@@ -570,7 +571,7 @@
         "aIsBlue": false,
         "winner": "blue",
         "winnerSpec": "mcts-high",
-        "turns": 10,
+        "turns": 15,
         "replayRequired": false
       },
       {
@@ -580,7 +581,7 @@
         "aIsBlue": true,
         "winner": "red",
         "winnerSpec": "mcts-high",
-        "turns": 12,
+        "turns": 15,
         "replayRequired": false
       },
       {
@@ -590,7 +591,7 @@
         "aIsBlue": false,
         "winner": "blue",
         "winnerSpec": "mcts-high",
-        "turns": 10,
+        "turns": 24,
         "replayRequired": false
       },
       {
@@ -600,7 +601,7 @@
         "aIsBlue": true,
         "winner": "red",
         "winnerSpec": "mcts-high",
-        "turns": 12,
+        "turns": 19,
         "replayRequired": false
       },
       {
@@ -610,7 +611,7 @@
         "aIsBlue": false,
         "winner": "blue",
         "winnerSpec": "mcts-high",
-        "turns": 10,
+        "turns": 16,
         "replayRequired": false
       },
       {
@@ -620,7 +621,7 @@
         "aIsBlue": true,
         "winner": "red",
         "winnerSpec": "mcts-high",
-        "turns": 10,
+        "turns": 17,
         "replayRequired": false
       },
       {
@@ -630,7 +631,7 @@
         "aIsBlue": false,
         "winner": "blue",
         "winnerSpec": "mcts-high",
-        "turns": 10,
+        "turns": 14,
         "replayRequired": false
       },
       {
@@ -640,7 +641,7 @@
         "aIsBlue": true,
         "winner": "red",
         "winnerSpec": "mcts-high",
-        "turns": 12,
+        "turns": 21,
         "replayRequired": false
       },
       {
@@ -650,7 +651,7 @@
         "aIsBlue": false,
         "winner": "blue",
         "winnerSpec": "mcts-high",
-        "turns": 10,
+        "turns": 16,
         "replayRequired": false
       },
       {
@@ -660,7 +661,7 @@
         "aIsBlue": true,
         "winner": "red",
         "winnerSpec": "mcts-high",
-        "turns": 10,
+        "turns": 16,
         "replayRequired": false
       },
       {
@@ -670,7 +671,7 @@
         "aIsBlue": false,
         "winner": "blue",
         "winnerSpec": "mcts-high",
-        "turns": 12,
+        "turns": 14,
         "replayRequired": false
       },
       {
@@ -680,7 +681,7 @@
         "aIsBlue": true,
         "winner": "red",
         "winnerSpec": "mcts-high",
-        "turns": 12,
+        "turns": 16,
         "replayRequired": false
       },
       {
@@ -690,7 +691,7 @@
         "aIsBlue": false,
         "winner": "blue",
         "winnerSpec": "mcts-high",
-        "turns": 12,
+        "turns": 16,
         "replayRequired": false
       },
       {
@@ -700,7 +701,7 @@
         "aIsBlue": true,
         "winner": "red",
         "winnerSpec": "mcts-mid",
-        "turns": 12,
+        "turns": 18,
         "replayRequired": false
       },
       {
@@ -710,7 +711,7 @@
         "aIsBlue": false,
         "winner": "blue",
         "winnerSpec": "mcts-mid",
-        "turns": 14,
+        "turns": 12,
         "replayRequired": false
       },
       {
@@ -720,7 +721,7 @@
         "aIsBlue": true,
         "winner": "red",
         "winnerSpec": "mcts-mid",
-        "turns": 10,
+        "turns": 21,
         "replayRequired": false
       },
       {
@@ -740,7 +741,7 @@
         "aIsBlue": true,
         "winner": "red",
         "winnerSpec": "mcts-mid",
-        "turns": 12,
+        "turns": 13,
         "replayRequired": false
       },
       {
@@ -748,9 +749,9 @@
         "a": "mcts-low",
         "b": "mcts-mid",
         "aIsBlue": false,
-        "winner": "red",
-        "winnerSpec": "mcts-low",
-        "turns": 13,
+        "winner": "blue",
+        "winnerSpec": "mcts-mid",
+        "turns": 15,
         "replayRequired": false
       },
       {
@@ -760,7 +761,7 @@
         "aIsBlue": true,
         "winner": "red",
         "winnerSpec": "mcts-mid",
-        "turns": 12,
+        "turns": 11,
         "replayRequired": false
       },
       {
@@ -770,7 +771,7 @@
         "aIsBlue": false,
         "winner": "blue",
         "winnerSpec": "mcts-mid",
-        "turns": 12,
+        "turns": 19,
         "replayRequired": false
       },
       {
@@ -780,7 +781,7 @@
         "aIsBlue": true,
         "winner": "red",
         "winnerSpec": "mcts-mid",
-        "turns": 17,
+        "turns": 15,
         "replayRequired": false
       },
       {
@@ -790,7 +791,7 @@
         "aIsBlue": false,
         "winner": "blue",
         "winnerSpec": "mcts-mid",
-        "turns": 12,
+        "turns": 10,
         "replayRequired": false
       },
       {
@@ -800,7 +801,7 @@
         "aIsBlue": true,
         "winner": "red",
         "winnerSpec": "mcts-mid",
-        "turns": 14,
+        "turns": 11,
         "replayRequired": false
       },
       {
@@ -808,9 +809,9 @@
         "a": "mcts-low",
         "b": "mcts-mid",
         "aIsBlue": false,
-        "winner": "red",
-        "winnerSpec": "mcts-low",
-        "turns": 14,
+        "winner": "blue",
+        "winnerSpec": "mcts-mid",
+        "turns": 18,
         "replayRequired": false
       },
       {
@@ -820,7 +821,7 @@
         "aIsBlue": true,
         "winner": "red",
         "winnerSpec": "mcts-mid",
-        "turns": 12,
+        "turns": 18,
         "replayRequired": false
       },
       {
@@ -828,9 +829,9 @@
         "a": "mcts-low",
         "b": "mcts-mid",
         "aIsBlue": false,
-        "winner": "blue",
-        "winnerSpec": "mcts-mid",
-        "turns": 12,
+        "winner": "red",
+        "winnerSpec": "mcts-low",
+        "turns": 14,
         "replayRequired": false
       },
       {
@@ -840,7 +841,7 @@
         "aIsBlue": true,
         "winner": "red",
         "winnerSpec": "mcts-mid",
-        "turns": 12,
+        "turns": 17,
         "replayRequired": false
       },
       {
@@ -850,7 +851,7 @@
         "aIsBlue": false,
         "winner": "red",
         "winnerSpec": "mcts-low",
-        "turns": 14,
+        "turns": 13,
         "replayRequired": false
       },
       {
@@ -858,9 +859,9 @@
         "a": "mcts-low",
         "b": "mcts-mid",
         "aIsBlue": true,
-        "winner": "blue",
-        "winnerSpec": "mcts-low",
-        "turns": 14,
+        "winner": "red",
+        "winnerSpec": "mcts-mid",
+        "turns": 15,
         "replayRequired": false
       },
       {
@@ -868,9 +869,9 @@
         "a": "mcts-low",
         "b": "mcts-mid",
         "aIsBlue": false,
-        "winner": "blue",
-        "winnerSpec": "mcts-mid",
-        "turns": 12,
+        "winner": "red",
+        "winnerSpec": "mcts-low",
+        "turns": 17,
         "replayRequired": false
       },
       {
@@ -880,7 +881,7 @@
         "aIsBlue": true,
         "winner": "red",
         "winnerSpec": "mcts-mid",
-        "turns": 12,
+        "turns": 11,
         "replayRequired": false
       },
       {
@@ -900,7 +901,7 @@
         "aIsBlue": true,
         "winner": "red",
         "winnerSpec": "mcts-high",
-        "turns": 12,
+        "turns": 18,
         "replayRequired": false
       },
       {
@@ -910,7 +911,7 @@
         "aIsBlue": false,
         "winner": "blue",
         "winnerSpec": "mcts-high",
-        "turns": 12,
+        "turns": 22,
         "replayRequired": false
       },
       {
@@ -920,7 +921,7 @@
         "aIsBlue": true,
         "winner": "red",
         "winnerSpec": "mcts-high",
-        "turns": 12,
+        "turns": 16,
         "replayRequired": false
       },
       {
@@ -930,7 +931,7 @@
         "aIsBlue": false,
         "winner": "blue",
         "winnerSpec": "mcts-high",
-        "turns": 12,
+        "turns": 16,
         "replayRequired": false
       },
       {
@@ -940,7 +941,7 @@
         "aIsBlue": true,
         "winner": "red",
         "winnerSpec": "mcts-high",
-        "turns": 12,
+        "turns": 16,
         "replayRequired": false
       },
       {
@@ -960,7 +961,7 @@
         "aIsBlue": true,
         "winner": "red",
         "winnerSpec": "mcts-high",
-        "turns": 12,
+        "turns": 16,
         "replayRequired": false
       },
       {
@@ -970,7 +971,7 @@
         "aIsBlue": false,
         "winner": "blue",
         "winnerSpec": "mcts-high",
-        "turns": 12,
+        "turns": 21,
         "replayRequired": false
       },
       {
@@ -980,7 +981,7 @@
         "aIsBlue": true,
         "winner": "red",
         "winnerSpec": "mcts-high",
-        "turns": 12,
+        "turns": 17,
         "replayRequired": false
       },
       {
@@ -990,7 +991,7 @@
         "aIsBlue": false,
         "winner": "blue",
         "winnerSpec": "mcts-high",
-        "turns": 12,
+        "turns": 11,
         "replayRequired": false
       },
       {
@@ -1000,7 +1001,7 @@
         "aIsBlue": true,
         "winner": "red",
         "winnerSpec": "mcts-high",
-        "turns": 12,
+        "turns": 16,
         "replayRequired": false
       },
       {
@@ -1020,7 +1021,7 @@
         "aIsBlue": true,
         "winner": "red",
         "winnerSpec": "mcts-high",
-        "turns": 12,
+        "turns": 10,
         "replayRequired": false
       },
       {
@@ -1040,7 +1041,7 @@
         "aIsBlue": true,
         "winner": "red",
         "winnerSpec": "mcts-high",
-        "turns": 12,
+        "turns": 18,
         "replayRequired": false
       },
       {
@@ -1048,9 +1049,9 @@
         "a": "mcts-low",
         "b": "mcts-high",
         "aIsBlue": false,
-        "winner": "red",
-        "winnerSpec": "mcts-low",
-        "turns": 32,
+        "winner": "blue",
+        "winnerSpec": "mcts-high",
+        "turns": 10,
         "replayRequired": false
       },
       {
@@ -1060,7 +1061,7 @@
         "aIsBlue": true,
         "winner": "red",
         "winnerSpec": "mcts-high",
-        "turns": 12,
+        "turns": 11,
         "replayRequired": false
       },
       {
@@ -1070,7 +1071,7 @@
         "aIsBlue": false,
         "winner": "blue",
         "winnerSpec": "mcts-high",
-        "turns": 12,
+        "turns": 16,
         "replayRequired": false
       },
       {
@@ -1080,7 +1081,7 @@
         "aIsBlue": true,
         "winner": "red",
         "winnerSpec": "mcts-high",
-        "turns": 12,
+        "turns": 10,
         "replayRequired": false
       },
       {
@@ -1090,7 +1091,7 @@
         "aIsBlue": false,
         "winner": "blue",
         "winnerSpec": "mcts-high",
-        "turns": 12,
+        "turns": 16,
         "replayRequired": false
       },
       {
@@ -1100,7 +1101,7 @@
         "aIsBlue": true,
         "winner": "red",
         "winnerSpec": "mcts-high",
-        "turns": 12,
+        "turns": 22,
         "replayRequired": false
       },
       {
@@ -1110,7 +1111,7 @@
         "aIsBlue": false,
         "winner": "blue",
         "winnerSpec": "mcts-high",
-        "turns": 10,
+        "turns": 21,
         "replayRequired": false
       },
       {
@@ -1120,7 +1121,7 @@
         "aIsBlue": true,
         "winner": "red",
         "winnerSpec": "mcts-high",
-        "turns": 12,
+        "turns": 16,
         "replayRequired": false
       },
       {
@@ -1130,7 +1131,7 @@
         "aIsBlue": false,
         "winner": "blue",
         "winnerSpec": "mcts-high",
-        "turns": 12,
+        "turns": 23,
         "replayRequired": false
       },
       {
@@ -1138,19 +1139,19 @@
         "a": "mcts-mid",
         "b": "mcts-high",
         "aIsBlue": true,
-        "winner": null,
-        "winnerSpec": null,
-        "turns": 100,
-        "replayRequired": true
+        "winner": "red",
+        "winnerSpec": "mcts-high",
+        "turns": 26,
+        "replayRequired": false
       },
       {
         "seed": 6006,
         "a": "mcts-mid",
         "b": "mcts-high",
         "aIsBlue": false,
-        "winner": "blue",
-        "winnerSpec": "mcts-high",
-        "turns": 12,
+        "winner": "red",
+        "winnerSpec": "mcts-mid",
+        "turns": 10,
         "replayRequired": false
       },
       {
@@ -1158,9 +1159,9 @@
         "a": "mcts-mid",
         "b": "mcts-high",
         "aIsBlue": true,
-        "winner": "red",
-        "winnerSpec": "mcts-high",
-        "turns": 14,
+        "winner": "blue",
+        "winnerSpec": "mcts-mid",
+        "turns": 10,
         "replayRequired": false
       },
       {
@@ -1170,7 +1171,7 @@
         "aIsBlue": false,
         "winner": "blue",
         "winnerSpec": "mcts-high",
-        "turns": 13,
+        "turns": 21,
         "replayRequired": false
       },
       {
@@ -1180,7 +1181,7 @@
         "aIsBlue": true,
         "winner": "red",
         "winnerSpec": "mcts-high",
-        "turns": 12,
+        "turns": 10,
         "replayRequired": false
       },
       {
@@ -1188,9 +1189,9 @@
         "a": "mcts-mid",
         "b": "mcts-high",
         "aIsBlue": false,
-        "winner": "red",
-        "winnerSpec": "mcts-mid",
-        "turns": 19,
+        "winner": "blue",
+        "winnerSpec": "mcts-high",
+        "turns": 16,
         "replayRequired": false
       },
       {
@@ -1200,7 +1201,7 @@
         "aIsBlue": true,
         "winner": "red",
         "winnerSpec": "mcts-high",
-        "turns": 10,
+        "turns": 16,
         "replayRequired": false
       },
       {
@@ -1220,7 +1221,7 @@
         "aIsBlue": true,
         "winner": "red",
         "winnerSpec": "mcts-high",
-        "turns": 12,
+        "turns": 10,
         "replayRequired": false
       },
       {
@@ -1230,7 +1231,7 @@
         "aIsBlue": false,
         "winner": "blue",
         "winnerSpec": "mcts-high",
-        "turns": 12,
+        "turns": 21,
         "replayRequired": false
       },
       {
@@ -1240,7 +1241,7 @@
         "aIsBlue": true,
         "winner": "red",
         "winnerSpec": "mcts-high",
-        "turns": 28,
+        "turns": 21,
         "replayRequired": false
       },
       {
@@ -1250,7 +1251,7 @@
         "aIsBlue": false,
         "winner": "blue",
         "winnerSpec": "mcts-high",
-        "turns": 12,
+        "turns": 21,
         "replayRequired": false
       },
       {
@@ -1258,9 +1259,9 @@
         "a": "mcts-mid",
         "b": "mcts-high",
         "aIsBlue": true,
-        "winner": "blue",
-        "winnerSpec": "mcts-mid",
-        "turns": 12,
+        "winner": "red",
+        "winnerSpec": "mcts-high",
+        "turns": 16,
         "replayRequired": false
       },
       {
@@ -1270,7 +1271,7 @@
         "aIsBlue": false,
         "winner": "blue",
         "winnerSpec": "mcts-high",
-        "turns": 12,
+        "turns": 26,
         "replayRequired": false
       },
       {
@@ -1280,7 +1281,7 @@
         "aIsBlue": true,
         "winner": "red",
         "winnerSpec": "mcts-high",
-        "turns": 12,
+        "turns": 16,
         "replayRequired": false
       },
       {
@@ -1288,142 +1289,186 @@
         "a": "mcts-mid",
         "b": "mcts-high",
         "aIsBlue": false,
-        "winner": "red",
-        "winnerSpec": "mcts-mid",
-        "turns": 12,
+        "winner": "blue",
+        "winnerSpec": "mcts-high",
+        "turns": 16,
         "replayRequired": false
       }
-    ]
+    ],
+    "itemTypesUsed": [
+      "dash",
+      "heal",
+      "trap",
+      "scan",
+      "wall"
+    ],
+    "leverTypesUsed": [
+      "DASH",
+      "BUFF_DASH_PACK",
+      "ATTACK",
+      "HEAL",
+      "BUFF_BIG_HEAL",
+      "GUARD",
+      "PLACE_TRAP",
+      "SCAN",
+      "PLACE_WALL"
+    ],
+    "buffsPickedUpByType": {
+      "dash_pack": 239,
+      "big_heal": 28
+    }
   },
   "fairness": {
-    "blueWinrate": 0.525,
-    "decisiveGames": 19,
+    "blueWinrate": 0.5,
+    "decisiveGames": 20,
     "games": [
       {
         "seed": 501,
         "winner": "blue",
-        "turns": 11,
+        "turns": 10,
         "replayRequired": false
       },
       {
         "seed": 502,
-        "winner": "red",
+        "winner": "blue",
         "turns": 12,
         "replayRequired": false
       },
       {
         "seed": 503,
         "winner": "blue",
-        "turns": 12,
+        "turns": 15,
         "replayRequired": false
       },
       {
         "seed": 504,
         "winner": "red",
-        "turns": 13,
+        "turns": 18,
         "replayRequired": false
       },
       {
         "seed": 505,
-        "winner": "red",
-        "turns": 13,
+        "winner": "blue",
+        "turns": 12,
         "replayRequired": false
       },
       {
         "seed": 506,
-        "winner": "blue",
-        "turns": 13,
+        "winner": "red",
+        "turns": 10,
         "replayRequired": false
       },
       {
         "seed": 507,
         "winner": "red",
-        "turns": 12,
+        "turns": 28,
         "replayRequired": false
       },
       {
         "seed": 508,
         "winner": "red",
-        "turns": 13,
+        "turns": 10,
         "replayRequired": false
       },
       {
         "seed": 509,
-        "winner": "blue",
-        "turns": 16,
+        "winner": "red",
+        "turns": 18,
         "replayRequired": false
       },
       {
         "seed": 510,
-        "winner": "blue",
+        "winner": "red",
         "turns": 13,
         "replayRequired": false
       },
       {
         "seed": 511,
         "winner": "blue",
-        "turns": 12,
+        "turns": 10,
         "replayRequired": false
       },
       {
         "seed": 512,
         "winner": "blue",
-        "turns": 14,
+        "turns": 29,
         "replayRequired": false
       },
       {
         "seed": 513,
         "winner": "blue",
-        "turns": 11,
+        "turns": 10,
         "replayRequired": false
       },
       {
         "seed": 514,
         "winner": "blue",
-        "turns": 17,
+        "turns": 11,
         "replayRequired": false
       },
       {
         "seed": 515,
-        "winner": "blue",
-        "turns": 10,
+        "winner": "red",
+        "turns": 38,
         "replayRequired": false
       },
       {
         "seed": 516,
-        "winner": "red",
-        "turns": 15,
+        "winner": "blue",
+        "turns": 22,
         "replayRequired": false
       },
       {
         "seed": 517,
         "winner": "red",
-        "turns": 12,
+        "turns": 10,
         "replayRequired": false
       },
       {
         "seed": 518,
-        "winner": null,
-        "turns": 100,
-        "replayRequired": true
+        "winner": "red",
+        "turns": 18,
+        "replayRequired": false
       },
       {
         "seed": 519,
         "winner": "red",
-        "turns": 12,
+        "turns": 13,
         "replayRequired": false
       },
       {
         "seed": 520,
-        "winner": "red",
+        "winner": "blue",
         "turns": 17,
         "replayRequired": false
       }
-    ]
+    ],
+    "itemTypesUsed": [
+      "dash",
+      "wall",
+      "heal",
+      "trap",
+      "scan"
+    ],
+    "leverTypesUsed": [
+      "DASH",
+      "ATTACK",
+      "BUFF_DASH_PACK",
+      "BUFF_BIG_HEAL",
+      "PLACE_WALL",
+      "HEAL",
+      "PLACE_TRAP",
+      "SCAN",
+      "GUARD"
+    ],
+    "buffsPickedUpByType": {
+      "dash_pack": 40,
+      "big_heal": 18
+    }
   },
   "horizon": {
-    "meanT15": 0.4375,
-    "meanT8": 0.10416666666666667,
+    "meanT15": 0.3958333333333333,
+    "meanT8": 0,
     "meanT3": 0,
     "samples": [
       {
@@ -1431,14 +1476,14 @@
         "perturbSide": "blue",
         "deltaT3": 0,
         "deltaT8": 0,
-        "deltaT15": 0
+        "deltaT15": 0.5
       },
       {
         "T": 4,
         "perturbSide": "blue",
         "deltaT3": 0,
         "deltaT8": 0,
-        "deltaT15": 0.5
+        "deltaT15": 0
       },
       {
         "T": 5,
@@ -1452,7 +1497,7 @@
         "perturbSide": "blue",
         "deltaT3": 0,
         "deltaT8": 0,
-        "deltaT15": 0.5
+        "deltaT15": 0
       },
       {
         "T": 7,
@@ -1472,14 +1517,14 @@
         "T": 9,
         "perturbSide": "blue",
         "deltaT3": 0,
-        "deltaT8": 0.5,
+        "deltaT8": 0,
         "deltaT15": 0.5
       },
       {
         "T": 10,
         "perturbSide": "blue",
         "deltaT3": 0,
-        "deltaT8": 0.5,
+        "deltaT8": 0,
         "deltaT15": 0.5
       },
       {
@@ -1493,7 +1538,7 @@
         "T": 12,
         "perturbSide": "blue",
         "deltaT3": 0,
-        "deltaT8": 0.5,
+        "deltaT8": 0,
         "deltaT15": 0.5
       },
       {
@@ -1514,14 +1559,14 @@
         "T": 15,
         "perturbSide": "blue",
         "deltaT3": 0,
-        "deltaT8": 0.5,
+        "deltaT8": 0,
         "deltaT15": 0.5
       },
       {
         "T": 16,
         "perturbSide": "blue",
         "deltaT3": 0,
-        "deltaT8": 0.5,
+        "deltaT8": 0,
         "deltaT15": 0.5
       },
       {
@@ -1529,14 +1574,14 @@
         "perturbSide": "blue",
         "deltaT3": 0,
         "deltaT8": 0,
-        "deltaT15": 0.5
+        "deltaT15": 0
       },
       {
         "T": 18,
         "perturbSide": "blue",
         "deltaT3": 0,
         "deltaT8": 0,
-        "deltaT15": 0
+        "deltaT15": 0.5
       },
       {
         "T": 19,
@@ -1550,7 +1595,7 @@
         "perturbSide": "blue",
         "deltaT3": 0,
         "deltaT8": 0,
-        "deltaT15": 0.5
+        "deltaT15": 0
       },
       {
         "T": 21,
@@ -1571,14 +1616,14 @@
         "perturbSide": "blue",
         "deltaT3": 0,
         "deltaT8": 0,
-        "deltaT15": 0
+        "deltaT15": 0.5
       },
       {
         "T": 4,
         "perturbSide": "blue",
         "deltaT3": 0,
         "deltaT8": 0,
-        "deltaT15": 0.5
+        "deltaT15": 0
       },
       {
         "T": 5,
@@ -1598,10 +1643,10 @@
     "sampleCount": 24
   },
   "guardrails": {
-    "turnCapRate": 0.014285714285714285,
-    "medianGameLength": 12,
+    "turnCapRate": 0,
+    "medianGameLength": 16,
     "totalGames": 140,
-    "turnCappedGames": 2,
+    "turnCappedGames": 0,
     "gameLengths": [
       10,
       10,
@@ -1630,65 +1675,19 @@
       10,
       10,
       10,
+      10,
+      10,
+      10,
+      10,
+      10,
+      10,
+      10,
       11,
       11,
       11,
       11,
-      12,
-      12,
-      12,
-      12,
-      12,
-      12,
-      12,
-      12,
-      12,
-      12,
-      12,
-      12,
-      12,
-      12,
-      12,
-      12,
-      12,
-      12,
-      12,
-      12,
-      12,
-      12,
-      12,
-      12,
-      12,
-      12,
-      12,
-      12,
-      12,
-      12,
-      12,
-      12,
-      12,
-      12,
-      12,
-      12,
-      12,
-      12,
-      12,
-      12,
-      12,
-      12,
-      12,
-      12,
-      12,
-      12,
-      12,
-      12,
-      12,
-      12,
-      12,
-      12,
-      12,
-      12,
-      12,
+      11,
+      11,
       12,
       12,
       12,
@@ -1698,52 +1697,163 @@
       13,
       13,
       13,
-      13,
-      13,
-      13,
-      13,
-      13,
-      13,
-      13,
-      14,
-      14,
-      14,
-      14,
-      14,
-      14,
-      14,
-      14,
-      14,
-      14,
-      14,
-      14,
-      14,
-      14,
-      14,
       14,
       14,
       14,
       14,
       15,
+      15,
+      15,
+      15,
+      15,
+      15,
+      15,
+      15,
+      15,
+      15,
+      16,
+      16,
+      16,
+      16,
+      16,
+      16,
+      16,
+      16,
+      16,
+      16,
+      16,
+      16,
+      16,
+      16,
+      16,
+      16,
+      16,
+      16,
+      16,
+      16,
+      16,
+      16,
+      16,
+      16,
+      16,
+      16,
       16,
       17,
       17,
       17,
+      17,
+      17,
+      17,
+      17,
+      18,
+      18,
+      18,
+      18,
+      18,
+      18,
+      18,
+      18,
       18,
       18,
       19,
       19,
+      19,
+      20,
       20,
       20,
       21,
+      21,
+      21,
+      21,
+      21,
+      21,
+      21,
+      21,
+      22,
+      22,
+      22,
       23,
+      23,
+      24,
       25,
-      27,
+      25,
+      25,
+      26,
+      26,
+      26,
+      26,
       28,
-      32,
-      100,
-      100
+      28,
+      28,
+      28,
+      29,
+      38
     ]
   },
-  "runtime_ms": 232387
+  "item_usage": {
+    "scoreCondition": "mcts-high-vs-mcts-high",
+    "corpus": {
+      "typesUsedCount": 5,
+      "typesAvailable": 5,
+      "typesUsed": [
+        "dash",
+        "heal",
+        "scan",
+        "trap",
+        "wall"
+      ]
+    },
+    "typesUsedCount": 5,
+    "typesAvailable": 5,
+    "typesUsed": [
+      "dash",
+      "heal",
+      "scan",
+      "trap",
+      "wall"
+    ]
+  },
+  "lever_usage": {
+    "scoreCondition": "mcts-high-vs-mcts-high",
+    "typesAvailable": 10,
+    "typesUsedCount": 9,
+    "typesUsed": [
+      "ATTACK",
+      "BUFF_BIG_HEAL",
+      "BUFF_DASH_PACK",
+      "DASH",
+      "GUARD",
+      "HEAL",
+      "PLACE_TRAP",
+      "PLACE_WALL",
+      "SCAN"
+    ],
+    "corpus": {
+      "typesAvailable": 10,
+      "typesUsedCount": 9,
+      "typesUsed": [
+        "ATTACK",
+        "BUFF_BIG_HEAL",
+        "BUFF_DASH_PACK",
+        "DASH",
+        "GUARD",
+        "HEAL",
+        "PLACE_TRAP",
+        "PLACE_WALL",
+        "SCAN"
+      ]
+    }
+  },
+  "buff_usage": {
+    "scoreCondition": "mcts-high-vs-mcts-high",
+    "scored": {
+      "dash_pack": 40,
+      "big_heal": 18
+    },
+    "corpus": {
+      "dash_pack": 279,
+      "big_heal": 46
+    }
+  },
+  "runtime_ms": 174796
 }

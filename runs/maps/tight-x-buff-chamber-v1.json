@@ -1,0 +1,30 @@
+{
+  "id": "tight-x-buff-chamber-v1",
+  "bases": {
+    "blue": ["A4", "A5", "A6"],
+    "red": ["I4", "I5", "I6"]
+  },
+  "starts": {
+    "blue": "A5",
+    "red": "I5"
+  },
+  "relicStart": "E5",
+  "walls": ["D4", "D6", "F4", "F6", "B5", "H5"],
+  "bushes": ["D5", "F5", "E4", "E6", "C5", "G5", "C3", "C7", "G3", "G7", "D3", "D7", "F3", "F7"],
+  "fire": [],
+  "inventory": {
+    "wall": 2,
+    "trap": 2,
+    "scan": 1,
+    "dash": 1,
+    "heal": 1
+  },
+  "buffs": [
+    { "coord": "D5", "type": "dash_pack" },
+    { "coord": "F5", "type": "dash_pack" },
+    { "coord": "E4", "type": "big_heal" },
+    { "coord": "E6", "type": "big_heal" }
+  ],
+  "notes": "Tight-X buff chamber structural revamp. Combines baseline's tight X-wall positions (D4/D6/F4/F6) - which is known to produce baseline's strong 234 weighted-Elo gap and 8/10 corpus lever variety - with wide-chamber's lateral pinch (B5/H5) and 4-buff layout (D5/F5 dash_pack, E4/E6 big_heal). The hypothesis: baseline's tight X creates tighter ambush pressure around the relic than wide-chamber's outer ring (D3/D7/F3/F7 outermost), since the relic-adjacent tiles D5/F5/E4/E6 sit directly between four wall pillars rather than being open with walls one row out. This forced-funnel through ambush bushes might activate PLACE_WALL on contested approach lanes (C5/G5) - the lever wide-chamber missed - while preserving baseline's known-strong ladder structure and horizon. The tight-X is a structural revamp distinct from wide-chamber: walls one row IN, not OUT; route through C5/G5 -> D5/F5 (bush+buff) -> E5 instead of around D3/D7/F3/F7.",
+  "conclusion": "New high score 66.25 vs 56.72 (wide-chamber-lattice-v1). Beat the prior best on BOTH lever variety (0.9 same) AND ladder separation (266 weighted Elo gap vs wide-chamber's 199, baseline's 234). Mid-to-high Elo gap was 302 (vs wide-chamber 224), and low-to-mid was 347 - more search clearly keeps paying off. Guardrails all max: horizon 1.000 (T+15 divergence 0.396), side fairness 1.000 (blue mirror 0.500 exactly), no turn caps, median length 16. Lever variety 9/10 - used PLACE_WALL (the lever wide-chamber missed) but missed DROP_RELIC; the trade-off seen in iter 39/41/42 still applies on this topology. What surprised me: baseline's tight X walls (D4/D6/F4/F6) combined with B5/H5 lateral pinch + 4 buffs produced a CLEANER lever profile than wide-chamber's outer ring - PLACE_WALL activates because the C5/G5 approach lanes are wallable choke points adjacent to bush+buff tiles, and the side-fairness was perfect 0.500 rather than wide-chamber's 0.550. What I'd try next: structural variant that recovers DROP_RELIC without losing PLACE_WALL - perhaps adding a single contested mid-board tile (e.g. a bush at E2 or E8) that creates carrier-pressure for late-game drop maneuvers without adding more walls."
+}

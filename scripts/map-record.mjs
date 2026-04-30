@@ -23,6 +23,7 @@ const entry = {
   weighted_elo_gap: Math.round(result.score_components.weighted_elo_gap),
   horizon: round3(result.score_components.horizon),
   side_fairness: round3(result.score_components.side_fairness),
+  item_variety: round3(result.score_components.item_variety ?? 0),
   ts: result.timestamp ?? new Date().toISOString(),
 };
 

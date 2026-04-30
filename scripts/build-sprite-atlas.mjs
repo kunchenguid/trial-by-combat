@@ -7,7 +7,7 @@ const SOURCE_METADATA_PATH = resolve(ROOT, 'public/assets/source/trial-by-combat
 const ATLAS_PATH = resolve(ROOT, 'public/assets/trial-by-combat-sprite-sheet.png');
 const METADATA_PATH = resolve(ROOT, 'public/assets/trial-by-combat-sprite-sheet.meta.json');
 const RUNTIME_PATH = resolve(ROOT, 'public/assets/sprite-atlas.js');
-const VERSION = 'production-atlas-2048-v1';
+const VERSION = 'production-atlas-2048-v2';
 
 const metadata = JSON.parse(await readFile(SOURCE_METADATA_PATH, 'utf8'));
 validateMetadata(metadata);

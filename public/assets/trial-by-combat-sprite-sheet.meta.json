@@ -10,7 +10,7 @@
     "source": "public/assets/source/trial-by-combat-production-atlas-2048.png",
     "sourceMetadata": "public/assets/source/trial-by-combat-production-atlas-2048.json",
     "generator": "scripts/build-sprite-atlas.mjs",
-    "version": "production-atlas-2048-v1",
+    "version": "production-atlas-2048-v2",
     "recommendedImport": {
       "filterMode": "Point/Nearest",
       "compression": "None or lossless",

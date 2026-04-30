@@ -1,0 +1,24 @@
+{
+  "id": "_baseline",
+  "bases": {
+    "blue": ["A4", "A6"],
+    "red": ["I4", "I6"]
+  },
+  "starts": {
+    "blue": "A5",
+    "red": "I5"
+  },
+  "relicStart": "E5",
+  "walls": ["B5", "D4", "D6", "F4", "F6", "H5", "E3", "E7"],
+  "bushes": ["C3", "C5", "C7", "D5", "E4", "E6", "F5", "G3", "G5", "G7"],
+  "fire": ["B4", "B6", "C4", "C6", "G4", "G6", "H4", "H6"],
+  "inventory": {
+    "wall": 2,
+    "trap": 2,
+    "scan": 1,
+    "dash": 1,
+    "heal": 1
+  },
+  "notes": "Reference baseline. Mirrors the in-engine DEFAULT_MAP. Symmetric braided-split layout with central bush pockets at E4/E6 that make scan strategically valuable in high-vs-high play. No buffs placed, so lever_variety caps at 8/10 = 0.80 - placing buff tiles is the path to higher scores for new experiments.",
+  "conclusion": "Frozen reference."
+}

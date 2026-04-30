@@ -1,8 +1,10 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { greedyBot, mctsBot, randomBot } from '../src/bots.js';
+import * as bots from '../src/bots.js';
 import { ACTIONS, CENTER_CHOKE, createGame, validateAction } from '../src/engine.js';
 import { makeRng, simulate } from '../src/sim.js';
+
+const { greedyBot, mctsBot, randomBot } = bots;
 
 test('randomBot returns a legal action', () => {
   const game = createGame({ map: CENTER_CHOKE });
@@ -85,6 +87,56 @@ test('mctsBot is deterministic for the same seed and iters', () => {
   const a = mctsBot(game, 'blue', makeRng(42), { iters: 30 });
   const b = mctsBot(game, 'blue', makeRng(42), { iters: 30 });
   assert.deepEqual(a, b);
+});
+
+test('MCTS candidate actions expose targeted inventory actions', () => {
+  assert.equal(typeof bots.getMctsCandidateActions, 'function');
+});
+
+test('MCTS candidates include scan when it can reveal an enemy trap', () => {
+  const game = createGame({ map: CENTER_CHOKE });
+  game.players.blue.position = 'E4';
+  game.players.red.position = 'I5';
+  game.traps.set('E5', { owner: 'red', armed: true, revealedTo: new Set() });
+
+  const actions = bots.getMctsCandidateActions(game, 'blue');
+
+  assert.equal(
+    actions.some((action) => action.action_type === ACTIONS.SCAN),
+    true,
+  );
+});
+
+test('MCTS candidates do not include scan when it cannot reveal useful information', () => {
+  const game = createGame({ map: CENTER_CHOKE });
+  game.players.blue.position = 'E4';
+  game.players.red.position = 'I5';
+
+  const actions = bots.getMctsCandidateActions(game, 'blue');
+
+  assert.equal(
+    actions.some((action) => action.action_type === ACTIONS.SCAN),
+    false,
+  );
+});
+
+test('MCTS candidates include adjacent wall and trap placements on the opponent route', () => {
+  const map = {
+    id: 'mcts-placement-candidates',
+    bases: { blue: ['A5'], red: ['I5'] },
+    starts: { blue: 'E4', red: 'G5' },
+    relicStart: 'B5',
+    walls: [],
+    bushes: [],
+    fire: [],
+  };
+  const game = createGame({ map });
+
+  const actions = bots.getMctsCandidateActions(game, 'blue');
+  const keys = actions.map((action) => (action.target ? `${action.action_type}:${action.target}` : action.action_type));
+
+  assert.equal(keys.includes(`${ACTIONS.PLACE_TRAP}:E5`), true);
+  assert.equal(keys.includes(`${ACTIONS.PLACE_WALL}:E5`), true);
 });
 
 test('greedy beats random over a series of mirrored games on Center Choke', () => {

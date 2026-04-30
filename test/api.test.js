@@ -101,6 +101,33 @@ test('match starts after both sides ready and the GET response shows the grid', 
   });
 });
 
+test('player text view renders active buff tiles and lists them with effects', async () => {
+  await withServer(60, async (base, app) => {
+    await bothReady(base);
+    const game = app.state.series.currentGame;
+    game.map.buffs.set('C2', { type: 'dash_pack' });
+    game.map.buffs.set('G2', { type: 'big_heal' });
+    const res = await getText(`${base}/player1?nowait=true`);
+    assert.equal(res.status, 200);
+    assert.match(res.body, /BUFFS:/);
+    assert.match(res.body, /C2\s+dash_pack/);
+    assert.match(res.body, /G2\s+big_heal/);
+    // row 2: C2 is the dash buff (D), G2 is the big heal (+)
+    assert.match(res.body, /^\s*2 \| \. \. D \. \. \. \+ \. \. \|/m);
+    // legend mentions the buff glyphs
+    assert.match(res.body, /D dash-pack/);
+    assert.match(res.body, /\+ big-heal/);
+  });
+});
+
+test('briefing mentions buff tiles and effects', async () => {
+  await withServer(60, async (base) => {
+    const res = await getText(`${base}/player1?nowait=true`);
+    assert.match(res.body, /Dash Pack/);
+    assert.match(res.body, /Big Heal/);
+  });
+});
+
 test('POST /player1/action with valid action returns 200 ack and turn resolves when opponent submits', async () => {
   await withServer(60, async (base) => {
     await bothReady(base);
@@ -222,6 +249,32 @@ test('POST /playerN/ready accepts optional trash_talk and lobby transition is im
   });
 });
 
+test('POST /playerN/ready at game_end requires trash_talk', async () => {
+  await withServer(60, async (base, app) => {
+    await bothReady(base);
+    app.state.series.recordGame('player_1');
+    app.state.phase = 'game_end';
+    app.state.series.currentGame.phase = 'game_end';
+    app.state.series.currentGame.winner = 'blue';
+    app.state.slots.player_1.ready = false;
+    app.state.slots.player_2.ready = false;
+
+    const noTrash = await postJson(`${base}/player1/ready`);
+    assert.equal(noTrash.status, 400);
+    assert.match(noTrash.body, /trash_talk is required/);
+    assert.equal(app.state.slots.player_1.ready, false);
+
+    const blank = await postJson(`${base}/player1/ready`, { trash_talk: '   ' });
+    assert.equal(blank.status, 400);
+    assert.equal(app.state.slots.player_1.ready, false);
+
+    const ok = await postJson(`${base}/player1/ready`, { trash_talk: 'gg' });
+    assert.equal(ok.status, 200);
+    assert.equal(app.state.slots.player_1.ready, true);
+    assert.equal(app.state.trashTalk.player_1, 'gg');
+  });
+});
+
 test('readying after a scored game advances to the next game', async () => {
   const originalSetTimeout = globalThis.setTimeout;
   globalThis.setTimeout = (fn, delay, ...args) => originalSetTimeout(fn, delay === 10000 ? 0 : delay, ...args);
@@ -236,13 +289,13 @@ test('readying after a scored game advances to the next game', async () => {
       app.state.slots.player_1.ready = false;
       app.state.slots.player_2.ready = false;
 
-      await postJson(`${base}/player1/ready`);
-      await postJson(`${base}/player2/ready`);
+      await postJson(`${base}/player1/ready`, { trash_talk: 'rematch incoming' });
+      await postJson(`${base}/player2/ready`, { trash_talk: 'bring it' });
       await new Promise((resolve) => originalSetTimeout(resolve, 20));
 
       assert.equal(app.state.phase, 'match');
       assert.equal(app.state.series.gameNumber, 2);
-      assert.deepEqual(app.state.series.currentGame.slotSides, { player_1: 'red', player_2: 'blue' });
+      assert.deepEqual(app.state.series.currentGame.slotSides, { player_1: 'blue', player_2: 'red' });
     });
   } finally {
     globalThis.setTimeout = originalSetTimeout;
@@ -277,8 +330,8 @@ test('closing during next-round countdown clears the pending timer', async () =>
   app.state.slots.player_1.ready = false;
   app.state.slots.player_2.ready = false;
 
-  await postJson(`${base}/player1/ready`);
-  await postJson(`${base}/player2/ready`);
+  await postJson(`${base}/player1/ready`, { trash_talk: 'next' });
+  await postJson(`${base}/player2/ready`, { trash_talk: 'next' });
   assert.notEqual(app.state.nextRoundTimer, null);
 
   await app.close();
@@ -296,8 +349,8 @@ test('leaving during next-round countdown cancels the countdown', async () => {
     app.state.slots.player_1.ready = false;
     app.state.slots.player_2.ready = false;
 
-    await postJson(`${base}/player1/ready`);
-    await postJson(`${base}/player2/ready`);
+    await postJson(`${base}/player1/ready`, { trash_talk: 'next' });
+    await postJson(`${base}/player2/ready`, { trash_talk: 'next' });
     assert.notEqual(app.state.nextRoundTimer, null);
 
     const leave = await postJson(`${base}/player1/leave`);
@@ -359,16 +412,22 @@ test('malformed JSON returns a plain-text 400 response', async () => {
   });
 });
 
-test('briefing describes ATTACK as an untargeted action', async () => {
+test('briefing describes ATTACK as an untargeted action and lists every action on equal footing', async () => {
   await withServer(60, async (base) => {
     const res = await getText(`${base}/player1?nowait=true`);
 
     assert.equal(res.status, 200);
-    assert.match(
-      res.body,
-      /Plain action: \{"action":"WAIT","intent":"why"\} \(also: ATTACK, GUARD, HEAL, SCAN, DROP_RELIC\)/,
-    );
-    assert.doesNotMatch(res.body, /ATTACK target an adjacent tile/);
+    // ATTACK appears as its own bullet with no "target" field.
+    assert.match(res.body, /\{"action":"ATTACK","intent":"\.\.\."\}/);
+    assert.doesNotMatch(res.body, /"action":"ATTACK","target":/);
+    // PLACE_WALL and PLACE_TRAP are first-class bullets, not buried in a parenthetical.
+    assert.match(res.body, /\{"action":"PLACE_WALL","target":"<adjacent empty tile, orthogonal or diagonal>","intent":"\.\.\."\}/);
+    assert.match(res.body, /\{"action":"PLACE_TRAP","target":"<adjacent empty tile, orthogonal or diagonal>","intent":"\.\.\."\}/);
+    // Strategic-use emphasis on the inventory line.
+    assert.match(res.body, /Use these items strategically to your advantage\./);
+    // Trap gotcha is reframed offensively (deployer POV), not from the victim's POV.
+    assert.match(res.body, /trap you placed deals 5 damage/i);
+    assert.doesNotMatch(res.body, /Trap step converts the rest of your turn/);
   });
 });
 
@@ -385,5 +444,135 @@ test('Unknown slot path returns 404', async () => {
     assert.equal(a.status, 404);
     const b = await postJson(`${base}/player3/join`, { name: 'X' });
     assert.equal(b.status, 404);
+  });
+});
+
+test('intent prompt asks for action-naming, spectator-addressed, meme-worthy commentary', async () => {
+  await withServer(60, async (base) => {
+    // Briefing (pre-lobby) carries the guidance.
+    const briefing = await getText(`${base}/player1?nowait=true`);
+    assert.equal(briefing.status, 200);
+    assert.match(briefing.body, /intent: a one-line spectator commentary/i);
+    assert.match(briefing.body, /names the action/i);
+    assert.match(briefing.body, /addressed to the SPECTATOR/i);
+    assert.match(briefing.body, /NOT to the opponent/i);
+    assert.match(briefing.body, /meme-able, quotable, hilarious/i);
+
+    // In-match DO NEXT block carries the same guidance and the placeholder is no longer "why you chose this".
+    await postJson(`${base}/player1/join`, { name: 'Ada' });
+    await postJson(`${base}/player2/join`, { name: 'Turing' });
+    await postJson(`${base}/player1/ready`);
+    await postJson(`${base}/player2/ready`);
+    const view = await getText(`${base}/player1?nowait=true`);
+    assert.match(view.body, /Phase: match/);
+    assert.match(view.body, /<your spectator quip>/);
+    assert.doesNotMatch(view.body, /"intent":"why you chose this"/);
+    assert.match(view.body, /intent: a one-line spectator commentary/i);
+    assert.match(view.body, /addressed to the SPECTATOR/i);
+    assert.match(view.body, /meme-able, quotable, hilarious/i);
+
+    // Missing-intent error includes the same guidance.
+    const missing = await postJson(`${base}/player1/action`, { action: 'WAIT' });
+    assert.equal(missing.status, 400);
+    assert.match(missing.body, /intent is required/i);
+    assert.match(missing.body, /addressed to the SPECTATOR/i);
+    assert.match(missing.body, /meme-able/i);
+  });
+});
+
+test('briefing and game_end DO NEXT block prompt LLMs to address opponent in second person with meme-worthy lines', async () => {
+  await withServer(60, async (base, app) => {
+    // Briefing (pre-lobby)
+    const briefing = await getText(`${base}/player1?nowait=true`);
+    assert.equal(briefing.status, 200);
+    assert.match(briefing.body, /Speak DIRECTLY to your opponent/i);
+    assert.match(briefing.body, /second person/i);
+    assert.match(briefing.body, /meme-able, quotable, hilarious/i);
+
+    // game_end DO NEXT block
+    await bothReady(base);
+    app.state.series.recordGame('player_1');
+    app.state.phase = 'game_end';
+    app.state.series.currentGame.phase = 'game_end';
+    app.state.series.currentGame.winner = 'blue';
+    app.state.slots.player_1.ready = false;
+    app.state.slots.player_2.ready = false;
+
+    const view = await getText(`${base}/player1?nowait=true`);
+    assert.equal(view.status, 200);
+    assert.match(view.body, /Phase: game_end/);
+    assert.match(view.body, /Speak DIRECTLY to your opponent/i);
+    assert.match(view.body, /meme-able, quotable, hilarious/i);
+    // Stale "one-line jab shown to spectators" placeholder is gone
+    assert.doesNotMatch(view.body, /one-line jab shown to spectators/);
+
+    // Missing-trash-talk error message also encourages the right tone.
+    const noTrash = await postJson(`${base}/player1/ready`);
+    assert.equal(noTrash.status, 400);
+    assert.match(noTrash.body, /spoken DIRECTLY to your opponent/i);
+    assert.match(noTrash.body, /meme-able, quotable, hilarious/i);
+  });
+});
+
+test('duplicate ready at game_end is rejected with 409 and tells player to keep polling', async () => {
+  await withServer(60, async (base, app) => {
+    await bothReady(base);
+    app.state.series.recordGame('player_1');
+    app.state.phase = 'game_end';
+    app.state.series.currentGame.phase = 'game_end';
+    app.state.series.currentGame.winner = 'blue';
+    app.state.slots.player_1.ready = false;
+    app.state.slots.player_2.ready = false;
+
+    const first = await postJson(`${base}/player1/ready`, { trash_talk: 'gg' });
+    assert.equal(first.status, 200);
+    assert.equal(app.state.slots.player_1.ready, true);
+
+    const dup = await postJson(`${base}/player1/ready`, { trash_talk: 'gg again' });
+    assert.equal(dup.status, 409);
+    assert.match(dup.body, /already ready/i);
+    assert.match(dup.body, /poll/i);
+    // trash_talk for the duplicate must NOT overwrite the original
+    assert.equal(app.state.trashTalk.player_1, 'gg');
+  });
+});
+
+test('turn timer fires onTurnTimeout and flags missing sides as timed_out_last_turn', async () => {
+  await withServer(0.05, async (base, app) => {
+    await bothReady(base);
+    const turnBefore = app.state.series.currentGame.turn;
+    await new Promise((resolve) => setTimeout(resolve, 90));
+    // Stop the cycling timer so the assertions don't race with another fire.
+    if (app.state.timer) clearTimeout(app.state.timer);
+    app.state.timer = null;
+    const turnAfter = app.state.series.currentGame.turn;
+    assert.ok(turnAfter > turnBefore, 'turn should have advanced after timeout');
+    assert.equal(app.state.timedOutLastTurn.blue, true);
+    assert.equal(app.state.timedOutLastTurn.red, true);
+  });
+});
+
+test('player whose turn timed out is told on next /action and given latest state', async () => {
+  await withServer(60, async (base, app) => {
+    await bothReady(base);
+    const side = app.state.series.currentGame.slotSides.player_1;
+    app.state.timedOutLastTurn[side] = true;
+
+    const res = await postJson(`${base}/player1/action`, { action: 'WAIT', intent: 'just submit' });
+    assert.equal(res.status, 409);
+    assert.match(res.body, /missed your previous turn/i);
+    assert.match(res.body, /timer expired/i);
+    assert.match(res.body, /LATEST STATE/);
+    assert.match(res.body, /Phase: match/);
+    assert.match(res.body, /BOARD:/);
+
+    assert.equal(app.state.timedOutLastTurn[side], false);
+    // The discarded action must NOT have been recorded as pending
+    assert.equal(app.state.pendingActions.has(side), false);
+
+    // A follow-up action on the same turn now lands normally
+    const followup = await postJson(`${base}/player1/action`, { action: 'WAIT', intent: 'second try' });
+    assert.equal(followup.status, 200);
+    assert.equal(app.state.pendingActions.get(side)?.action_type, 'WAIT');
   });
 });

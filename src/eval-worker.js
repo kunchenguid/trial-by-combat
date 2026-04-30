@@ -15,6 +15,9 @@ parentPort.on('message', (task) => {
     winner: result.winner,
     turns: result.turns,
     replayRequired: result.replayRequired,
+    itemTypesUsed: result.itemTypesUsed,
+    leverTypesUsed: result.leverTypesUsed,
+    buffsPickedUpByType: result.buffsPickedUpByType,
   });
 });
 

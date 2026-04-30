@@ -1,0 +1,30 @@
+{
+  "id": "wide-chamber-lattice-v1",
+  "bases": {
+    "blue": ["A4", "A5", "A6"],
+    "red": ["I4", "I5", "I6"]
+  },
+  "starts": {
+    "blue": "A5",
+    "red": "I5"
+  },
+  "relicStart": "E5",
+  "walls": ["D3", "D7", "F3", "F7", "B5", "H5"],
+  "bushes": ["C5", "D5", "F5", "G5", "D4", "D6", "F4", "F6", "E4", "E6", "C3", "C7", "G3", "G7"],
+  "fire": [],
+  "inventory": {
+    "wall": 2,
+    "trap": 2,
+    "scan": 1,
+    "dash": 1,
+    "heal": 1
+  },
+  "buffs": [
+    { "coord": "D5", "type": "dash_pack" },
+    { "coord": "F5", "type": "dash_pack" },
+    { "coord": "E4", "type": "big_heal" },
+    { "coord": "E6", "type": "big_heal" }
+  ],
+  "notes": "Wide-chamber lattice structural revamp. Where baseline tightens around the relic with D4/D6/F4/F6 walls (a tight X), this map widens the wall ring out to D3/D7/F3/F7 and converts the inner D4-F6 ring into bushes, producing a 3x3 dense bush-ambush chamber around the relic. B5/H5 walls keep the lateral pinch to force row-4/row-6 lane choice rather than a direct row-5 race. Buffs sit at the four inner cardinal tiles (D5, F5 dash_pack; E4, E6 big_heal), so both buff types lie on shortest scoring paths and lever variety should max out. The hypothesis: keeping baseline's bush-ambush prediction game while widening the chamber preserves baseline's strong ladder Elo gap, and adding buffs on contested return lanes pushes lever variety from 0.8 to 1.0 without breaking horizon, side fairness, length, or turn caps.",
+  "conclusion": "New high score 56.72 vs 55.19 baseline. Guardrails all hit max: horizon 1.000 (T+15 divergence 0.354), side fairness 1.000 (blue mirror 0.550), no turn caps, healthy median length 15. Lever variety reached 9/10 in high-vs-high (missing PLACE_WALL only). Weighted Elo gap 199 came in slightly under baseline's 234 because greedy beat mcts-low (-68 g->low gap clipped to 0), but low->mid 261 and mid->high 224 are both strong - more search clearly keeps paying off. The 0.9 lever_variety multiplier (vs baseline's 0.8) was the main lever for beating baseline. What surprised me: the 3x3 bush lattice did not collapse game length the way prior bush-dense maps did. What I'd try next: nudge the layout to create one more PLACE_WALL incentive without losing the chamber's openness - perhaps a single asymmetric wall slot near the relic that high-search agents would profit from sealing on a counter-push."
+}

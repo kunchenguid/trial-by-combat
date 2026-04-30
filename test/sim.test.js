@@ -72,6 +72,48 @@ test('simulate respects custom turnCap', () => {
   assert.equal(result.turns, 5);
 });
 
+test('simulate exposes leverTypesUsed covering items, combat actions, and buff pickups', () => {
+  const map = {
+    id: 'lever-test',
+    bases: { blue: ['A5'], red: ['I5'] },
+    starts: { blue: 'A5', red: 'I5' },
+    relicStart: 'E1',
+    walls: [],
+    bushes: [],
+    fire: [],
+    buffs: [{ coord: 'B5', type: 'dash_pack' }],
+  };
+  let turn = 0;
+  // Blue picks up the buff (lever BUFF_DASH_PACK), then GUARDs (lever GUARD).
+  const blueAgent = () => {
+    turn += 1;
+    if (turn === 1) return { action_type: 'MOVE_EAST' };
+    return { action_type: 'GUARD' };
+  };
+  const result = simulate(map, blueAgent, wait, { seed: 1, turnCap: 3 });
+  const used = new Set(result.leverTypesUsed);
+  assert.equal(used.has('BUFF_DASH_PACK'), true);
+  assert.equal(used.has('GUARD'), true);
+});
+
+test('simulate counts buff pickups by type', () => {
+  // Tiny map with blue stepping onto a dash_pack on B5.
+  const map = {
+    id: 'buff-pickup',
+    bases: { blue: ['A5'], red: ['I5'] },
+    starts: { blue: 'A5', red: 'I5' },
+    relicStart: 'E1',
+    walls: [],
+    bushes: [],
+    fire: [],
+    buffs: [{ coord: 'B5', type: 'dash_pack' }],
+  };
+  const blueAgent = () => ({ action_type: ACTIONS.MOVE_EAST });
+  const result = simulate(map, blueAgent, wait, { seed: 1, turnCap: 3 });
+  assert.equal(result.buffsPickedUpByType.dash_pack, 1);
+  assert.equal(result.buffsPickedUpByType.big_heal ?? 0, 0);
+});
+
 test('simulate passes a side-scoped rng to agents and exposes it as 3rd arg', () => {
   const seen = { blue: [], red: [] };
   const agent = (_side) => (_game, s, rng) => {

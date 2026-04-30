@@ -18,6 +18,19 @@ const DEFAULTS = {
 };
 
 const LADDER_RUNGS = ['greedy', 'mcts-low', 'mcts-mid', 'mcts-high'];
+const ITEM_TYPES = ['wall', 'trap', 'scan', 'dash', 'heal'];
+const LEVER_TYPES = [
+  'DASH',
+  'HEAL',
+  'SCAN',
+  'PLACE_WALL',
+  'PLACE_TRAP',
+  'ATTACK',
+  'GUARD',
+  'DROP_RELIC',
+  'BUFF_DASH_PACK',
+  'BUFF_BIG_HEAL',
+];
 
 // Score-tuning constants. TARGET_ELO sets the soft "this gap is meaningful"
 // scale: a weighted-mean adjacent gap of TARGET_ELO maps to ~0.63 separation,
@@ -36,6 +49,13 @@ export async function evaluateMap(map, opts = {}) {
     const fairness = await evalFairness(map, config, pool);
     const horizon = evalHorizon(map, config);
     const guardrails = aggregateGuardrails(ladder, fairness);
+    const corpusItemUsage = aggregateItemUsage(ladder, fairness);
+    const itemUsage = itemUsageFromTypes(fairness.itemTypesUsed, {
+      scoreCondition: 'mcts-high-vs-mcts-high',
+      corpus: corpusItemUsage,
+    });
+    const leverUsage = aggregateLeverUsage(ladder, fairness);
+    const buffUsage = aggregateBuffUsage(ladder, fairness);
 
     const score = computeScore({
       ladderEloGaps: ladder.gaps,
@@ -43,6 +63,7 @@ export async function evaluateMap(map, opts = {}) {
       meanT15Divergence: horizon.meanT15,
       turnCapRate: guardrails.turnCapRate,
       medianGameLength: guardrails.medianGameLength,
+      leverTypesUsedCount: leverUsage.typesUsedCount,
     });
 
     return {
@@ -55,6 +76,9 @@ export async function evaluateMap(map, opts = {}) {
       fairness,
       horizon,
       guardrails,
+      item_usage: itemUsage,
+      lever_usage: leverUsage,
+      buff_usage: buffUsage,
       runtime_ms: Date.now() - t0,
     };
   } finally {
@@ -62,7 +86,14 @@ export async function evaluateMap(map, opts = {}) {
   }
 }
 
-export function computeScore({ ladderEloGaps, mctsMirrorWinrate, meanT15Divergence, turnCapRate, medianGameLength }) {
+export function computeScore({
+  ladderEloGaps,
+  mctsMirrorWinrate,
+  meanT15Divergence,
+  turnCapRate,
+  medianGameLength,
+  leverTypesUsedCount = LEVER_TYPES.length,
+}) {
   const g1 = Math.max(0, ladderEloGaps.greedyToLow);
   const g2 = Math.max(0, ladderEloGaps.lowToMid);
   const g3 = Math.max(0, ladderEloGaps.midToHigh);
@@ -75,7 +106,8 @@ export function computeScore({ ladderEloGaps, mctsMirrorWinrate, meanT15Divergen
   const side_fairness = 1 - clamp((Math.abs(mctsMirrorWinrate - 0.5) - 0.1) / 0.3, 0, 1);
   const turn_cap_penalty = 1 - clamp((turnCapRate - 0.1) / 0.3, 0, 1);
   const length_penalty = medianGameLength >= 12 ? 1 : medianGameLength / 12;
-  const score = 100 * ladder_separation * horizon * side_fairness * turn_cap_penalty * length_penalty;
+  const lever_variety = clamp(leverTypesUsedCount / LEVER_TYPES.length, 0, 1);
+  const score = 100 * ladder_separation * horizon * side_fairness * turn_cap_penalty * length_penalty * lever_variety;
   return {
     score,
     ladder_separation,
@@ -84,7 +116,55 @@ export function computeScore({ ladderEloGaps, mctsMirrorWinrate, meanT15Divergen
     side_fairness,
     turn_cap_penalty,
     length_penalty,
+    lever_variety,
   };
+}
+
+function itemUsageFromTypes(types = [], extra = {}) {
+  const used = new Set(types);
+  return {
+    ...extra,
+    typesUsedCount: used.size,
+    typesAvailable: ITEM_TYPES.length,
+    typesUsed: [...used].sort(),
+  };
+}
+
+function aggregateLeverUsage(ladder, fairness) {
+  const corpus = new Set([...(ladder.leverTypesUsed ?? []), ...(fairness.leverTypesUsed ?? [])]);
+  const scored = new Set(fairness.leverTypesUsed ?? []);
+  return {
+    scoreCondition: 'mcts-high-vs-mcts-high',
+    typesAvailable: LEVER_TYPES.length,
+    typesUsedCount: scored.size,
+    typesUsed: [...scored].sort(),
+    corpus: {
+      typesAvailable: LEVER_TYPES.length,
+      typesUsedCount: corpus.size,
+      typesUsed: [...corpus].sort(),
+    },
+  };
+}
+
+function aggregateBuffUsage(ladder, fairness) {
+  const corpus = {};
+  for (const src of [ladder.buffsPickedUpByType ?? {}, fairness.buffsPickedUpByType ?? {}]) {
+    for (const [type, count] of Object.entries(src)) {
+      corpus[type] = (corpus[type] ?? 0) + count;
+    }
+  }
+  return {
+    scoreCondition: 'mcts-high-vs-mcts-high',
+    scored: { ...(fairness.buffsPickedUpByType ?? {}) },
+    corpus,
+  };
+}
+
+function aggregateItemUsage(ladder, fairness) {
+  const used = new Set();
+  const sources = [...(ladder.itemTypesUsed ?? []), ...(fairness.itemTypesUsed ?? [])];
+  for (const t of sources) used.add(t);
+  return itemUsageFromTypes(used);
 }
 
 function itersForSpec(spec, config) {
@@ -132,9 +212,19 @@ async function evalLadder(map, config, pool) {
   }
 
   const games = [];
+  const ladderItemsUsed = new Set();
+  const ladderLeversUsed = new Set();
+  const ladderBuffPickups = {};
   for (let i = 0; i < tasks.length; i += 1) {
     const t = tasks[i];
     const r = results[i];
+    if (r.itemTypesUsed) for (const x of r.itemTypesUsed) ladderItemsUsed.add(x);
+    if (r.leverTypesUsed) for (const x of r.leverTypesUsed) ladderLeversUsed.add(x);
+    if (r.buffsPickedUpByType) {
+      for (const [type, count] of Object.entries(r.buffsPickedUpByType)) {
+        ladderBuffPickups[type] = (ladderBuffPickups[type] ?? 0) + count;
+      }
+    }
     const stats = pairwise[`${t.a}__vs__${t.b}`];
     stats.gamesPlayed += 1;
     let winnerSpec;
@@ -173,6 +263,9 @@ async function evalLadder(map, config, pool) {
     gaps,
     pairwise,
     games,
+    itemTypesUsed: [...ladderItemsUsed],
+    leverTypesUsed: [...ladderLeversUsed],
+    buffsPickedUpByType: ladderBuffPickups,
   };
 }
 
@@ -238,11 +331,21 @@ async function evalFairness(map, config, pool) {
   const results = await runSimTasks(tasks, map, config, pool);
 
   const games = [];
+  const fairnessItemsUsed = new Set();
+  const fairnessLeversUsed = new Set();
+  const fairnessBuffPickups = {};
   let blueScore = 0;
   let decisive = 0;
   for (let i = 0; i < tasks.length; i += 1) {
     const { seed } = tasks[i];
     const result = results[i];
+    if (result.itemTypesUsed) for (const x of result.itemTypesUsed) fairnessItemsUsed.add(x);
+    if (result.leverTypesUsed) for (const x of result.leverTypesUsed) fairnessLeversUsed.add(x);
+    if (result.buffsPickedUpByType) {
+      for (const [type, count] of Object.entries(result.buffsPickedUpByType)) {
+        fairnessBuffPickups[type] = (fairnessBuffPickups[type] ?? 0) + count;
+      }
+    }
     let blueResult;
     if (result.replayRequired || !result.winner) blueResult = 0.5;
     else blueResult = result.winner === 'blue' ? 1 : 0;
@@ -259,6 +362,9 @@ async function evalFairness(map, config, pool) {
     blueWinrate: blueScore / config.fairnessGames,
     decisiveGames: decisive,
     games,
+    itemTypesUsed: [...fairnessItemsUsed],
+    leverTypesUsed: [...fairnessLeversUsed],
+    buffsPickedUpByType: fairnessBuffPickups,
   };
 }
 
@@ -283,7 +389,14 @@ async function runSimTasks(tasks, map, config, pool) {
     const blueAgent = makeAgent(t.blueSpec, t.blueIters, config.mctsRolloutDepth);
     const redAgent = makeAgent(t.redSpec, t.redIters, config.mctsRolloutDepth);
     const r = simulate(map, blueAgent, redAgent, { seed: t.seed, turnCap: config.turnCap });
-    return { winner: r.winner, turns: r.turns, replayRequired: r.replayRequired };
+    return {
+      winner: r.winner,
+      turns: r.turns,
+      replayRequired: r.replayRequired,
+      itemTypesUsed: r.itemTypesUsed,
+      leverTypesUsed: r.leverTypesUsed,
+      buffsPickedUpByType: r.buffsPickedUpByType,
+    };
   });
 }
 

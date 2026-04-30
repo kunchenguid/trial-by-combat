@@ -8,6 +8,7 @@ import {
   stepCoord,
   validateAction,
 } from './engine.js';
+import { makeRng } from './sim.js';
 
 const DIRECTIONS = ['NORTH', 'SOUTH', 'EAST', 'WEST'];
 
@@ -195,15 +196,15 @@ function makeNode(game) {
     actions: terminal
       ? { blue: [], red: [] }
       : {
-          blue: prunedLegalActions(game, 'blue'),
-          red: prunedLegalActions(game, 'red'),
+          blue: getMctsCandidateActions(game, 'blue'),
+          red: getMctsCandidateActions(game, 'red'),
         },
     stats: { blue: new Map(), red: new Map() },
     children: new Map(),
   };
 }
 
-function prunedLegalActions(game, side) {
+export function getMctsCandidateActions(game, side) {
   // For MCTS branching, keep a small candidate set focused on actions that actually
   // shift the game. Decoupled UCT at low iter counts converges poorly with branching
   // ≥ 16; this brings it down to ≤ 9 per side without removing any line that real
@@ -227,7 +228,84 @@ function prunedLegalActions(game, side) {
   if (player.health < player.maxHealth && player.inventory.heal > 0) wantTypes.add(ACTIONS.HEAL);
   if (player.health <= 6) wantTypes.add(ACTIONS.GUARD);
 
-  return legal.filter((a) => wantTypes.has(a.action_type));
+  const out = legal.filter((a) => wantTypes.has(a.action_type));
+  const seen = new Set(out.map(actionKey));
+  const add = (action) => {
+    const key = actionKey(action);
+    if (seen.has(key)) return;
+    out.push(action);
+    seen.add(key);
+  };
+
+  if (scanCanRevealEnemyTrap(game, side)) {
+    const scan = legal.find((a) => a.action_type === ACTIONS.SCAN);
+    if (scan) add(scan);
+  }
+
+  for (const action of targetedPlacementActions(game, side, legal)) add(action);
+
+  return out;
+}
+
+function scanCanRevealEnemyTrap(game, side) {
+  const player = game.players[side];
+  if (player.inventory.scan <= 0) return false;
+  for (const [coord, trap] of game.traps) {
+    if (trap.owner === side) continue;
+    if (trap.revealedTo.has(side) || player.knownEnemyTraps.has(coord)) continue;
+    if (manhattan(player.position, coord) <= 2) return true;
+  }
+  return false;
+}
+
+function targetedPlacementActions(game, side, legal) {
+  const other = opponentOf(side);
+  const goals = opponentGoals(game, other, side);
+  const route = bfsPath(game, game.players[other].position, goals, { avoid: new Set() }) ?? [];
+  const nearRoute = new Set(route.slice(1, 5));
+  const placementActions = legal.filter(
+    (a) => (a.action_type === ACTIONS.PLACE_TRAP || a.action_type === ACTIONS.PLACE_WALL) && nearRoute.has(a.target),
+  );
+
+  const traps = placementActions.filter((a) => a.action_type === ACTIONS.PLACE_TRAP).slice(0, 2);
+  const walls = placementActions
+    .filter((a) => a.action_type === ACTIONS.PLACE_WALL && wallSlowsOpponent(game, side, a.target))
+    .slice(0, 2);
+  return [...traps, ...walls];
+}
+
+function opponentGoals(game, other, side) {
+  if (game.players[other].carryingRelic) return game.map.bases[other].slice();
+  if (game.relic.position) return [game.relic.position];
+  return [game.players[side].position];
+}
+
+function wallSlowsOpponent(game, side, target) {
+  const other = opponentOf(side);
+  const otherGoals = opponentGoals(game, other, side);
+  const selfGoals = ownGoals(game, side, other);
+  const otherBefore = pathDistance(game, game.players[other].position, otherGoals);
+  const selfBefore = pathDistance(game, game.players[side].position, selfGoals);
+  const trial = cloneGame(game);
+  trial.map.walls.add(target);
+  const otherAfter = pathDistance(trial, trial.players[other].position, otherGoals);
+  const selfAfter = pathDistance(trial, trial.players[side].position, selfGoals);
+
+  if (!Number.isFinite(otherBefore) || !Number.isFinite(otherAfter)) return false;
+  if (otherAfter <= otherBefore) return false;
+  if (!Number.isFinite(selfBefore) || !Number.isFinite(selfAfter)) return true;
+  return selfAfter - selfBefore <= otherAfter - otherBefore;
+}
+
+function ownGoals(game, side, other) {
+  if (game.players[side].carryingRelic) return game.map.bases[side].slice();
+  if (game.relic.position) return [game.relic.position];
+  return [game.players[other].position];
+}
+
+function pathDistance(game, start, goals) {
+  const path = bfsPath(game, start, goals, { avoid: new Set() });
+  return path ? path.length - 1 : Infinity;
 }
 
 function runIteration(root, rolloutDepth, c, rolloutEpsilon, rng) {
@@ -288,9 +366,11 @@ function selectChildAction(node, side, c, _rng) {
 function rollout(game, depth, epsilon, rng) {
   let g = game;
   let i = 0;
+  const blueRng = makeRng((rng() * 0x100000000) >>> 0);
+  const redRng = makeRng((rng() * 0x100000000) >>> 0);
   while (!g.winner && !g.replayRequired && i < depth) {
-    const blueA = greedyBot(g, 'blue', rng, { epsilon });
-    const redA = greedyBot(g, 'red', rng, { epsilon });
+    const blueA = greedyBot(g, 'blue', blueRng, { epsilon });
+    const redA = greedyBot(g, 'red', redRng, { epsilon });
     g = resolveTurn(g, { blue: blueA, red: redA }).game;
     i += 1;
   }

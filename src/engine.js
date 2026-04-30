@@ -19,9 +19,18 @@ export const ACTIONS = Object.freeze({
 
 export const SIDES = ['blue', 'red'];
 export const SLOTS = ['player_1', 'player_2'];
-export const RULESET_VERSION = 'capture-relic-2.2';
+export const RULESET_VERSION = 'capture-relic-2.6';
 export const TURN_CAP = 100;
 export const BOARD_SIZE = 9;
+export const MAX_INVENTORY_PER_ITEM = 5;
+
+export const BUFF_TYPES = Object.freeze({
+  DASH_PACK: 'dash_pack',
+  BIG_HEAL: 'big_heal',
+});
+
+const BUFF_TYPE_VALUES = new Set(Object.values(BUFF_TYPES));
+const DASH_PACK_AMOUNT = 3;
 
 const DIRS = Object.freeze({
   NORTH: [0, -1],
@@ -57,23 +66,29 @@ export const CENTER_CHOKE = Object.freeze({
   fire: ['D2', 'F6'],
 });
 
-export const BRAIDED_SPLIT_HOME_TOLLS = Object.freeze({
-  id: 'braided-split-home-tolls-v1',
+export const DEFAULT_MAP = Object.freeze({
+  id: 'default-v1',
   bases: {
-    blue: ['A4', 'A6'],
-    red: ['I4', 'I6'],
+    blue: ['A4', 'A5', 'A6'],
+    red: ['I4', 'I5', 'I6'],
   },
   relicStart: 'E5',
   starts: {
     blue: 'A5',
     red: 'I5',
   },
-  walls: ['B5', 'D4', 'D6', 'F4', 'F6', 'H5', 'E3', 'E7'],
-  bushes: ['C3', 'C5', 'C7', 'D5', 'F5', 'G3', 'G5', 'G7'],
-  fire: ['B4', 'B6', 'C4', 'C6', 'E4', 'E6', 'G4', 'G6', 'H4', 'H6'],
+  walls: ['D4', 'D6', 'F4', 'F6', 'B5', 'H5'],
+  bushes: ['D5', 'F5', 'E4', 'E6', 'C5', 'G5', 'C3', 'C7', 'G3', 'G7', 'D3', 'D7', 'F3', 'F7'],
+  fire: [],
+  buffs: [
+    { coord: 'D5', type: 'dash_pack' },
+    { coord: 'F5', type: 'dash_pack' },
+    { coord: 'E4', type: 'big_heal' },
+    { coord: 'E6', type: 'big_heal' },
+  ],
 });
 
-const STARTING_INVENTORY = Object.freeze({
+export const DEFAULT_STARTING_INVENTORY = Object.freeze({
   wall: 2,
   trap: 2,
   scan: 1,
@@ -81,14 +96,45 @@ const STARTING_INVENTORY = Object.freeze({
   heal: 1,
 });
 
+export const INVENTORY_KEYS = Object.freeze(['wall', 'trap', 'scan', 'dash', 'heal']);
+
+function parseBuffs(rawBuffs) {
+  const buffs = new Map();
+  if (!rawBuffs) return buffs;
+  for (const entry of rawBuffs) {
+    if (!entry || !entry.coord || !entry.type) {
+      throw new Error('Buff entries require coord and type.');
+    }
+    if (!BUFF_TYPE_VALUES.has(entry.type)) {
+      throw new Error(`Unknown buff type: ${entry.type}`);
+    }
+    const coord = String(entry.coord).toUpperCase();
+    if (!coordToPoint(coord)) throw new Error(`Buff coord ${entry.coord} is not on the board.`);
+    if (buffs.has(coord)) throw new Error(`Duplicate buff at ${coord}.`);
+    buffs.set(coord, { type: entry.type });
+  }
+  return buffs;
+}
+
+function resolveStartingInventory(mapDef) {
+  const override = mapDef?.inventory;
+  if (!override) return { ...DEFAULT_STARTING_INVENTORY };
+  const out = { ...DEFAULT_STARTING_INVENTORY };
+  for (const k of INVENTORY_KEYS) {
+    if (Object.prototype.hasOwnProperty.call(override, k)) out[k] = override[k];
+  }
+  return out;
+}
+
 export function createGame({
   playerNames = { player_1: 'Player 1', player_2: 'Player 2' },
   gameNumber = 1,
   slotSides = { player_1: 'blue', player_2: 'red' },
   matchId = `match_${Date.now()}`,
-  map: mapDef = BRAIDED_SPLIT_HOME_TOLLS,
+  map: mapDef = DEFAULT_MAP,
 } = {}) {
   const sideSlots = invertSlotSides(slotSides);
+  const startingInventory = resolveStartingInventory(mapDef);
   const map = {
     id: mapDef.id,
     bases: structuredClone(mapDef.bases),
@@ -97,6 +143,8 @@ export function createGame({
     walls: new Set(mapDef.walls ?? []),
     bushes: new Set(mapDef.bushes ?? []),
     fire: new Set(mapDef.fire ?? []),
+    buffs: parseBuffs(mapDef.buffs),
+    startingInventory,
   };
   const game = {
     rulesetVersion: RULESET_VERSION,
@@ -112,8 +160,8 @@ export function createGame({
     playerNames: { ...playerNames },
     map,
     players: {
-      blue: createPlayer('blue', sideSlots.blue, mapDef.starts.blue),
-      red: createPlayer('red', sideSlots.red, mapDef.starts.red),
+      blue: createPlayer('blue', sideSlots.blue, mapDef.starts.blue, startingInventory),
+      red: createPlayer('red', sideSlots.red, mapDef.starts.red, startingInventory),
     },
     relic: {
       position: mapDef.relicStart,
@@ -133,7 +181,7 @@ export function createGame({
   return game;
 }
 
-function createPlayer(side, slot, position) {
+function createPlayer(side, slot, position, startingInventory = DEFAULT_STARTING_INVENTORY) {
   return {
     side,
     slot,
@@ -141,8 +189,9 @@ function createPlayer(side, slot, position) {
     health: 10,
     maxHealth: 10,
     carryingRelic: false,
-    inventory: { ...STARTING_INVENTORY },
+    inventory: { ...startingInventory },
     stunned: false,
+    skipNextTurn: false,
     knownEnemyTraps: new Set(),
     scanRevealedOpponent: false,
   };
@@ -196,8 +245,8 @@ export function createSeries({ bestOf = 1, playerNames = { player_1: 'Player 1',
   return series;
 }
 
-export function slotSidesForGame(gameNumber) {
-  return gameNumber % 2 === 1 ? { player_1: 'blue', player_2: 'red' } : { player_1: 'red', player_2: 'blue' };
+export function slotSidesForGame(_gameNumber) {
+  return { player_1: 'blue', player_2: 'red' };
 }
 
 function invertSlotSides(slotSides) {
@@ -217,6 +266,7 @@ export function cloneGame(game) {
       walls: new Set(game.map.walls),
       bushes: new Set(game.map.bushes),
       fire: new Set(game.map.fire),
+      buffs: new Map([...game.map.buffs.entries()].map(([coord, buff]) => [coord, { ...buff }])),
     },
     players: Object.fromEntries(
       SIDES.map((side) => [
@@ -269,6 +319,29 @@ export function adjacent(a, b) {
   return manhattan(a, b) === 1;
 }
 
+export function placementAdjacent(a, b) {
+  const pa = coordToPoint(a);
+  const pb = coordToPoint(b);
+  if (!pa || !pb) return false;
+  const dx = Math.abs(pa.x - pb.x);
+  const dy = Math.abs(pa.y - pb.y);
+  return (dx | dy) !== 0 && dx <= 1 && dy <= 1;
+}
+
+export function placementAdjacentCoords(coord) {
+  const point = coordToPoint(coord);
+  if (!point) return [];
+  const out = [];
+  for (let dy = -1; dy <= 1; dy += 1) {
+    for (let dx = -1; dx <= 1; dx += 1) {
+      if (dx === 0 && dy === 0) continue;
+      const c = pointToCoord({ x: point.x + dx, y: point.y + dy });
+      if (c) out.push(c);
+    }
+  }
+  return out;
+}
+
 export function stepCoord(coord, direction) {
   const point = coordToPoint(coord);
   const delta = DIRS[direction];
@@ -310,6 +383,8 @@ export function validateAction(game, side, action, options = {}) {
   if (game.winner || game.replayRequired) return invalid('Game is over.');
   if (player.stunned && action.action_type !== ACTIONS.WAIT)
     return invalid('You are stunned and must skip this action.');
+  if (player.skipNextTurn && action.action_type !== ACTIONS.WAIT)
+    return invalid('You are stunned by a trap and must skip this turn.');
 
   const type = action.action_type;
   if (type === ACTIONS.WAIT) return valid();
@@ -353,7 +428,8 @@ function validatePlacement(game, side, target, item, options = {}) {
   const coord = String(target ?? '').toUpperCase();
   if (!coordToPoint(coord)) return invalid('Target must be a board coordinate.');
   const player = game.players[side];
-  if (!adjacent(player.position, coord)) return invalid('Target must be adjacent.');
+  if (!placementAdjacent(player.position, coord))
+    return invalid('Target must be adjacent (including diagonal).');
   if (!isEmptyForPlacement(game, coord, side, options)) return invalid('Target must be empty.');
   if (item === 'wall') {
     const trial = cloneGame(game);
@@ -374,7 +450,7 @@ function invalid(error) {
 export function getLegalActions(game, side, options = {}) {
   const player = game.players[side];
   if (!player || game.winner || game.replayRequired) return [];
-  if (player.stunned) return [{ action_type: ACTIONS.WAIT }];
+  if (player.stunned || player.skipNextTurn) return [{ action_type: ACTIONS.WAIT }];
   const actions = [{ action_type: ACTIONS.WAIT }, { action_type: ACTIONS.GUARD }, { action_type: ACTIONS.ATTACK }];
   for (const action_type of [
     ACTIONS.MOVE_NORTH,
@@ -392,7 +468,7 @@ export function getLegalActions(game, side, options = {}) {
     const action = { action_type };
     if (validateAction(game, side, action, options).valid) actions.push(action);
   }
-  for (const target of adjacentCoords(player.position)) {
+  for (const target of placementAdjacentCoords(player.position)) {
     for (const action_type of [ACTIONS.PLACE_WALL, ACTIONS.PLACE_TRAP]) {
       const action = { action_type, target };
       if (validateAction(game, side, action, options).valid) actions.push(action);
@@ -419,6 +495,11 @@ export function resolveTurn(inputGame, actionsBySide) {
     normalized[side] = validation.valid ? action : { action_type: ACTIONS.WAIT };
     startedInBush[side] = game.map.bushes.has(game.players[side].position);
     guarded[side] = normalized[side].action_type === ACTIONS.GUARD;
+    if (action.timed_out) {
+      events.push(
+        publicEvent(game, 'turn_timeout', side, `${label(side)} missed the turn (timer expired).`),
+      );
+    }
     if (!validation.valid) {
       game.invalidAttempts[side] += 1;
       events.push(
@@ -433,6 +514,10 @@ export function resolveTurn(inputGame, actionsBySide) {
       normalized[side] = { action_type: ACTIONS.WAIT };
       respawnPlayer(game, side);
       events.push(publicEvent(game, 'respawn', side, `${label(side)} skipped a turn and respawned.`));
+    } else if (player.skipNextTurn) {
+      normalized[side] = { action_type: ACTIONS.WAIT };
+      player.skipNextTurn = false;
+      events.push(publicEvent(game, 'trap_stun', side, `${label(side)} is stunned by a trap and skipped a turn.`));
     }
   }
 
@@ -457,6 +542,24 @@ export function resolveTurn(inputGame, actionsBySide) {
     }
   }
 
+  // Traps are placed BEFORE movement so an opponent stepping into the target
+  // this same turn triggers the trap. Walls are still placed after movement
+  // (further down) so a wall can't retroactively block an in-flight move.
+  for (const side of SIDES) {
+    const action = normalized[side];
+    if (action.action_type !== ACTIONS.PLACE_TRAP) continue;
+    const validation = validatePlacement(game, side, action.target, 'trap');
+    if (!validation.valid) {
+      events.push(
+        publicEvent(game, 'placement_failed', side, `${label(side)} could not place trap: ${validation.error}`),
+      );
+      continue;
+    }
+    game.players[side].inventory.trap -= 1;
+    game.traps.set(action.target, { owner: side, armed: true, revealedTo: new Set() });
+    events.push(privateEvent(game, side, 'trap_placed', `${label(side)} placed a trap at ${action.target}.`));
+  }
+
   for (let step = 1; step <= 2; step += 1) {
     for (const side of SIDES) {
       const type = normalized[side].action_type;
@@ -471,15 +574,22 @@ export function resolveTurn(inputGame, actionsBySide) {
     movementIntents.red = null;
   }
 
+  // Pick up a free relic right after movement so a same-turn attack from an
+  // adjacent opponent can land on the new carrier and force-drop it via the
+  // damage-application step below.
+  autoPickupRelic(game, events);
+
   for (const side of SIDES) {
     if (normalized[side].action_type === ACTIONS.ATTACK) {
       const other = opponentOf(side);
       if (adjacent(game.players[side].position, game.players[other].position)) {
-        let amount = 2;
-        if (startedInBush[side]) amount += 1;
+        let amount = startedInBush[side] ? 5 : 2;
         if (game.players[other].carryingRelic) amount += 1;
         damage[other] += amount;
-        events.push(publicEvent(game, 'attack', side, `${label(side)} attacked ${label(other)} for ${amount} damage.`));
+        events.push({
+          ...publicEvent(game, 'attack', side, `${label(side)} attacked ${label(other)} for ${amount} damage.`),
+          meta: { target: game.players[other].position },
+        });
       } else {
         events.push(publicEvent(game, 'attack_miss', side, `${label(side)} attacked, but no opponent was adjacent.`));
       }
@@ -524,25 +634,20 @@ export function resolveTurn(inputGame, actionsBySide) {
 
   for (const side of SIDES) {
     const action = normalized[side];
-    if (![ACTIONS.PLACE_WALL, ACTIONS.PLACE_TRAP].includes(action.action_type)) continue;
-    const item = action.action_type === ACTIONS.PLACE_WALL ? 'wall' : 'trap';
-    const validation = validatePlacement(game, side, action.target, item);
+    if (action.action_type !== ACTIONS.PLACE_WALL) continue;
+    const validation = validatePlacement(game, side, action.target, 'wall');
     if (!validation.valid) {
       events.push(
-        publicEvent(game, 'placement_failed', side, `${label(side)} could not place ${item}: ${validation.error}`),
+        publicEvent(game, 'placement_failed', side, `${label(side)} could not place wall: ${validation.error}`),
       );
       continue;
     }
-    game.players[side].inventory[item] -= 1;
-    if (item === 'wall') {
-      game.map.walls.add(action.target);
-      events.push(publicEvent(game, 'wall_placed', side, `${label(side)} placed a wall at ${action.target}.`));
-    } else {
-      game.traps.set(action.target, { owner: side, armed: true, revealedTo: new Set() });
-      events.push(privateEvent(game, side, 'trap_placed', `${label(side)} placed a trap at ${action.target}.`));
-    }
+    game.players[side].inventory.wall -= 1;
+    game.map.walls.add(action.target);
+    events.push(publicEvent(game, 'wall_placed', side, `${label(side)} placed a wall at ${action.target}.`));
   }
 
+  resolveBuffPickups(game, events);
   autoPickupRelic(game, events);
   checkWin(game, events);
 
@@ -609,6 +714,9 @@ function resolveMovementStep(game, actions, intents, step, damage, damagedForRel
   for (const side of active) {
     if (blocked.has(side)) {
       events.push(publicEvent(game, 'move_blocked', side, `${label(side)} was blocked while moving.`));
+      if (actions[side].action_type.startsWith('DASH_')) {
+        actions[side] = { action_type: ACTIONS.WAIT };
+      }
       continue;
     }
     const intent = intents[side];
@@ -623,9 +731,9 @@ function resolveMovementStep(game, actions, intents, step, damage, damagedForRel
     }
     const trap = game.traps.get(intent.target);
     if (trap && trap.owner !== side && trap.armed) {
-      damage[side] += 3;
+      damage[side] += 5;
       damagedForRelicDrop.add(side);
-      game.traps.delete(intent.target);
+      game.players[side].skipNextTurn = true;
       events.push(publicEvent(game, 'trap_triggered', side, `${label(side)} triggered a trap at ${intent.target}.`));
       actions[side] = { action_type: ACTIONS.WAIT };
     }
@@ -648,6 +756,46 @@ function applyScan(game, side, events) {
     events.push(publicEvent(game, 'scan_opponent', side, `${label(side)} scanned and located ${label(other)}.`));
   } else {
     events.push(publicEvent(game, 'scan', side, `${label(side)} scanned nearby tiles.`));
+  }
+}
+
+function resolveBuffPickups(game, events) {
+  if (game.map.buffs.size === 0) return;
+  for (const [coord, buff] of [...game.map.buffs.entries()]) {
+    const occupants = SIDES.filter(
+      (side) => game.players[side].position === coord && !game.players[side].stunned,
+    );
+    if (occupants.length !== 1) continue;
+    const side = occupants[0];
+    applyBuffEffect(game, side, buff, events, coord);
+    game.map.buffs.delete(coord);
+  }
+}
+
+function applyBuffEffect(game, side, buff, events, coord) {
+  const player = game.players[side];
+  if (buff.type === BUFF_TYPES.DASH_PACK) {
+    const before = player.inventory.dash;
+    player.inventory.dash = Math.min(MAX_INVENTORY_PER_ITEM, before + DASH_PACK_AMOUNT);
+    const gained = player.inventory.dash - before;
+    events.push(
+      publicEvent(
+        game,
+        'buff_picked_up',
+        side,
+        `${label(side)} picked up a dash pack at ${coord} (+${gained} dash).`,
+      ),
+    );
+  } else if (buff.type === BUFF_TYPES.BIG_HEAL) {
+    player.health = player.maxHealth;
+    events.push(
+      publicEvent(
+        game,
+        'buff_picked_up',
+        side,
+        `${label(side)} picked up a big heal at ${coord} (full HP).`,
+      ),
+    );
   }
 }
 
@@ -691,6 +839,7 @@ function checkWin(game, events) {
 function respawnPlayer(game, side) {
   const player = game.players[side];
   player.stunned = false;
+  player.skipNextTurn = false;
   player.health = 5;
   player.position = nearestRespawnTile(game, side);
 }
@@ -721,6 +870,7 @@ function isEmptyForPlacement(game, coord, side = null, options = {}) {
     if (!(options.playerVisible && hiddenEnemyTrap)) return false;
   }
   if (game.relic.position === coord) return false;
+  if (game.map.buffs.has(coord)) return false;
   if (Object.values(game.map.bases).some((bases) => bases.includes(coord))) return false;
   if (occupiedBy(game, coord)) return false;
   return true;
@@ -800,6 +950,7 @@ export function getPlayerView(game, side, timerSecondsRemaining = null) {
       max_health: player.maxHealth,
       carrying_relic: player.carryingRelic,
       stunned: player.stunned,
+      stun_skip_next_turn: player.skipNextTurn,
       inventory: { ...player.inventory },
     },
     opponent: {
@@ -816,6 +967,7 @@ export function getPlayerView(game, side, timerSecondsRemaining = null) {
       walls: [...game.map.walls].sort(),
       bushes: [...game.map.bushes].sort(),
       fire: [...game.map.fire].sort(),
+      buffs: serializeBuffs(game),
       known_enemy_traps: knownEnemyTraps,
       own_traps: ownTraps,
     },
@@ -853,6 +1005,12 @@ function relicStatusFor(game, side, opponentVisible) {
   return { status: 'free', position: game.relic.position, last_known_position: game.relic.lastKnownPosition };
 }
 
+function serializeBuffs(game) {
+  return [...game.map.buffs.entries()]
+    .map(([coord, buff]) => ({ coord, type: buff.type }))
+    .sort((a, b) => a.coord.localeCompare(b.coord));
+}
+
 function visibleEventsFor(game, side) {
   return game.eventLog.filter((event) => event.visibility === 'public' || event.visibility === `private_${side}`);
 }
@@ -870,7 +1028,7 @@ export function getSpectatorView(
     full_board_state: serializeBoard(game, { xray, actionStatuses, actionThoughts }),
     blue_private_state: xray ? privateState(game, 'blue') : null,
     red_private_state: xray ? privateState(game, 'red') : null,
-    public_events: game.eventLog.filter((event) => event.visibility === 'public').slice(-32),
+    public_events: game.eventLog.slice(-32),
     advantage_breakdown: computeAdvantage(game),
     timer_seconds_remaining: timerSecondsRemaining,
     winner: game.winner,
@@ -885,10 +1043,11 @@ function serializeBoard(game, { xray = false, actionStatuses = {}, actionThought
     walls: [...game.map.walls].sort(),
     bushes: [...game.map.bushes].sort(),
     fire: [...game.map.fire].sort(),
+    buffs: serializeBuffs(game),
     traps: [...game.traps.entries()].map(([coord, trap]) => ({
       coord,
       owner: trap.owner,
-      visible: xray,
+      visible: true,
       armed: trap.armed,
     })),
     relic: { ...game.relic },
@@ -909,7 +1068,7 @@ function publicPlayer(game, player, actionStatus, actionThought) {
     health: player.health,
     max_health: player.maxHealth,
     carrying_relic: player.carryingRelic,
-    stunned: player.stunned,
+    stunned: player.stunned || player.skipNextTurn,
     inventory: { ...player.inventory },
   };
 }

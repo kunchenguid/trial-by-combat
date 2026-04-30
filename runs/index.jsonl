@@ -1,4 +1,2 @@
-{"id":"braided-ambush-gates-v1","score":56.635,"ladder_separation":0.755,"weighted_elo_gap":281,"horizon":1,"side_fairness":1,"ts":"2026-04-28T03:26:15.934Z"}
-{"id":"braided-home-gates-v1","score":62.991,"ladder_separation":0.63,"weighted_elo_gap":199,"horizon":1,"side_fairness":1,"ts":"2026-04-28T03:57:14.859Z"}
-{"id":"braided-return-tolls-v1","score":68.661,"ladder_separation":0.687,"weighted_elo_gap":232,"horizon":1,"side_fairness":1,"ts":"2026-04-28T04:09:11.819Z"}
-{"id":"braided-split-home-tolls-v1","score":71.874,"ladder_separation":0.719,"weighted_elo_gap":254,"horizon":1,"side_fairness":1,"ts":"2026-04-28T04:38:58.612Z"}
+{"id":"wide-chamber-lattice-v1","score":56.716,"ladder_separation":0.63,"weighted_elo_gap":199,"horizon":1,"side_fairness":1,"item_variety":0,"ts":"2026-04-30T00:06:41.764Z"}
+{"id":"tight-x-buff-chamber-v1","score":66.254,"ladder_separation":0.736,"weighted_elo_gap":266,"horizon":1,"side_fairness":1,"item_variety":0,"ts":"2026-04-30T02:00:35.937Z"}

@@ -1,5 +1,5 @@
 export const TRIAL_BY_COMBAT_ATLAS = Object.freeze({
-  image: '/assets/trial-by-combat-sprite-sheet.png?v=production-atlas-2048-v1',
+  image: '/assets/trial-by-combat-sprite-sheet.png?v=production-atlas-2048-v2',
   width: 2048,
   height: 2048,
   cellSize: 64,

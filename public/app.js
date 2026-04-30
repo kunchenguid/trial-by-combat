@@ -1,5 +1,5 @@
 import { drawDetailedFloor, palette } from './assets/pixel-assets.js?v=detailed-atlas-128-clean-floor';
-import { TRIAL_BY_COMBAT_ATLAS } from './assets/sprite-atlas.js?v=production-atlas-2048-v1';
+import { TRIAL_BY_COMBAT_ATLAS } from './assets/sprite-atlas.js?v=production-atlas-2048-v2';
 import { buildTerrainSprites } from './assets/terrain-layout.js?v=detailed-atlas-128-clean-floor';
 
 const params = new URLSearchParams(window.location.search);
@@ -123,6 +123,7 @@ function renderShell(title, subtitle, content, pills = [], options = {}) {
 }
 
 function renderSpectator(view) {
+  ensureFullscreenBinding();
   const board = view.full_board_state;
   const bluePlayer = board.players.blue;
   const redPlayer = board.players.red;
@@ -152,9 +153,10 @@ function renderSpectator(view) {
         </section>
         ${spectatorPlayerPanel('blue', bluePlayer, view.timer_seconds_remaining, view.lobby)}
         <section class="board-frame pixel-panel">
-          <div class="axis top-axis">${axisLabels('A', 'I')}</div>
-          <div id="board" class="board-wrap broadcast-board"></div>
-          <div class="axis bottom-axis">${axisLabels('A', 'I')}</div>
+          <div class="board-axis-grid">
+            ${boardAxisLabels()}
+            <div id="board" class="board-wrap broadcast-board"></div>
+          </div>
           ${roundEndOverlay(view, board)}
         </section>
         ${spectatorPlayerPanel('red', redPlayer, view.timer_seconds_remaining, view.lobby)}
@@ -307,11 +309,25 @@ function formatTimer(seconds) {
   return `${Math.max(0, Math.floor(seconds))}s`;
 }
 
+function ensureFullscreenBinding() {
+  if (state.fullscreenBound) return;
+  state.fullscreenBound = true;
+  document.addEventListener('click', (event) => {
+    const target = event.target.closest?.('[data-fullscreen]');
+    if (!target) return;
+    if (document.fullscreenElement) {
+      document.exitFullscreen?.();
+    } else {
+      document.documentElement.requestFullscreen?.();
+    }
+  });
+}
+
 function fitSpectatorViewport() {
   const layout = document.querySelector('.spectator-hud');
   if (!layout) return;
   const updateScale = () => {
-    const scale = Math.min(window.innerWidth / 1792, window.innerHeight / 1000);
+    const scale = Math.min(window.innerWidth / 1920, window.innerHeight / 1080);
     document.documentElement.style.setProperty('--spectator-scale', scale.toFixed(4));
   };
   updateScale();
@@ -536,6 +552,21 @@ class BoardRenderer {
         }
       });
     }
+    for (const buff of board.buffs ?? []) {
+      drawAt(buff.coord, cell, (x, y) => {
+        const frameName = buff.type === 'dash_pack' ? 'arrow_gold' : 'hp_red_full';
+        const cx = x + cell * 0.5;
+        const cy = y + cell * 0.5;
+        const size = cell * 0.5;
+        this.addWorldActor(this.relicGroundLayer, cx, cy, buff, {
+          frameName,
+          width: size,
+          height: size,
+          anchor: [0.5, 0.5],
+          animationKind: 'buff',
+        });
+      });
+    }
     for (const action of options.legalActions ?? []) {
       if (action.target) {
         drawAt(action.target, cell, (x, y) => {
@@ -609,6 +640,9 @@ class BoardRenderer {
         actor.scale.set(actor.baseScale * (1 + Math.sin(t * 4.2) * 0.06));
         actor.y = actor.baseY + Math.sin(t * 3.1) * 1.5;
         actor.alpha = 0.85 + Math.sin(t * 5.7) * 0.15;
+      } else if (actor.animationKind === 'buff') {
+        actor.scale.set(actor.baseScale * (1 + Math.sin(t * 4.2) * 0.06));
+        actor.y = actor.baseY + Math.sin(t * 3.1) * 1.5;
       } else if (actor.animationKind === 'relic') {
         const pulse = 1 + Math.sin(t * 3.6) * 0.045;
         actor.y = actor.baseY + Math.sin(t * 2.8) * 2;
@@ -708,14 +742,14 @@ class BoardRenderer {
       for (const fx of this.fxActors) fx.sprite.destroy();
       this.fxActors = [];
       this.heroPoses = { blue: null, red: null };
+      for (const event of events) {
+        if (typeof event.seq === 'number' && event.seq > this.lastEventSeq) {
+          this.lastEventSeq = event.seq;
+        }
+      }
+      return;
     }
     for (const event of events) {
-      if (event.seq < this.lastEventSeq) {
-        this.lastEventSeq = -1;
-        for (const fx of this.fxActors) fx.sprite.destroy();
-        this.fxActors = [];
-        this.heroPoses = { blue: null, red: null };
-      }
       if (typeof event.seq !== 'number' || event.seq <= this.lastEventSeq) continue;
       this.dispatchEvent(event, board);
       this.lastEventSeq = event.seq;
@@ -737,7 +771,7 @@ class BoardRenderer {
         if (sideOf) {
           this.applyHeroPose(sideOf, `agent_${sideOf}_attack`, 500);
         }
-        const oppPos = sideOf ? board?.players?.[opponent(sideOf)]?.position : null;
+        const oppPos = event.meta?.target ?? (sideOf ? board?.players?.[opponent(sideOf)]?.position : null);
         const target = tileCenter(oppPos);
         if (target) {
           this.spawnFx('fx_hit', target.x, target.y, { size: cell * 1.05, lifetime: 360 });
@@ -910,8 +944,8 @@ function buildRenderList(board, options) {
   for (const coord of board.fire ?? []) push(coord, 'fire', { depthOffset: 0.14 });
   sprites.push(...buildTerrainSprites(board.walls, 'wall'));
   for (const trap of board.traps ?? []) {
-    if (trap.visible || options.xray)
-      push(trap.coord, 'trap', { hidden: !options.xray && !trap.visible, depthOffset: 0.08 });
+    if (options.xray) push(trap.coord, 'trap', { hidden: false, depthOffset: 0.08 });
+    else if (trap.visible) push(trap.coord, 'fire', { depthOffset: 0.08 });
   }
   if (board.relic?.position) push(board.relic.position, 'relic', { depthOffset: 0.1 });
   for (const side of ['blue', 'red']) {
@@ -984,7 +1018,11 @@ function roundEndOverlay(view, board) {
   const winnerSide = view.winner;
   const replay = Boolean(view.replay_required);
   const winnerName = winnerSide ? agentName(winnerSide, board, view.lobby) : null;
-  const headline = replay ? 'Round Replayed' : winnerName ? `${winnerName} Captured The Relic` : 'Round Complete';
+  const headlineMarkup = replay
+    ? 'Rematch'
+    : winnerName
+      ? `${escapeHtml(winnerName)}<br>Captured The Relic`
+      : 'Round Complete';
   const sideClass = winnerSide ? `winner-${winnerSide}` : '';
   const trash = view.trash_talk ?? {};
   const blueSlot = board?.players?.blue?.slot;
@@ -1007,7 +1045,7 @@ function roundEndOverlay(view, board) {
   return `
     <div class="round-end-banner ${sideClass}">
       <div class="round-end-tag">ROUND ${view.match?.game_number ?? ''} OVER</div>
-      <h2>${escapeHtml(headline)}</h2>
+      <h2>${headlineMarkup}</h2>
       ${trashRow}
       ${tail}
     </div>
@@ -1129,6 +1167,7 @@ function spectatorPlayerPanel(side, player, timerSeconds, lobby) {
 
 function waitingSpectator(view) {
   return `
+    <button type="button" class="fullscreen-toggle" data-fullscreen aria-label="Toggle fullscreen">Fullscreen</button>
     <main class="spectator-layout spectator-hud spectator-waiting">
       <section class="broadcast-title">
         <div class="broadcast-rule pixel-panel">${escapeHtml(formatGameCount(view.match))}</div>
@@ -1147,9 +1186,10 @@ function waitingSpectator(view) {
         <span class="join-prompt red">${escapeHtml(waitingSlotText(2, view.lobby.slots.player_2))}</span>
       </section>
       <section class="board-frame pixel-panel">
-        <div class="axis top-axis">${axisLabels('A', 'I')}</div>
-        <div id="board" class="board-wrap broadcast-board"></div>
-        <div class="axis bottom-axis">${axisLabels('A', 'I')}</div>
+        <div class="board-axis-grid">
+          ${boardAxisLabels()}
+          <div id="board" class="board-wrap broadcast-board"></div>
+        </div>
       </section>
       <section class="lower-hud waiting-lower">
         <div class="hud-card pixel-panel win-hud">
@@ -1167,12 +1207,25 @@ function waitingSlotText(slotNumber, slot) {
   return `${slot.name ?? `Player ${slotNumber}`} ${slot.ready ? 'ready' : 'joined'}`;
 }
 
-function axisLabels(start, end) {
-  const first = start.charCodeAt(0);
-  const last = end.charCodeAt(0);
-  const labels = [];
-  for (let code = first; code <= last; code += 1) labels.push(`<span>${String.fromCharCode(code)}</span>`);
-  return labels.join('');
+function boardAxisLabels() {
+  const parts = [];
+  for (let i = 0; i < 9; i += 1) {
+    const ch = String.fromCharCode(65 + i);
+    const col = i + 3;
+    parts.push(
+      `<span class="axis-label" style="grid-column:${col};grid-row:1">${ch}</span>`,
+      `<span class="axis-label" style="grid-column:${col};grid-row:13">${ch}</span>`,
+    );
+  }
+  for (let i = 0; i < 9; i += 1) {
+    const num = i + 1;
+    const row = i + 3;
+    parts.push(
+      `<span class="axis-label" style="grid-column:1;grid-row:${row}">${num}</span>`,
+      `<span class="axis-label" style="grid-column:13;grid-row:${row}">${num}</span>`,
+    );
+  }
+  return parts.join('');
 }
 
 function _itemIcon(kind) {
@@ -1195,6 +1248,7 @@ function eventList(events) {
   if (!events?.length) return '<div class="event">Waiting for the first move.</div>';
   return events
     .slice(-5)
+    .reverse()
     .map((event) => `<div class="event">${escapeHtml(event.summary)}</div>`)
     .join('');
 }

@@ -29,12 +29,17 @@ test('createGame accepts a custom map definition', () => {
   assert.equal(game.map.fire.has('C5'), true);
 });
 
-test('createGame defaults to braided-split-home-tolls-v1 when map is omitted', () => {
+test('createGame defaults to default-v1 when map is omitted', () => {
   const game = createGame();
-  assert.equal(game.map.id, 'braided-split-home-tolls-v1');
+  assert.equal(game.map.id, 'default-v1');
   assert.equal(game.players.blue.position, 'A5');
   assert.equal(game.players.red.position, 'I5');
   assert.equal(game.relic.position, 'E5');
+  // Central bush pockets at E4/E6 (not fire) - the new baseline geometry.
+  assert.equal(game.map.bushes.has('E4'), true);
+  assert.equal(game.map.bushes.has('E6'), true);
+  assert.equal(game.map.fire.has('E4'), false);
+  assert.equal(game.map.fire.has('E6'), false);
 });
 
 test('createGame supports asymmetric base sizes and relic placement', () => {

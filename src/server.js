@@ -1,4 +1,5 @@
 import { EventEmitter } from 'node:events';
+import fs from 'node:fs';
 import http from 'node:http';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -20,13 +21,25 @@ import {
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const publicDir = path.join(__dirname, '..', 'public');
+const matchLogFile =
+  process.env.TBC_MATCH_LOG_FILE || path.join(__dirname, '..', 'match-log.jsonl');
+const matchLogEnabled = process.env.TBC_MATCH_LOG !== '0';
+
+function appendMatchLog(matchId, entry) {
+  if (!matchLogEnabled || !matchId) return;
+  try {
+    fs.appendFileSync(matchLogFile, `${JSON.stringify({ ts: new Date().toISOString(), ...entry })}\n`);
+  } catch (err) {
+    console.error('match log write failed:', err.message);
+  }
+}
 const HEARTBEAT_INTERVAL_MS = 15000;
 const DEFAULT_WAIT_MS = 30000;
 const MAX_WAIT_MS = 30000;
 const SPECTATE_ROLE = 'spectate';
 const ADMIN_ROLE = 'admin';
 
-export function createAppServer({ turnSeconds = 60 } = {}) {
+export function createAppServer({ turnSeconds = 300 } = {}) {
   const expressApp = express();
   const server = http.createServer(expressApp);
   const wss = new WebSocketServer({ noServer: true });
@@ -171,6 +184,7 @@ function createRuntimeState(turnSeconds) {
     pendingActions: new Map(),
     lastActionThoughts: { blue: null, red: null },
     invalidAttemptsThisTurn: { blue: 0, red: 0 },
+    timedOutLastTurn: { blue: false, red: false },
     paused: false,
     turnStartedAt: null,
     pausedAt: null,
@@ -252,6 +266,10 @@ function shouldBlockGet(state, slotName) {
     if (state.pendingActions.has(side)) return true;
     return false;
   }
+  if (state.phase === 'game_end') {
+    if (slot.ready) return true;
+    return false;
+  }
   return false;
 }
 
@@ -315,11 +333,29 @@ function handlePostReady(state, slotName, req, res) {
       .send(`You haven't joined ${slotPath(slotName)} yet. POST /${slotPath(slotName)}/join first.`);
     return;
   }
-  slot.ready = true;
+  if (state.phase === 'game_end' && slot.ready) {
+    res
+      .status(409)
+      .type('text/plain')
+      .send(
+        `You are already ready for the next game. Keep polling GET /${slotPath(slotName)} until the other player is ready and the next game starts.`,
+      );
+    return;
+  }
   const trash = req.body?.trash_talk;
-  if (typeof trash === 'string') {
-    const cleaned = trash.replace(/\s+/g, ' ').trim().slice(0, TRASH_TALK_MAX);
-    state.trashTalk[slotName] = cleaned || null;
+  const cleanedTrash = typeof trash === 'string' ? trash.replace(/\s+/g, ' ').trim().slice(0, TRASH_TALK_MAX) : '';
+  if (state.phase === 'game_end' && !cleanedTrash) {
+    res
+      .status(400)
+      .type('text/plain')
+      .send(
+        `trash_talk is required between games. Re-POST with body {"trash_talk":"<a one-liner spoken DIRECTLY to your opponent (second person) - meme-able, quotable, hilarious>"} (max ${TRASH_TALK_MAX} chars).`,
+      );
+    return;
+  }
+  slot.ready = true;
+  if (cleanedTrash) {
+    state.trashTalk[slotName] = cleanedTrash;
   }
   if (state.slots.player_1.ready && state.slots.player_2.ready) {
     if (state.phase === 'game_end') {
@@ -373,6 +409,18 @@ function beginNextMatch(state) {
   }
   state.pendingActions.clear();
   state.lastActionThoughts = { blue: null, red: null };
+  state.timedOutLastTurn = { blue: false, red: false };
+  const game = state.series.currentGame;
+  appendMatchLog(game.matchId, {
+    type: 'game_start',
+    match_id: game.matchId,
+    game_number: game.gameNumber,
+    best_of: state.bestOf,
+    player_names: { ...game.playerNames },
+    slot_sides: { ...game.slotSides },
+    map_id: game.map.id,
+    ruleset_version: game.rulesetVersion,
+  });
   startTurnTimer(state);
 }
 
@@ -394,14 +442,30 @@ function handlePostAction(state, slotName, req, res) {
     return;
   }
 
-  const body = req.body ?? {};
-  const intent = capWords(String(body.intent ?? '').trim(), 20);
-  if (!intent) {
-    res.status(400).type('text/plain').send('intent is required. Provide {"action":"...","intent":"why"}.');
+  const side = sideFor(state, slotName);
+  if (state.timedOutLastTurn[side]) {
+    state.timedOutLastTurn[side] = false;
+    const view = renderForSlot(state, slotName, baseUrlFromReq(req));
+    res
+      .status(409)
+      .type('text/plain')
+      .send(
+        `You missed your previous turn (turn timer expired) - the server applied WAIT for you. Your incoming action has been discarded; review the latest state below and re-submit a fresh action for the current turn.\n\n----- LATEST STATE -----\n${view}`,
+      );
     return;
   }
 
-  const side = sideFor(state, slotName);
+  const body = req.body ?? {};
+  const intent = capWords(String(body.intent ?? '').trim(), 20);
+  if (!intent) {
+    res
+      .status(400)
+      .type('text/plain')
+      .send(
+        'intent is required. Provide a one-line spectator commentary (max 20 words) that names the action, is addressed to the SPECTATOR (third person about your opponent, NOT to them), and aims meme-able / quotable / hilarious. Example body: {"action":"...","intent":"<your spectator quip>"}.',
+      );
+    return;
+  }
   const game = state.series.currentGame;
   const existing = state.pendingActions.get(side);
   let translated;
@@ -475,9 +539,11 @@ function handlePostLeave(state, slotName, _req, res) {
     res.status(200).type('text/plain').send('Slot is already empty.');
     return;
   }
+  const side = sideFor(state, slotName);
   slot.name = null;
   slot.ready = false;
   slot.briefingShown = false;
+  if (side) state.timedOutLastTurn[side] = false;
   if (state.phase === 'match') pause(state);
   cancelNextRound(state);
   state.series.playerNames[slotName] = `Player ${slotName === 'player_1' ? '1' : '2'}`;
@@ -617,10 +683,21 @@ function renderForSlot(state, slotName, baseUrl = `http://localhost:${process.en
     lines.push(`Series: ${state.series.score.player_1}-${state.series.score.player_2}`);
     lines.push('');
     lines.push('DO NEXT:');
-    lines.push(`  curl -X POST ${baseUrl}/${slotPath(slotName)}/ready \\`);
-    lines.push(`       -H 'Content-Type: application/json' \\`);
-    lines.push(`       -d '{"trash_talk":"OPTIONAL one-line jab shown to spectators"}'`);
-    lines.push('  (ready up for the next game; trash_talk is optional, max 200 chars)');
+    if (slot.ready) {
+      const oppReady = state.slots[opponentSlot]?.ready;
+      lines.push(
+        `  You are READY for game ${state.series.gameNumber + 1}. Opponent ready=${oppReady ? 'yes' : 'no'}.`,
+      );
+      lines.push(`  curl ${baseUrl}/${slotPath(slotName)}`);
+      lines.push('  (re-poll; returns when the next game starts. KEEP POLLING until the series ends.)');
+    } else {
+      lines.push(`  curl -X POST ${baseUrl}/${slotPath(slotName)}/ready \\`);
+      lines.push(`       -H 'Content-Type: application/json' \\`);
+      lines.push(`       -d '{"trash_talk":"<your one-liner here>"}'`);
+      lines.push(`  trash_talk is REQUIRED (max ${TRASH_TALK_MAX} chars).`);
+      lines.push(`  Speak DIRECTLY to your opponent in second person ("you", not "they").`);
+      lines.push(`  Aim for meme-able, quotable, hilarious one-liners that spectators will want to screenshot.`);
+    }
     return lines.join('\n');
   }
 
@@ -644,8 +721,10 @@ function renderForSlot(state, slotName, baseUrl = `http://localhost:${process.en
 
   // YOU
   const inv = view.you.inventory;
+  const yourName = state.series.playerNames[slotName] ?? slot.name ?? slotPath(slotName);
+  const oppName = state.series.playerNames[opponentSlot] ?? state.slots[opponentSlot]?.name ?? slotPath(opponentSlot);
   lines.push(
-    `YOU (${side.toUpperCase()}):    ${view.you.position}  HP ${view.you.health}/${view.you.max_health}  carrying_relic=${view.you.carrying_relic ? 'yes' : 'no'}  stunned=${view.you.stunned ? 'yes' : 'no'}`,
+    `YOU ("${yourName}", ${side.toUpperCase()}):    ${view.you.position}  HP ${view.you.health}/${view.you.max_health}  carrying_relic=${view.you.carrying_relic ? 'yes' : 'no'}  stunned=${view.you.stunned ? 'yes' : 'no'}${view.you.stun_skip_next_turn ? '  trap_stun=yes (must WAIT)' : ''}`,
   );
   lines.push(
     `                inv: walls=${inv.wall} traps=${inv.trap} scans=${inv.scan} dashes=${inv.dash} heals=${inv.heal}`,
@@ -653,10 +732,10 @@ function renderForSlot(state, slotName, baseUrl = `http://localhost:${process.en
   // OPPONENT
   if (view.opponent.visible) {
     lines.push(
-      `OPPONENT (${oppSide(side).toUpperCase()}): ${view.opponent.position}  HP ${view.opponent.health ?? '?'}/10  carrying_relic=${view.opponent.carrying_relic ? 'yes' : 'no'}`,
+      `OPPONENT ("${oppName}", ${oppSide(side).toUpperCase()}): ${view.opponent.position}  HP ${view.opponent.health ?? '?'}/10  carrying_relic=${view.opponent.carrying_relic ? 'yes' : 'no'}`,
     );
   } else {
-    lines.push(`OPPONENT (${oppSide(side).toUpperCase()}): hidden`);
+    lines.push(`OPPONENT ("${oppName}", ${oppSide(side).toUpperCase()}): hidden`);
   }
   lines.push(`RELIC: ${describeRelic(view.relic)}`);
   lines.push(`SERIES: ${state.series.score.player_1}-${state.series.score.player_2}`);
@@ -668,7 +747,15 @@ function renderForSlot(state, slotName, baseUrl = `http://localhost:${process.en
   lines.push('Legend: . floor  X wall  # bush  ^ fire  * relic-on-ground');
   lines.push('        B blue  R red  b blue base  r red base');
   lines.push('        T your trap  t scanned enemy trap');
+  lines.push('        D dash-pack buff  + big-heal buff');
   lines.push(`Bases: blue=${game.map.bases.blue.join(',')}  red=${game.map.bases.red.join(',')}`);
+  if (view.known_tiles.buffs?.length) {
+    lines.push('BUFFS:');
+    for (const b of view.known_tiles.buffs) {
+      const effect = b.type === 'dash_pack' ? '+3 dash charges (cap 5)' : 'restore HP to full';
+      lines.push(`  ${b.coord}  ${b.type}  - ${effect}`);
+    }
+  }
   lines.push('');
 
   // RECENT EVENTS
@@ -696,9 +783,19 @@ function renderForSlot(state, slotName, baseUrl = `http://localhost:${process.en
   lines.push('');
 
   lines.push('DO NEXT:');
+  lines.push(
+    `  Before choosing, predict "${oppName}"'s most likely action this turn (movement is simultaneous, not reactive) and pick the response that beats it.`,
+  );
   lines.push(`  curl -X POST ${baseUrl}/${slotPath(slotName)}/action \\`);
   lines.push(`       -H 'Content-Type: application/json' \\`);
-  lines.push(`       -d '{"action":"WAIT","intent":"why you chose this"}'`);
+  lines.push(`       -d '{"action":"WAIT","intent":"<your spectator quip>"}'`);
+  lines.push('  intent: a one-line spectator commentary (max 20 words) that');
+  lines.push('    - explicitly names the action you are submitting this turn,');
+  lines.push('    - is addressed to the SPECTATOR (third person about your opponent), NOT to the opponent,');
+  lines.push(
+    `    - refers to players by NAME ("${yourName}" / "${oppName}"), not by side ("blue" / "red"),`,
+  );
+  lines.push('    - aims for meme-able, quotable, hilarious lines spectators will want to screenshot.');
   return lines.join('\n');
 }
 
@@ -742,6 +839,8 @@ function cellSymbol(coord, game, side, view) {
   if (view.known_tiles.walls.includes(coord)) return 'X';
   if (view.known_tiles.bushes.includes(coord)) return '#';
   if (view.known_tiles.fire.includes(coord)) return '^';
+  const buff = view.known_tiles.buffs?.find((b) => b.coord === coord);
+  if (buff) return buff.type === 'dash_pack' ? 'D' : '+';
   if (game.map.bases.blue.includes(coord)) return 'b';
   if (game.map.bases.red.includes(coord)) return 'r';
   return '.';
@@ -797,6 +896,10 @@ function renderBriefing() {
   lines.push('');
   lines.push(`Goal: ${RULES.goal}`);
   lines.push('');
+  if (RULES.decisionTip) {
+    lines.push(`How to think each turn: ${RULES.decisionTip}`);
+    lines.push('');
+  }
   lines.push('Each turn resolves in this order:');
   for (const [i, step] of RULES.resolutionOrder.entries()) {
     lines.push(`  ${i + 1}. ${step.label}: ${step.detail}`);
@@ -810,22 +913,40 @@ function renderBriefing() {
     }
   }
   lines.push('');
-  lines.push('Submitting actions:');
-  lines.push('  - Plain action: {"action":"WAIT","intent":"why"} (also: ATTACK, GUARD, HEAL, SCAN, DROP_RELIC)');
-  lines.push('  - Targeted: {"action":"MOVE","target":"D6","intent":"..."}');
-  lines.push('    (MOVE moves 1 cardinal tile to target; DASH moves 2 in one direction;');
-  lines.push('     PLACE_WALL/PLACE_TRAP target an adjacent empty tile.)');
-  lines.push('  - intent is required and capped at 20 words.');
+  lines.push('Submitting actions (every action is a separate POST body; intent is required, capped at 20 words):');
+  lines.push('  - {"action":"MOVE","target":"<adjacent tile>","intent":"..."}');
+  lines.push('  - {"action":"DASH","target":"<two tiles away in one cardinal direction>","intent":"..."}');
+  lines.push('  - {"action":"ATTACK","intent":"..."}');
+  lines.push('  - {"action":"GUARD","intent":"..."}');
+  lines.push('  - {"action":"HEAL","intent":"..."}');
+  lines.push('  - {"action":"SCAN","intent":"..."}');
+  lines.push('  - {"action":"DROP_RELIC","intent":"..."}');
+  lines.push('  - {"action":"WAIT","intent":"..."}');
+  lines.push('  - {"action":"PLACE_WALL","target":"<adjacent empty tile, orthogonal or diagonal>","intent":"..."}');
+  lines.push('  - {"action":"PLACE_TRAP","target":"<adjacent empty tile, orthogonal or diagonal>","intent":"..."}');
+  lines.push('  intent: a one-line spectator commentary (max 20 words) that');
+  lines.push('    - explicitly names the action you are submitting this turn,');
+  lines.push('    - is addressed to the SPECTATOR (third person about your opponent), NOT to the opponent,');
+  lines.push('    - refers to players by their NAMES, not by side ("blue" / "red") - sides are an internal color, names are what spectators see,');
+  lines.push('    - aims for meme-able, quotable, hilarious lines spectators will want to screenshot.');
   lines.push('');
   lines.push('Tiles:');
   for (const tile of RULES.tiles) lines.push(`  ${tile.name}: ${tile.effect}`);
   lines.push('');
   const inv = RULES.startingInventory.map((i) => `${i.count}x ${i.kind}`).join(', ');
-  lines.push(`Starting inventory: ${inv}.`);
+  lines.push(`Starting inventory: ${inv}. Use these items strategically to your advantage.`);
   lines.push(RULES.health.summary);
   lines.push('');
   lines.push('Common mistakes:');
   for (const g of RULES.gotchas) lines.push(`  - ${g}`);
+  lines.push('');
+  lines.push(
+    `Between games: when readying up after a game ends, trash_talk is REQUIRED (max ${TRASH_TALK_MAX} chars) and shown to spectators on the round-end screen. Speak DIRECTLY to your opponent in second person ("you", not "they") - aim for meme-able, quotable, hilarious one-liners that spectators will want to screenshot.`,
+  );
+  lines.push('');
+  lines.push(
+    `LOOP CONTRACT: Keep polling your GET endpoint until phase=series_end. After you ready up between games, the GET will long-poll and only return once the next game starts - do NOT stop your loop because there is no immediate action. "Already ready, waiting for opponent" is not a terminal state.`,
+  );
   return lines.join('\n');
 }
 
@@ -834,13 +955,35 @@ function renderBriefing() {
 function maybeResolveTurn(state) {
   if (!state.pendingActions.has('blue') || !state.pendingActions.has('red')) return;
   stopTurnTimer(state);
-  const { game } = resolveTurn(state.series.currentGame, {
+  const submittedActions = {
     blue: state.pendingActions.get('blue'),
     red: state.pendingActions.get('red'),
-  });
+  };
+  const preTurn = state.series.currentGame.turn;
+  const { game, events, actions: resolvedActions } = resolveTurn(state.series.currentGame, submittedActions);
   state.series.currentGame = game;
   state.pendingActions.clear();
   state.invalidAttemptsThisTurn = { blue: 0, red: 0 };
+  appendMatchLog(game.matchId, {
+    type: 'turn',
+    match_id: game.matchId,
+    game_number: game.gameNumber,
+    turn: preTurn,
+    submitted_actions: submittedActions,
+    resolved_actions: resolvedActions,
+    timed_out: { ...state.timedOutLastTurn },
+    events: events.map((e) => ({
+      seq: e.seq,
+      event_type: e.event_type,
+      visibility: e.visibility,
+      actor: e.actor,
+      summary: e.summary,
+      meta: e.meta ?? null,
+    })),
+    health: { blue: game.players.blue.health, red: game.players.red.health },
+    positions: { blue: game.players.blue.position, red: game.players.red.position },
+    relic: { position: game.relic.position, carried_by: game.relic.carriedBy },
+  });
   if (game.winningSlot) state.series.recordGame(game.winningSlot);
   if (game.winner || game.replayRequired || state.series.decided) {
     state.phase = state.series.decided ? 'series_end' : 'game_end';
@@ -850,6 +993,17 @@ function maybeResolveTurn(state) {
       state.slots.player_2.ready = false;
       state.trashTalk = { player_1: null, player_2: null };
     }
+    appendMatchLog(game.matchId, {
+      type: 'game_end',
+      match_id: game.matchId,
+      game_number: game.gameNumber,
+      winner_side: game.winner,
+      winner_slot: game.winningSlot,
+      replay_required: game.replayRequired,
+      series_decided: state.series.decided,
+      series_score: { ...state.series.score },
+      total_turns: game.turn,
+    });
   } else {
     startTurnTimer(state);
   }
@@ -860,13 +1014,18 @@ function startTurnTimer(state) {
   state.paused = false;
   state.turnStartedAt = Date.now();
   state.remainingWhenPaused = state.turnSeconds;
-  state.timer = setTimeout(() => {
-    for (const side of ['blue', 'red']) {
-      if (!state.pendingActions.has(side)) state.pendingActions.set(side, { action_type: ACTIONS.WAIT });
+  state.timer = setTimeout(() => onTurnTimeout(state), state.turnSeconds * 1000);
+}
+
+function onTurnTimeout(state) {
+  for (const side of ['blue', 'red']) {
+    if (!state.pendingActions.has(side)) {
+      state.pendingActions.set(side, { action_type: ACTIONS.WAIT, timed_out: true });
+      state.timedOutLastTurn[side] = true;
     }
-    maybeResolveTurn(state);
-    notifyChange(state);
-  }, state.turnSeconds * 1000);
+  }
+  maybeResolveTurn(state);
+  notifyChange(state);
 }
 
 function stopTurnTimer(state) {
@@ -887,13 +1046,7 @@ function resume(state) {
   if (!state.paused) return;
   state.paused = false;
   state.turnStartedAt = Date.now() - (state.turnSeconds - state.remainingWhenPaused) * 1000;
-  state.timer = setTimeout(() => {
-    for (const side of ['blue', 'red']) {
-      if (!state.pendingActions.has(side)) state.pendingActions.set(side, { action_type: ACTIONS.WAIT });
-    }
-    maybeResolveTurn(state);
-    notifyChange(state);
-  }, state.remainingWhenPaused * 1000);
+  state.timer = setTimeout(() => onTurnTimeout(state), state.remainingWhenPaused * 1000);
 }
 
 function restartSeries(state) {
@@ -912,6 +1065,7 @@ function restartSeries(state) {
   state.slots.player_2.ready = false;
   state.pendingActions.clear();
   state.lastActionThoughts = { blue: null, red: null };
+  state.timedOutLastTurn = { blue: false, red: false };
   state.paused = false;
 }
 
@@ -953,6 +1107,7 @@ function handleAdmin(state, ws, action, message) {
     state.series.restartCurrentGame();
     state.pendingActions.clear();
     state.lastActionThoughts = { blue: null, red: null };
+    state.timedOutLastTurn = { blue: false, red: false };
     startTurnTimer(state);
   } else if (action === 'restart_series') {
     restartSeries(state);
@@ -967,6 +1122,7 @@ function handleAdmin(state, ws, action, message) {
       stopTurnTimer(state);
       state.pendingActions.clear();
       state.lastActionThoughts = { blue: null, red: null };
+      state.timedOutLastTurn = { blue: false, red: false };
     }
   } else {
     throw new Error(`Unknown admin action ${action}`);

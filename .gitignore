@@ -3,4 +3,5 @@ node_modules/
 npm-debug.log*
 tmp/
 tmp-*
+match-log.jsonl
 .claude/scheduled_tasks.lock

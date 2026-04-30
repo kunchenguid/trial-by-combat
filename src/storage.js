@@ -2,7 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import { adjacent, coordToPoint, stepCoord } from './engine.js';
+import { adjacent, coordToPoint, INVENTORY_KEYS, stepCoord } from './engine.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 export const PROJECT_ROOT = path.resolve(__dirname, '..');
@@ -100,6 +100,23 @@ export function validateMapDefinition(map) {
   }
   if (!hasPath(map.starts.blue, [map.starts.red], wallsSet)) {
     errors.push('Blue start cannot reach red start.');
+  }
+
+  if (map.inventory !== undefined) {
+    if (!map.inventory || typeof map.inventory !== 'object' || Array.isArray(map.inventory)) {
+      errors.push('inventory must be an object mapping item names to non-negative integers.');
+    } else {
+      for (const k of Object.keys(map.inventory)) {
+        if (!INVENTORY_KEYS.includes(k)) {
+          errors.push(`inventory has unknown item "${k}". Allowed: ${INVENTORY_KEYS.join(', ')}.`);
+          continue;
+        }
+        const v = map.inventory[k];
+        if (!Number.isInteger(v) || v < 0) {
+          errors.push(`inventory.${k} must be a non-negative integer (got ${JSON.stringify(v)}).`);
+        }
+      }
+    }
   }
 
   return { valid: errors.length === 0, errors };

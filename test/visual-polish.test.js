@@ -13,9 +13,9 @@ test('spectator UI uses the polished broadcast overlay and detailed pixel render
   ]);
 
   assert.match(app, /spectator-hud/);
-  assert.match(index, /app\.js\?v=production-atlas-2048-v1/);
-  assert.match(app, /sprite-atlas\.js\?v=production-atlas-2048-v1/);
-  assert.match(atlas, /trial-by-combat-sprite-sheet\.png\?v=production-atlas-2048-v1/);
+  assert.match(index, /app\.js\?v=production-atlas-2048-v2/);
+  assert.match(app, /sprite-atlas\.js\?v=production-atlas-2048-v2/);
+  assert.match(atlas, /trial-by-combat-sprite-sheet\.png\?v=production-atlas-2048-v2/);
   assert.match(app, /'TRIAL BY COMBAT'/);
   assert.match(app, /lastStateFingerprint/);
   assert.match(app, /stateFingerprint\(message\)/);
@@ -23,7 +23,7 @@ test('spectator UI uses the polished broadcast overlay and detailed pixel render
   assert.match(app, /state\.boardRenderer/);
   assert.match(app, /attach\(target\)/);
   assert.match(app, /class BoardRenderer/);
-  assert.match(app, /event\.seq < this\.lastEventSeq/);
+  assert.match(app, /event\.seq <=? this\.lastEventSeq/);
   assert.match(app, /this\.app\.ticker\.add/);
   assert.match(app, /tick\(now = performance\.now\(\)\)/);
   assert.match(app, /this\.floorLayer/);
@@ -117,12 +117,12 @@ test('spectator UI uses the polished broadcast overlay and detailed pixel render
   assert.match(styles, /repeating-linear-gradient\(90deg/);
   assert.match(styles, /grid-template-columns: 386px minmax\(760px, 930px\) 386px/);
   assert.match(styles, /grid-template-rows: 150px 70px minmax\(520px, 1fr\) 192px/);
-  assert.match(styles, /aspect-ratio: 1792 \/ 1000/);
+  assert.match(styles, /aspect-ratio: 16 \/ 9/);
   assert.match(styles, /--spectator-scale/);
   assert.match(styles, /text-shadow:\s*3px 0 0 #1b2939/);
   assert.match(app, /fitSpectatorViewport/);
-  assert.match(app, /1792/);
-  assert.match(app, /1000/);
+  assert.match(app, /1920/);
+  assert.match(app, /1080/);
   assert.match(app, /appClass: 'admin-app arcade-app'/);
   assert.match(app, /class="admin-layout arcade-layout"/);
   assert.match(app, /class="panel pixel-panel/);

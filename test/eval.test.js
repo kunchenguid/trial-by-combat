@@ -25,6 +25,43 @@ test('computeScore produces a positive score on a healthy ladder', () => {
   assert.ok(r.score > 60 && r.score < 65);
 });
 
+test('computeScore lever_variety scales with leverTypesUsedCount over 10', () => {
+  const full = computeScore({
+    ladderEloGaps: { greedyToLow: 200, lowToMid: 200, midToHigh: 200 },
+    mctsMirrorWinrate: 0.5,
+    meanT15Divergence: 0.3,
+    turnCapRate: 0,
+    medianGameLength: 30,
+    leverTypesUsedCount: 10,
+  });
+  assert.equal(full.lever_variety, 1);
+
+  const partial = computeScore({
+    ladderEloGaps: { greedyToLow: 200, lowToMid: 200, midToHigh: 200 },
+    mctsMirrorWinrate: 0.5,
+    meanT15Divergence: 0.3,
+    turnCapRate: 0,
+    medianGameLength: 30,
+    leverTypesUsedCount: 8,
+  });
+  assert.equal(partial.lever_variety, 0.8);
+  // partial.score should be exactly 80% of full.score because lever_variety is the only difference.
+  assert.ok(Math.abs(partial.score - full.score * 0.8) < 1e-9);
+});
+
+test('computeScore reports lever_variety, not item_variety, as the rubric multiplier', () => {
+  const r = computeScore({
+    ladderEloGaps: { greedyToLow: 200, lowToMid: 200, midToHigh: 200 },
+    mctsMirrorWinrate: 0.5,
+    meanT15Divergence: 0.3,
+    turnCapRate: 0,
+    medianGameLength: 30,
+    leverTypesUsedCount: 10,
+  });
+  assert.ok('lever_variety' in r);
+  assert.ok(!('item_variety' in r));
+});
+
 test('computeScore weights the top adjacent gap most', () => {
   // Same total Elo (300) split three different ways. Putting it all at the top
   // gap should score higher than putting it all at the bottom gap.
@@ -151,4 +188,7 @@ test('evaluateMap runs end-to-end on a tiny config and returns the documented sh
   assert.ok(result.fairness && typeof result.fairness.blueWinrate === 'number');
   assert.ok(result.horizon && typeof result.horizon.meanT15 === 'number');
   assert.ok(result.guardrails && typeof result.guardrails.turnCapRate === 'number');
+  assert.equal(result.item_usage.scoreCondition, 'mcts-high-vs-mcts-high');
+  assert.deepEqual(result.item_usage.typesUsed, [...result.fairness.itemTypesUsed].sort());
+  assert.ok(result.item_usage.corpus && Array.isArray(result.item_usage.corpus.typesUsed));
 });

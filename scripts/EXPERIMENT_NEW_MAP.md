@@ -19,7 +19,7 @@ Side fairness is handled by the engine: sides swap every game in a series (`slot
 1. Stunned players auto-WAIT and respawn.
 2. HEAL → SCAN → DASH inventory decrement.
 3. **Movement** (1 step for MOVE, 2 steps for DASH). Both sides moving onto the same tile → both blocked. Swap → both blocked.
-4. **ATTACK** — checks adjacency *after* movement, so moving out of range dodges. Range 1.
+4. **ATTACK** — checks adjacency _after_ movement, so moving out of range dodges. Range 1.
 5. Damage applied (GUARD reduces by 2). Damage ≥3 forces relic drop.
 6. Voluntary DROP_RELIC. Knockouts.
 7. PLACE_WALL / PLACE_TRAP.
@@ -34,21 +34,34 @@ Write your map as JSON to `runs/maps/<id>.json` with these fields:
 
 ```jsonc
 {
-  "id": "corridor-side-route-v1",          // slug, must be unique
+  "id": "corridor-side-route-v1", // slug, must be unique
   "bases": {
-    "blue": ["A4", "A5", "A6"],            // ≥1 tile, no upper hard cap
-    "red":  ["I4", "I5", "I6"]
+    "blue": ["A4", "A5", "A6"], // ≥1 tile, no upper hard cap
+    "red": ["I4", "I5", "I6"],
   },
   "starts": {
-    "blue": "A5",                          // must be in own base or adjacent
-    "red":  "I5"
+    "blue": "A5", // must be in own base or adjacent
+    "red": "I5",
   },
   "relicStart": "E5",
-  "walls":  ["D6", "D7", "F2", "F3"],
+  "walls": ["D6", "D7", "F2", "F3"],
   "bushes": ["B2", "C5", "G5", "H2"],
-  "fire":   ["D2", "F6"],
-  "notes": "...",                          // optional: design reasoning, see Protocol step 2
-  "conclusion": null                       // filled in step 6, after eval
+  "fire": ["D2", "F6"],
+  "inventory": {
+    // optional; defaults shown. Per-player starting counts.
+    "wall": 2, // PLACE_WALL charges
+    "trap": 2, // PLACE_TRAP charges
+    "scan": 1, // SCAN charges
+    "dash": 1, // DASH charges (2-tile move)
+    "heal": 1, // HEAL charges
+  },
+  "buffs": [
+    // optional; one-shot pickup tiles. Auto-pickup when alone on tile.
+    { "coord": "E2", "type": "dash_pack" }, // dash_pack: +3 dash charges (cap 5)
+    { "coord": "E8", "type": "big_heal" }, // big_heal: restore HP to full (consumed even at full HP)
+  ],
+  "notes": "...", // optional: design reasoning, see Protocol step 2
+  "conclusion": null, // filled in step 6, after eval
 }
 ```
 
@@ -73,7 +86,7 @@ Write your map as JSON to `runs/maps/<id>.json` with these fields:
 
 The benchmark measures three things, plus guardrails:
 
-1. **Ladder separation**: does *more search* keep paying off? A four-rung MCTS-iter-scaling ladder plays round-robin (~20 games per pair, mirrored sides):
+1. **Ladder separation**: does _more search_ keep paying off? A four-rung MCTS-iter-scaling ladder plays round-robin (~20 games per pair, mirrored sides):
    - `greedy` — handcrafted heuristic (chase relic, attack adjacent, heal on low HP, etc.)
    - `mcts-low` — decoupled-UCT MCTS, 100 iterations/move
    - `mcts-mid` — same MCTS, 250 iterations/move
@@ -81,9 +94,11 @@ The benchmark measures three things, plus guardrails:
 
    Pairwise outcomes are fit to Bradley-Terry ratings (anchored so `greedy = 0` Elo) and converted to Elo. The headline number is the **weighted mean of adjacent Elo gaps** with weights `[1, 2, 3]` for `(greedy→low, low→mid, mid→high)` — i.e. the gap between the two strongest rungs is weighted most, because that's where "marginal compute → wins" is hardest to come by. Negative gaps (a stronger rung losing to a weaker one) clip to 0, so flat or inverted spots in the ladder earn no credit.
 
-2. **Action horizon**: do actions cascade? Counterfactual divergence: at sampled turns T, force a *different* legal action, replay forward with the same policies, measure win-rate delta at T+3, T+8, T+15. Mean delta at T+15 is the headline number.
+2. **Action horizon**: do actions cascade? Counterfactual divergence: at sampled turns T, force a _different_ legal action, replay forward with the same policies, measure win-rate delta at T+3, T+8, T+15. Mean delta at T+15 is the headline number.
 
 3. **Side fairness**: `mcts-high` vs `mcts-high` mirrored — closer to 50/50 is better.
+
+4. **Lever variety**: in the strongest condition (`mcts-high` vs `mcts-high` fairness games), how many of the 10 strategic lever types were actually used at least once? The 10 levers are: `DASH`, `HEAL`, `SCAN`, `PLACE_WALL`, `PLACE_TRAP` (item charges); `ATTACK`, `GUARD`, `DROP_RELIC` (combat/relic actions); `BUFF_DASH_PACK`, `BUFF_BIG_HEAL` (buff pickups). A lever counts as used the moment either high-search agent invokes it (consumes a charge, picks up a buff, or submits the action). Denominator is fixed at 10 — a buffless map maxes at 8/10 = 0.80 because it cannot exercise the 2 buff levers; placing buff tiles via the optional `buffs` field unlocks those slots. You control item starting counts via `inventory` and buff placement via `buffs`.
 
 ## Score Formula
 
@@ -94,16 +109,18 @@ horizon             = clamp(mean_t15_divergence / 0.30, 0, 1)  // 0.30 normalize
 side_fairness       = 1 - clamp((|mcts_mirror_winrate - 0.5| - 0.10) / 0.30, 0, 1)
 turn_cap_penalty    = 1 - clamp((turn_cap_rate - 0.10) / 0.30, 0, 1)
 length_penalty      = 1 if median_game_length ≥ 12 else median_game_length / 12
+lever_variety       = lever_types_used_by_mcts_high_vs_mcts_high / 10    // denominator fixed; flat multiplier
 
-score = 100 * ladder_separation * horizon * side_fairness * turn_cap_penalty * length_penalty
+score = 100 * ladder_separation * horizon * side_fairness * turn_cap_penalty * length_penalty * lever_variety
 ```
 
 Notes on the ladder:
+
 - `weighted_elo_gap` of 200 ⇒ `ladder_separation ≈ 0.63`, 400 ⇒ `≈ 0.86`, 600 ⇒ `≈ 0.95`. The metric never hits 1 exactly, so the score has no hard ceiling — a "perfect" 100 is unreachable by construction.
-- A flat ladder (every rung roughly equivalent) ⇒ small Elo gaps ⇒ low separation. Maps must reward *each step up the ladder*, especially the top step.
+- A flat ladder (every rung roughly equivalent) ⇒ small Elo gaps ⇒ low separation. Maps must reward _each step up the ladder_, especially the top step.
 - Random ties (replay/turn-cap) count as 0.5; one virtual half-half draw is added to every actually-played pair so a 100%/0% sweep doesn't blow the Bradley-Terry fit up to infinite Elo.
 
-Baseline Center Choke score lives at `runs/evals/_baseline_center_choke.json`. Compare your result to that, not to absolute numbers.
+The reference baseline (current in-engine default map) eval lives at `runs/evals/_baseline.json`. Compare your result to that, not to absolute numbers.
 
 ## Protocol — Execute In Order
 
@@ -114,11 +131,13 @@ cat runs/index.jsonl | tail -50
 ls runs/maps/
 ```
 
-Read 3-5 of the most recent entries' `hypothesis` and `conclusion` fields. Goal: don't repeat a near-identical attempt; learn from prior negative results. If `runs/index.jsonl` is empty, you are attempt #1.
+Read the `hypothesis` and `conclusion` fields. Goal: don't repeat a near-identical attempt; learn from prior negative results. If `runs/index.jsonl` is empty, you are attempt #1.
+
+Then ask: what _structural_ idea has the recent corpus NOT tested? Net-new layouts (different topology, different pacing mechanism, different lever mix) are encouraged over tweaks of a recent map. Reach for a tweak only when you're deliberately zeroing in on a promising region the corpus has already located - and say so in `notes`.
 
 ### 2. Note your reasoning (optional)
 
-You don't have to declare a hypothesis. But if you have a mental model for why this layout might play well — write it down in the `notes` field. Naming the *mechanism* (not just the vibe) helps later you (or another agent) read the corpus and learn from it. A note like *"three corridors instead of two so greedy can't commit"* is more useful than *"feels balanced"*. Skip it if you're just exploring.
+You don't have to declare a hypothesis. But if you have a mental model for why this layout might play well — write it down in the `notes` field. Naming the _mechanism_ (not just the vibe) helps later you (or another agent) read the corpus and learn from it. A note like _"three corridors instead of two so greedy can't commit"_ is more useful than _"feels balanced"_. Skip it if you're just exploring.
 
 ### 3. Author the map
 
@@ -161,6 +180,7 @@ Appends a one-line summary `{id, score, planning_premium, horizon, side_fairness
 ### 8. Report and stop
 
 Output to the human:
+
 ```
 Map: <id>
 Score: <X> (baseline: <Y>)
@@ -179,12 +199,12 @@ Takeaway: <one sentence>
 
 ## Files You'll Touch
 
-| Path | Read / Write | Purpose |
-|---|---|---|
-| `src/engine.js` | read | ground truth for rules |
-| `runs/index.jsonl` | read | prior attempts |
-| `runs/maps/<id>.json` | write | your map + hypothesis + conclusion |
-| `runs/evals/<id>.json` | read (after step 5) | benchmark results |
-| `runs/evals/_baseline_center_choke.json` | read | comparison point |
+| Path                        | Read / Write        | Purpose                            |
+| --------------------------- | ------------------- | ---------------------------------- |
+| `src/engine.js`             | read                | ground truth for rules             |
+| `runs/index.jsonl`          | read                | prior attempts                     |
+| `runs/maps/<id>.json`       | write               | your map + hypothesis + conclusion |
+| `runs/evals/<id>.json`      | read (after step 5) | benchmark results                  |
+| `runs/evals/_baseline.json` | read                | comparison point                   |
 
 You should not touch `src/`, `test/`, or `public/`.
