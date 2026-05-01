@@ -4,12 +4,12 @@ import test from 'node:test';
 import {
   ACTIONS,
   BUFF_TYPES,
-  MAX_INVENTORY_PER_ITEM,
-  RULESET_VERSION,
   cloneGame,
   createGame,
   getPlayerView,
   getSpectatorView,
+  MAX_INVENTORY_PER_ITEM,
+  RULESET_VERSION,
   resolveTurn,
   validateAction,
 } from '../src/engine.js';
@@ -35,10 +35,12 @@ test('ruleset version is current', () => {
 });
 
 test('createGame parses buffs from map JSON and exposes them on game.map.buffs', () => {
-  const game = createGame({ map: buffMap([
-    { coord: 'C5', type: BUFF_TYPES.DASH_PACK },
-    { coord: 'G5', type: BUFF_TYPES.BIG_HEAL },
-  ]) });
+  const game = createGame({
+    map: buffMap([
+      { coord: 'C5', type: BUFF_TYPES.DASH_PACK },
+      { coord: 'G5', type: BUFF_TYPES.BIG_HEAL },
+    ]),
+  });
 
   assert.equal(game.map.buffs.size, 2);
   assert.equal(game.map.buffs.get('C5').type, BUFF_TYPES.DASH_PACK);
@@ -61,10 +63,7 @@ test('createGame works with map that omits the buffs field (back-compat)', () =>
 });
 
 test('createGame rejects unknown buff types', () => {
-  assert.throws(
-    () => createGame({ map: buffMap([{ coord: 'C5', type: 'mystery' }]) }),
-    /Unknown buff type/,
-  );
+  assert.throws(() => createGame({ map: buffMap([{ coord: 'C5', type: 'mystery' }]) }), /Unknown buff type/);
 });
 
 test('cloneGame deep-clones the buffs map so mutations do not leak', () => {
@@ -85,17 +84,11 @@ test('moving onto a dash_pack adds 3 dash charges (capped) and consumes the buff
   });
 
   assert.equal(result.game.players.blue.position, 'B5');
-  assert.equal(
-    result.game.players.blue.inventory.dash,
-    Math.min(MAX_INVENTORY_PER_ITEM, startingDash + 3),
-  );
+  assert.equal(result.game.players.blue.inventory.dash, Math.min(MAX_INVENTORY_PER_ITEM, startingDash + 3));
   assert.equal(result.game.map.buffs.has('B5'), false);
   assert.equal(
     result.events.some(
-      (event) =>
-        event.event_type === 'buff_picked_up' &&
-        event.actor === 'blue' &&
-        event.summary.includes('B5'),
+      (event) => event.event_type === 'buff_picked_up' && event.actor === 'blue' && event.summary.includes('B5'),
     ),
     true,
   );
@@ -164,10 +157,12 @@ test('placement is rejected on a buff tile (wall and trap)', () => {
 });
 
 test('spectator view exposes active buffs as coord+type pairs and drops consumed ones', () => {
-  const game = createGame({ map: buffMap([
-    { coord: 'B5', type: BUFF_TYPES.DASH_PACK },
-    { coord: 'H5', type: BUFF_TYPES.BIG_HEAL },
-  ]) });
+  const game = createGame({
+    map: buffMap([
+      { coord: 'B5', type: BUFF_TYPES.DASH_PACK },
+      { coord: 'H5', type: BUFF_TYPES.BIG_HEAL },
+    ]),
+  });
   const before = getSpectatorView(game).full_board_state.buffs;
   assert.deepEqual(
     before.sort((a, b) => a.coord.localeCompare(b.coord)),
@@ -181,9 +176,7 @@ test('spectator view exposes active buffs as coord+type pairs and drops consumed
     blue: { action_type: ACTIONS.MOVE_EAST },
     red: wait,
   }).game;
-  assert.deepEqual(getSpectatorView(after).full_board_state.buffs, [
-    { coord: 'H5', type: BUFF_TYPES.BIG_HEAL },
-  ]);
+  assert.deepEqual(getSpectatorView(after).full_board_state.buffs, [{ coord: 'H5', type: BUFF_TYPES.BIG_HEAL }]);
 });
 
 test('player view exposes active buffs under known_tiles', () => {

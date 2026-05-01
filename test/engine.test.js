@@ -128,10 +128,7 @@ test('dash whose first step is blocked by a same-target collision does not advan
 
   assert.equal(result.game.players.blue.position, 'D5');
   assert.equal(result.game.players.red.position, 'F5');
-  assert.equal(
-    result.events.filter((e) => e.event_type === 'move' && e.actor === 'blue').length,
-    0,
-  );
+  assert.equal(result.events.filter((e) => e.event_type === 'move' && e.actor === 'blue').length, 0);
 });
 
 test('events carry monotonically increasing seq across turns and dash move events report meta', () => {
@@ -262,7 +259,7 @@ test('trap placed in same turn opponent steps in triggers (placement runs before
 });
 
 test('triggering a trap stuns the victim for their next turn (forced WAIT, no respawn)', () => {
-  let game = gameWith();
+  const game = gameWith();
   game.players.blue.position = 'A1';
   game.players.red.position = 'A3';
 

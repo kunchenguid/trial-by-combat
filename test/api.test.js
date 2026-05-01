@@ -421,8 +421,14 @@ test('briefing describes ATTACK as an untargeted action and lists every action o
     assert.match(res.body, /\{"action":"ATTACK","intent":"\.\.\."\}/);
     assert.doesNotMatch(res.body, /"action":"ATTACK","target":/);
     // PLACE_WALL and PLACE_TRAP are first-class bullets, not buried in a parenthetical.
-    assert.match(res.body, /\{"action":"PLACE_WALL","target":"<adjacent empty tile, orthogonal or diagonal>","intent":"\.\.\."\}/);
-    assert.match(res.body, /\{"action":"PLACE_TRAP","target":"<adjacent empty tile, orthogonal or diagonal>","intent":"\.\.\."\}/);
+    assert.match(
+      res.body,
+      /\{"action":"PLACE_WALL","target":"<adjacent empty tile, orthogonal or diagonal>","intent":"\.\.\."\}/,
+    );
+    assert.match(
+      res.body,
+      /\{"action":"PLACE_TRAP","target":"<adjacent empty tile, orthogonal or diagonal>","intent":"\.\.\."\}/,
+    );
     // Strategic-use emphasis on the inventory line.
     assert.match(res.body, /Use these items strategically to your advantage\./);
     // Trap gotcha is reframed offensively (deployer POV), not from the victim's POV.

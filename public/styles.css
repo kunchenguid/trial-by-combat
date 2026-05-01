@@ -1199,7 +1199,6 @@ pre {
   padding-top: 16px;
 }
 
-
 .panel {
   border: 1px solid var(--line);
   border-radius: var(--radius);
@@ -1307,6 +1306,7 @@ pre {
   min-height: auto;
 }
 
+/* biome-ignore lint/style/noDescendingSpecificity: base rule intentionally placed after layout-specific override */
 .board-wrap {
   width: min(100%, 640px);
   aspect-ratio: 1;

@@ -102,7 +102,7 @@ function parseBuffs(rawBuffs) {
   const buffs = new Map();
   if (!rawBuffs) return buffs;
   for (const entry of rawBuffs) {
-    if (!entry || !entry.coord || !entry.type) {
+    if (!entry?.coord || !entry.type) {
       throw new Error('Buff entries require coord and type.');
     }
     if (!BUFF_TYPE_VALUES.has(entry.type)) {
@@ -121,7 +121,7 @@ function resolveStartingInventory(mapDef) {
   if (!override) return { ...DEFAULT_STARTING_INVENTORY };
   const out = { ...DEFAULT_STARTING_INVENTORY };
   for (const k of INVENTORY_KEYS) {
-    if (Object.prototype.hasOwnProperty.call(override, k)) out[k] = override[k];
+    if (Object.hasOwn(override, k)) out[k] = override[k];
   }
   return out;
 }
@@ -428,8 +428,7 @@ function validatePlacement(game, side, target, item, options = {}) {
   const coord = String(target ?? '').toUpperCase();
   if (!coordToPoint(coord)) return invalid('Target must be a board coordinate.');
   const player = game.players[side];
-  if (!placementAdjacent(player.position, coord))
-    return invalid('Target must be adjacent (including diagonal).');
+  if (!placementAdjacent(player.position, coord)) return invalid('Target must be adjacent (including diagonal).');
   if (!isEmptyForPlacement(game, coord, side, options)) return invalid('Target must be empty.');
   if (item === 'wall') {
     const trial = cloneGame(game);
@@ -496,9 +495,7 @@ export function resolveTurn(inputGame, actionsBySide) {
     startedInBush[side] = game.map.bushes.has(game.players[side].position);
     guarded[side] = normalized[side].action_type === ACTIONS.GUARD;
     if (action.timed_out) {
-      events.push(
-        publicEvent(game, 'turn_timeout', side, `${label(side)} missed the turn (timer expired).`),
-      );
+      events.push(publicEvent(game, 'turn_timeout', side, `${label(side)} missed the turn (timer expired).`));
     }
     if (!validation.valid) {
       game.invalidAttempts[side] += 1;
@@ -762,9 +759,7 @@ function applyScan(game, side, events) {
 function resolveBuffPickups(game, events) {
   if (game.map.buffs.size === 0) return;
   for (const [coord, buff] of [...game.map.buffs.entries()]) {
-    const occupants = SIDES.filter(
-      (side) => game.players[side].position === coord && !game.players[side].stunned,
-    );
+    const occupants = SIDES.filter((side) => game.players[side].position === coord && !game.players[side].stunned);
     if (occupants.length !== 1) continue;
     const side = occupants[0];
     applyBuffEffect(game, side, buff, events, coord);
@@ -779,22 +774,12 @@ function applyBuffEffect(game, side, buff, events, coord) {
     player.inventory.dash = Math.min(MAX_INVENTORY_PER_ITEM, before + DASH_PACK_AMOUNT);
     const gained = player.inventory.dash - before;
     events.push(
-      publicEvent(
-        game,
-        'buff_picked_up',
-        side,
-        `${label(side)} picked up a dash pack at ${coord} (+${gained} dash).`,
-      ),
+      publicEvent(game, 'buff_picked_up', side, `${label(side)} picked up a dash pack at ${coord} (+${gained} dash).`),
     );
   } else if (buff.type === BUFF_TYPES.BIG_HEAL) {
     player.health = player.maxHealth;
     events.push(
-      publicEvent(
-        game,
-        'buff_picked_up',
-        side,
-        `${label(side)} picked up a big heal at ${coord} (full HP).`,
-      ),
+      publicEvent(game, 'buff_picked_up', side, `${label(side)} picked up a big heal at ${coord} (full HP).`),
     );
   }
 }
@@ -1025,7 +1010,7 @@ export function getSpectatorView(
     match: {
       game_number: game.gameNumber,
     },
-    full_board_state: serializeBoard(game, { xray, actionStatuses, actionThoughts }),
+    full_board_state: serializeBoard(game, { actionStatuses, actionThoughts }),
     blue_private_state: xray ? privateState(game, 'blue') : null,
     red_private_state: xray ? privateState(game, 'red') : null,
     public_events: game.eventLog.slice(-32),
@@ -1036,7 +1021,7 @@ export function getSpectatorView(
   };
 }
 
-function serializeBoard(game, { xray = false, actionStatuses = {}, actionThoughts = {} } = {}) {
+function serializeBoard(game, { actionStatuses = {}, actionThoughts = {} } = {}) {
   return {
     size: BOARD_SIZE,
     bases: structuredClone(game.map.bases),

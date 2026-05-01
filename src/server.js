@@ -21,8 +21,7 @@ import {
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const publicDir = path.join(__dirname, '..', 'public');
-const matchLogFile =
-  process.env.TBC_MATCH_LOG_FILE || path.join(__dirname, '..', 'match-log.jsonl');
+const matchLogFile = process.env.TBC_MATCH_LOG_FILE || path.join(__dirname, '..', 'match-log.jsonl');
 const matchLogEnabled = process.env.TBC_MATCH_LOG !== '0';
 
 function appendMatchLog(matchId, entry) {
@@ -685,9 +684,7 @@ function renderForSlot(state, slotName, baseUrl = `http://localhost:${process.en
     lines.push('DO NEXT:');
     if (slot.ready) {
       const oppReady = state.slots[opponentSlot]?.ready;
-      lines.push(
-        `  You are READY for game ${state.series.gameNumber + 1}. Opponent ready=${oppReady ? 'yes' : 'no'}.`,
-      );
+      lines.push(`  You are READY for game ${state.series.gameNumber + 1}. Opponent ready=${oppReady ? 'yes' : 'no'}.`);
       lines.push(`  curl ${baseUrl}/${slotPath(slotName)}`);
       lines.push('  (re-poll; returns when the next game starts. KEEP POLLING until the series ends.)');
     } else {
@@ -792,9 +789,7 @@ function renderForSlot(state, slotName, baseUrl = `http://localhost:${process.en
   lines.push('  intent: a one-line spectator commentary (max 20 words) that');
   lines.push('    - explicitly names the action you are submitting this turn,');
   lines.push('    - is addressed to the SPECTATOR (third person about your opponent), NOT to the opponent,');
-  lines.push(
-    `    - refers to players by NAME ("${yourName}" / "${oppName}"), not by side ("blue" / "red"),`,
-  );
+  lines.push(`    - refers to players by NAME ("${yourName}" / "${oppName}"), not by side ("blue" / "red"),`);
   lines.push('    - aims for meme-able, quotable, hilarious lines spectators will want to screenshot.');
   return lines.join('\n');
 }
@@ -927,7 +922,9 @@ function renderBriefing() {
   lines.push('  intent: a one-line spectator commentary (max 20 words) that');
   lines.push('    - explicitly names the action you are submitting this turn,');
   lines.push('    - is addressed to the SPECTATOR (third person about your opponent), NOT to the opponent,');
-  lines.push('    - refers to players by their NAMES, not by side ("blue" / "red") - sides are an internal color, names are what spectators see,');
+  lines.push(
+    '    - refers to players by their NAMES, not by side ("blue" / "red") - sides are an internal color, names are what spectators see,',
+  );
   lines.push('    - aims for meme-able, quotable, hilarious lines spectators will want to screenshot.');
   lines.push('');
   lines.push('Tiles:');
