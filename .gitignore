@@ -5,3 +5,4 @@ tmp/
 tmp-*
 match-log.jsonl
 .claude/scheduled_tasks.lock
+.no-mistakes/evidence/
