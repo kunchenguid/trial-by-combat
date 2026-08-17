@@ -85,3 +85,10 @@ Re-run `npm run build:atlas` after editing any source asset. The atlas version (
 - Events have `visibility: 'public' | 'private_blue' | 'private_red'`. Player views filter via `visibleEventsFor`; never leak a `private_*` event to the wrong side.
 - Tests use the built-in `node:test` runner (no Jest, no Mocha). API tests in `test/api.test.js` spin up `createAppServer` on port 0 and use real `fetch`; spectator/admin WS coverage lives in `test/server.test.js`.
 - When changing rules, also bump `RULESET_VERSION` in `engine.js` and update server tests if the player surface is affected.
+
+## Maintaining this file
+
+Keep this file for knowledge useful to almost every future agent session in this project.
+Do not repeat what the codebase already shows; point to the authoritative file or command instead.
+Prefer rewriting or pruning existing entries over appending new ones.
+When updating this file, preserve this bar for all agents and keep entries concise.
