@@ -39,21 +39,139 @@ jobs:
         run: |
           set -eu
           marker='Updates from [git push no-mistakes](https://github.com/kunchenguid/no-mistakes)'
-          if printf '%s' "${PR_BODY:-}" | grep -qF -- "$marker"; then
-            echo "Found no-mistakes signature in PR #${PR_NUMBER} body."
-            exit 0
+          if ! printf '%s' "${PR_BODY:-}" | grep -qF -- "$marker"; then
+            {
+              echo "::error::This PR was not raised through no-mistakes."
+              echo
+              echo "Contributions to this repository must be submitted via 'git push no-mistakes'."
+              echo "That pipeline runs the required review/test/lint/CI steps and writes a"
+              echo "deterministic '## Pipeline' section into the PR body containing:"
+              echo
+              echo "    $marker"
+              echo
+              echo "See CONTRIBUTING.md for setup and the full workflow."
+              echo
+              echo "PR author: ${PR_AUTHOR}"
+            } >&2
+            exit 1
           fi
-          {
-            echo "::error::This PR was not raised through no-mistakes."
-            echo
-            echo "Contributions to this repository must be submitted via 'git push no-mistakes'."
-            echo "That pipeline runs the required review/test/lint/CI steps and writes a"
-            echo "deterministic '## Pipeline' section into the PR body containing:"
-            echo
-            echo "    $marker"
-            echo
-            echo "See CONTRIBUTING.md for setup and the full workflow."
-            echo
-            echo "PR author: ${PR_AUTHOR}"
-          } >&2
-          exit 1
+          echo "Found no-mistakes signature in PR #${PR_NUMBER} body."
+
+          attestation_result="$(python3 - <<'PY'
+          import json
+          import os
+          import sys
+
+          PREFIX = "<!-- no-mistakes-pipeline-attestation:v1 "
+          SUFFIX = " -->"
+          REQUIRED_STEPS = ("review", "test", "document")
+
+          body = os.environ.get("PR_BODY") or ""
+          start = body.find(PREFIX)
+          if start < 0:
+              print("MISSING")
+              sys.exit(0)
+          json_start = start + len(PREFIX)
+          end = body.find(SUFFIX, json_start)
+          if end < 0:
+              print("UNPARSEABLE")
+              sys.exit(0)
+          raw = body[json_start:end].strip()
+          try:
+              payload = json.loads(raw)
+          except json.JSONDecodeError:
+              print("UNPARSEABLE")
+              sys.exit(0)
+          if not isinstance(payload, dict):
+              print("UNPARSEABLE")
+              sys.exit(0)
+          head_sha = payload.get("head_sha")
+          steps = payload.get("steps")
+          if not isinstance(head_sha, str) or not head_sha.strip() or not isinstance(steps, list):
+              print("UNPARSEABLE")
+              sys.exit(0)
+
+          statuses = {name: [] for name in REQUIRED_STEPS}
+          for item in steps:
+              if not isinstance(item, dict):
+                  print("UNPARSEABLE")
+                  sys.exit(0)
+              name = item.get("step")
+              status = item.get("status")
+              if not isinstance(name, str) or not isinstance(status, str):
+                  print("UNPARSEABLE")
+                  sys.exit(0)
+              if name in statuses:
+                  statuses[name].append(status)
+
+          bad = []
+          for name in REQUIRED_STEPS:
+              found = statuses[name]
+              if not found:
+                  bad.append(f"{name}=missing")
+                  continue
+              for status in found:
+                  if status != "completed":
+                      bad.append(f"{name}={status}")
+          if bad:
+              print("INCOMPLETE\t" + ", ".join(bad))
+              sys.exit(0)
+          print("OK\t" + head_sha.strip())
+          PY
+          )"
+
+          kind="${attestation_result%%$'\t'*}"
+          detail="${attestation_result#*$'\t'}"
+          case "$kind" in
+            OK)
+              echo "Found parseable no-mistakes pipeline attestation for head ${detail}."
+              echo "Required steps review, test, and document are completed."
+              ;;
+            MISSING|UNPARSEABLE)
+              {
+                echo "::error::This PR is missing a parseable no-mistakes pipeline step attestation."
+                echo
+                echo "The signature line is present, but this repository also requires the structured"
+                echo "HTML comment <!-- no-mistakes-pipeline-attestation:v1 ... --> with JSON"
+                echo "head_sha and steps."
+                echo
+                echo "This repository requires no-mistakes >= 1.46.0"
+                echo "(https://github.com/kunchenguid/no-mistakes/pull/670), the release that started"
+                echo "emitting structured step attestation. An older no-mistakes that only writes the"
+                echo "signature line is not enough."
+                echo
+                echo "Re-run via 'git push no-mistakes' with no-mistakes >= 1.46.0."
+                echo "See CONTRIBUTING.md for setup and the full workflow."
+                echo
+                echo "PR author: ${PR_AUTHOR}"
+              } >&2
+              exit 1
+              ;;
+            INCOMPLETE)
+              {
+                echo "::error::Required no-mistakes pipeline steps are not completed: ${detail}."
+                echo
+                echo "review, test, and document must each have status=completed."
+                echo "skipped, failed, pending, running, or a missing step is not compliant."
+                echo "Quota skips and agent skips are not compliant."
+                echo
+                echo "Re-run via 'git push no-mistakes' with no-mistakes >= 1.46.0 so those steps"
+                echo "complete. See CONTRIBUTING.md for setup and the full workflow."
+                echo
+                echo "PR author: ${PR_AUTHOR}"
+              } >&2
+              exit 1
+              ;;
+            *)
+              {
+                echo "::error::This PR is missing a parseable no-mistakes pipeline step attestation."
+                echo
+                echo "This repository requires no-mistakes >= 1.46.0"
+                echo "(https://github.com/kunchenguid/no-mistakes/pull/670). An older no-mistakes"
+                echo "that only writes the signature line is not enough."
+                echo
+                echo "PR author: ${PR_AUTHOR}"
+              } >&2
+              exit 1
+              ;;
+          esac
