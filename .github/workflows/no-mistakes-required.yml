@@ -29,10 +29,9 @@ jobs:
   check:
     name: PR must be raised via no-mistakes
     runs-on: ubuntu-latest
-    # Known automation accounts are exempt so the release pipeline keeps working:
-    # - github-actions[bot] opens the release-please PR via GITHUB_TOKEN
-    # - dependabot[bot] opens dependency update PRs
-    # Other authors (human or bot) must raise PRs through `git push no-mistakes`.
+    # Keep automation exemptions in this job-level condition: a GITHUB_TOKEN PR
+    # run can remain action_required and never enter a composite action, while
+    # skipping here also preserves the existing verdict shape.
     if: >-
       github.event.pull_request.user.login != 'github-actions[bot]' &&
       github.event.pull_request.user.login != 'dependabot[bot]' &&

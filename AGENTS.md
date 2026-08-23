@@ -13,12 +13,13 @@ npm install
 npm start                  # node src/server.js, default PORT=4178
 npm test                   # node --test, runs all test/*.test.js
 npm run test:engine        # engine tests only
+npm run lint               # Biome lint, format, and import checks
 node --test test/server.test.js   # single file
 node --test --test-name-pattern="creates Center Choke" test/engine.test.js   # single test
 npm run build:atlas        # regenerate sprite atlas (see "Sprite atlas" below)
 ```
 
-There is no bundler, transpiler, linter, or TypeScript. Pure ESM Node + vanilla browser JS.
+There is no bundler, transpiler, or TypeScript. Pure ESM Node + vanilla browser JS, checked with Biome.
 
 ## URL routes
 
