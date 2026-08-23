@@ -1,0 +1,19 @@
+Pinned shared action end-to-end verifier evidence
+Action source: kunchenguid/no-mistakes@32d396ac0f29135daf7fcb9964aba9d5f4e796d6
+
+CASE compliant: exit=0
+Found no-mistakes signature in PR #42 body.
+Found structurally compliant pipeline step attestation.
+::warning::PR-body attestation is author-editable and is not cryptographic proof that no-mistakes produced it.
+outputs: exempt=false, compliant=true
+
+CASE stale-head: exit=1
+Found no-mistakes signature in PR #42 body.
+::error::Pipeline attestation head_sha does not match the current PR head.
+outputs: exempt=false, compliant=false, exempt=false
+
+CASE last-wins: exit=0
+Found no-mistakes signature in PR #42 body.
+Found structurally compliant pipeline step attestation.
+::warning::PR-body attestation is author-editable and is not cryptographic proof that no-mistakes produced it.
+outputs: exempt=false, compliant=true

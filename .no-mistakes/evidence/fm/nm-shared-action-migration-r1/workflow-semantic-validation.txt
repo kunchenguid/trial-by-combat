@@ -1,0 +1,12 @@
+PASS: surgical scope changes only the enforcement workflow
+PASS: workflow name and run-name are unchanged
+PASS: pull_request trigger drops only synchronize
+PASS: main branch filter and absence of paths-ignore are preserved
+PASS: read-only contents permission is unchanged
+PASS: concurrency expression and cancellation behavior are unchanged
+PASS: required-check job name is unchanged
+PASS: runner and exact job-level exemption condition are unchanged
+PASS: all three automation author exemptions remain job-level
+PASS: job is a thin one-step caller with no checkout, script, env, secrets, or inputs
+PASS: shared action is pinned to the required immutable SHA
+RESULT: normalized workflow contract is satisfied.
